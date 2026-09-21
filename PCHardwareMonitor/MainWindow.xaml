@@ -14,302 +14,244 @@
 
     <Window.Resources>
 
-        <!-- =====================================================
-             КНОПКИ
-             ===================================================== -->
-
         <Style TargetType="Button">
-
-            <Setter Property="Foreground"
-                    Value="{DynamicResource PrimaryTextBrush}"/>
-
-            <Setter Property="Background"
-                    Value="Transparent"/>
-
-            <Setter Property="BorderBrush"
-                    Value="{DynamicResource BorderBrush}"/>
-
-            <Setter Property="BorderThickness"
-                    Value="1"/>
-
-            <Setter Property="Cursor"
-                    Value="Hand"/>
-
-            <Setter Property="Padding"
-                    Value="15,9"/>
-
-            <Setter Property="MinHeight"
-                    Value="38"/>
-
-            <Setter Property="FontSize"
-                    Value="12"/>
-
-            <Setter Property="FontWeight"
-                    Value="SemiBold"/>
-
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="15,9"/>
+            <Setter Property="MinHeight" Value="38"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Template">
-
                 <Setter.Value>
-
                     <ControlTemplate TargetType="Button">
-
                         <Border x:Name="ButtonBorder"
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="4"
+                                CornerRadius="{DynamicResource ButtonCornerRadius}"
                                 Padding="{TemplateBinding Padding}">
-
                             <ContentPresenter HorizontalAlignment="Center"
                                               VerticalAlignment="Center"/>
-
                         </Border>
-
                         <ControlTemplate.Triggers>
-
-                            <Trigger Property="IsMouseOver"
-                                     Value="True">
-
+                            <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="ButtonBorder"
                                         Property="BorderBrush"
                                         Value="{DynamicResource AccentBrush}"/>
-
                                 <Setter Property="Foreground"
                                         Value="{DynamicResource AccentBrush}"/>
-
                             </Trigger>
-
-                            <Trigger Property="IsPressed"
-                                     Value="True">
-
+                            <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="ButtonBorder"
                                         Property="Opacity"
                                         Value="0.65"/>
-
                             </Trigger>
-
                         </ControlTemplate.Triggers>
-
                     </ControlTemplate>
-
                 </Setter.Value>
-
             </Setter>
-
         </Style>
 
-
-        <!-- =====================================================
-             PROGRESS BAR
-             ===================================================== -->
-
         <Style TargetType="ProgressBar">
-
-            <Setter Property="Height"
-                    Value="9"/>
-
-            <Setter Property="Background"
-                    Value="{DynamicResource GaugeTrackBrush}"/>
-
-            <Setter Property="BorderThickness"
-                    Value="0"/>
-
+            <Setter Property="Height" Value="9"/>
+            <Setter Property="Background" Value="{DynamicResource GaugeTrackBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Template">
-
                 <Setter.Value>
-
                     <ControlTemplate TargetType="ProgressBar">
-
                         <Border Background="{TemplateBinding Background}"
-                                CornerRadius="2">
-
+                                CornerRadius="{DynamicResource ProgressCornerRadius}">
                             <Grid ClipToBounds="True">
-
                                 <Grid x:Name="PART_Track"/>
-
                                 <Border x:Name="PART_Indicator"
                                         HorizontalAlignment="Left"
                                         Background="{TemplateBinding Foreground}"
-                                        CornerRadius="2"/>
-
+                                        CornerRadius="{DynamicResource ProgressCornerRadius}"/>
                             </Grid>
-
                         </Border>
-
                     </ControlTemplate>
-
                 </Setter.Value>
-
             </Setter>
-
         </Style>
 
-
-        <!-- =====================================================
-             ТЕКСТ
-             ===================================================== -->
-
-        <Style x:Key="SectionTitleStyle"
-               TargetType="TextBlock">
-
-            <Setter Property="Foreground"
-                    Value="{DynamicResource PrimaryTextBrush}"/>
-
-            <Setter Property="FontSize"
-                    Value="14"/>
-
-            <Setter Property="FontWeight"
-                    Value="Bold"/>
-
+        <Style x:Key="SectionTitleStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Bold"/>
         </Style>
 
-
-        <Style x:Key="TechLabelStyle"
-               TargetType="TextBlock">
-
-            <Setter Property="Foreground"
-                    Value="{DynamicResource SecondaryTextBrush}"/>
-
-            <Setter Property="FontSize"
-                    Value="9"/>
-
-            <Setter Property="FontWeight"
-                    Value="SemiBold"/>
-
+        <Style x:Key="TechLabelStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource SecondaryTextBrush}"/>
+            <Setter Property="FontSize" Value="9"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
         </Style>
 
-
-        <Style x:Key="SecondaryTextStyle"
-               TargetType="TextBlock">
-
-            <Setter Property="Foreground"
-                    Value="{DynamicResource SecondaryTextBrush}"/>
-
-            <Setter Property="FontSize"
-                    Value="11"/>
-
+        <Style x:Key="SecondaryTextStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource SecondaryTextBrush}"/>
+            <Setter Property="FontSize" Value="11"/>
         </Style>
 
+        <Style x:Key="SteamHeadingStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+            <Setter Property="FontFamily" Value="{DynamicResource DisplayFontFamily}"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
 
-        <!-- =====================================================
-             ПОЛОСА ПРОКРУТКИ
-             ===================================================== -->
-
-        <Style x:Key="ThermiqraScrollThumbStyle"
-               TargetType="Thumb">
-
-            <Setter Property="MinHeight"
-                    Value="32"/>
-
+        <Style x:Key="SteamPipeProgressStyle" TargetType="ProgressBar">
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Background" Value="{DynamicResource GaugeTrackBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Template">
-
                 <Setter.Value>
+                    <ControlTemplate TargetType="ProgressBar">
+                        <Border Background="{DynamicResource SteamGlassBrush}"
+                                BorderBrush="{DynamicResource SteamMetalBrush}"
+                                BorderThickness="2"
+                                CornerRadius="16"
+                                Padding="4">
+                            <Grid ClipToBounds="True">
+                                <Border x:Name="PART_Track"
+                                        Background="{TemplateBinding Background}"
+                                        CornerRadius="11"/>
+                                <Border x:Name="PART_Indicator"
+                                        HorizontalAlignment="Left"
+                                        Background="{TemplateBinding Foreground}"
+                                        CornerRadius="11"/>
+                                <Border Height="5"
+                                        Margin="8,5,8,0"
+                                        VerticalAlignment="Top"
+                                        Background="#28FFFFFF"
+                                        CornerRadius="3"
+                                        IsHitTestVisible="False"/>
+                            </Grid>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
 
+
+        <!-- =========================================================
+             FROST CORE — КРИОГЕННЫЕ ЭЛЕМЕНТЫ
+             ========================================================= -->
+        <Style x:Key="FrostHeadingStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
+
+        <Style x:Key="FrostCapsuleProgressStyle" TargetType="ProgressBar">
+            <Setter Property="Height" Value="16"/>
+            <Setter Property="Background" Value="{DynamicResource GaugeTrackBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ProgressBar">
+                        <Border Background="{DynamicResource FrostGlassBrush}"
+                                BorderBrush="{DynamicResource FrostSteelBrush}"
+                                BorderThickness="1.5"
+                                CornerRadius="8"
+                                Padding="3">
+                            <Grid ClipToBounds="True">
+                                <Border x:Name="PART_Track"
+                                        Background="{TemplateBinding Background}"
+                                        CornerRadius="5"/>
+                                <Border x:Name="PART_Indicator"
+                                        HorizontalAlignment="Left"
+                                        Background="{TemplateBinding Foreground}"
+                                        CornerRadius="5"/>
+                                <Border Height="3"
+                                        Margin="6,3,6,0"
+                                        VerticalAlignment="Top"
+                                        Background="#30FFFFFF"
+                                        CornerRadius="2"
+                                        IsHitTestVisible="False"/>
+                            </Grid>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- =========================================================
+             MILITARY OPS — ТАКТИЧЕСКИЕ ЭЛЕМЕНТЫ
+             ========================================================= -->
+        <Style x:Key="MilitaryHeadingStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+            <Setter Property="FontFamily" Value="{DynamicResource DisplayFontFamily}"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
+
+        <Style x:Key="ThermiqraScrollThumbStyle" TargetType="Thumb">
+            <Setter Property="MinHeight" Value="32"/>
+            <Setter Property="Template">
+                <Setter.Value>
                     <ControlTemplate TargetType="Thumb">
-
                         <Border x:Name="ThumbBorder"
                                 Background="{DynamicResource BorderBrush}"
                                 CornerRadius="3"
                                 Margin="2,1"/>
-
                         <ControlTemplate.Triggers>
-
-                            <Trigger Property="IsMouseOver"
-                                     Value="True">
-
+                            <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="ThumbBorder"
                                         Property="Background"
                                         Value="{DynamicResource AccentBrush}"/>
-
                             </Trigger>
-
-                            <Trigger Property="IsDragging"
-                                     Value="True">
-
+                            <Trigger Property="IsDragging" Value="True">
                                 <Setter TargetName="ThumbBorder"
                                         Property="Background"
                                         Value="{DynamicResource AccentBrush}"/>
-
                             </Trigger>
-
                         </ControlTemplate.Triggers>
-
                     </ControlTemplate>
-
                 </Setter.Value>
-
             </Setter>
-
         </Style>
 
-
         <Style TargetType="ScrollBar">
-
-            <Setter Property="Width"
-                    Value="10"/>
-
-            <Setter Property="Background"
-                    Value="Transparent"/>
-
+            <Setter Property="Width" Value="10"/>
+            <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Template">
-
                 <Setter.Value>
-
                     <ControlTemplate TargetType="ScrollBar">
-
                         <Grid Background="Transparent">
-
                             <Track x:Name="PART_Track"
                                    Orientation="{TemplateBinding Orientation}"
                                    IsDirectionReversed="True">
-
                                 <Track.DecreaseRepeatButton>
-
                                     <RepeatButton Command="{x:Static ScrollBar.PageUpCommand}"
                                                   Background="Transparent"
                                                   BorderThickness="0"
                                                   Opacity="0"
                                                   Focusable="False"/>
-
                                 </Track.DecreaseRepeatButton>
-
                                 <Track.Thumb>
-
                                     <Thumb Style="{StaticResource ThermiqraScrollThumbStyle}"/>
-
                                 </Track.Thumb>
-
                                 <Track.IncreaseRepeatButton>
-
                                     <RepeatButton Command="{x:Static ScrollBar.PageDownCommand}"
                                                   Background="Transparent"
                                                   BorderThickness="0"
                                                   Opacity="0"
                                                   Focusable="False"/>
-
                                 </Track.IncreaseRepeatButton>
-
                             </Track>
-
                         </Grid>
-
                     </ControlTemplate>
-
                 </Setter.Value>
-
             </Setter>
-
         </Style>
 
     </Window.Resources>
-
 
     <ScrollViewer VerticalScrollBarVisibility="Auto"
                   HorizontalScrollBarVisibility="Disabled"
                   PanningMode="VerticalOnly">
 
         <Grid Margin="22,20,22,16">
-
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
@@ -317,89 +259,64 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-
-            <!-- =================================================
-                 ШАПКА
-                 ================================================= -->
-
+            <!-- =====================================================
+                 CYBER TECH HEADER
+                 ===================================================== -->
             <Border Grid.Row="0"
+                    Visibility="{DynamicResource MainCyberTechVisibility}"
                     Background="{DynamicResource CardBackgroundBrush}"
                     BorderBrush="{DynamicResource BorderBrush}"
                     BorderThickness="1"
                     CornerRadius="6"
                     Margin="0,0,0,16">
-
                 <Grid>
-
                     <Grid.RowDefinitions>
                         <RowDefinition Height="3"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-
-                    <!-- Верхняя линия -->
-
                     <Grid Grid.Row="0">
-
                         <Border Width="170"
                                 Height="3"
                                 HorizontalAlignment="Left"
                                 Background="{DynamicResource AccentBrush}"/>
-
                     </Grid>
 
-
-                    <Grid Grid.Row="1"
-                          Margin="18,13,18,13">
-
+                    <Grid Grid.Row="1" Margin="18,13,18,13">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
 
-
-                        <!-- Левый технический маркер -->
-
                         <Grid Grid.Column="0"
                               Width="34"
                               Height="44"
                               Margin="0,0,14,0">
-
                             <Border Width="3"
                                     HorizontalAlignment="Left"
                                     Background="{DynamicResource AccentBrush}"/>
-
                             <Border Width="15"
                                     Height="2"
                                     HorizontalAlignment="Left"
                                     VerticalAlignment="Top"
                                     Margin="3,0,0,0"
                                     Background="{DynamicResource AccentBrush}"/>
-
                             <Border Width="9"
                                     Height="2"
                                     HorizontalAlignment="Left"
                                     VerticalAlignment="Bottom"
                                     Margin="3,0,0,0"
                                     Background="{DynamicResource BorderBrush}"/>
-
                         </Grid>
 
-
-                        <!-- Название -->
-
-                        <StackPanel Grid.Column="1"
-                                    VerticalAlignment="Center">
-
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
                             <StackPanel Orientation="Horizontal">
-
                                 <TextBlock Text="THERMIQRA"
                                            Foreground="{DynamicResource PrimaryTextBrush}"
                                            FontSize="25"
                                            FontWeight="Bold"
                                            VerticalAlignment="Center"/>
-
 
                                 <Border Margin="12,2,0,0"
                                         Padding="8,3"
@@ -407,114 +324,528 @@
                                         BorderBrush="{DynamicResource AccentBrush}"
                                         BorderThickness="1"
                                         VerticalAlignment="Center">
-
                                     <StackPanel Orientation="Horizontal">
-
                                         <Ellipse x:Name="LivePulseDot"
                                                  Width="6"
                                                  Height="6"
                                                  Fill="{DynamicResource AccentBrush}"
                                                  Margin="0,0,6,0"
                                                  VerticalAlignment="Center"/>
-
                                         <TextBlock Text="LIVE"
                                                    Foreground="{DynamicResource AccentBrush}"
                                                    FontSize="9"
                                                    FontWeight="Bold"
                                                    VerticalAlignment="Center"/>
-
                                     </StackPanel>
-
                                 </Border>
-
                             </StackPanel>
 
-
-                            <StackPanel Orientation="Horizontal"
-                                        Margin="1,4,0,0">
-
+                            <StackPanel Orientation="Horizontal" Margin="1,4,0,0">
                                 <TextBlock Text="HARDWARE MONITORING SYSTEM"
                                            Style="{StaticResource TechLabelStyle}"
                                            VerticalAlignment="Center"/>
-
                                 <Border Width="18"
                                         Height="1"
                                         Margin="10,0"
                                         Background="{DynamicResource BorderBrush}"
                                         VerticalAlignment="Center"/>
-
                                 <TextBlock x:Name="StatusText"
                                            Text="Запуск мониторинга..."
                                            Style="{StaticResource SecondaryTextStyle}"
                                            VerticalAlignment="Center"/>
-
                             </StackPanel>
-
                         </StackPanel>
-
-
-                        <!-- Настройки -->
 
                         <StackPanel Grid.Column="2"
                                     Orientation="Horizontal"
                                     VerticalAlignment="Center"
                                     Margin="18,0,0,0">
-
-                            <StackPanel Margin="0,0,16,0"
-                                        VerticalAlignment="Center">
-
+                            <StackPanel Margin="0,0,16,0" VerticalAlignment="Center">
                                 <TextBlock Text="SYSTEM CONTROL"
                                            Style="{StaticResource TechLabelStyle}"
                                            HorizontalAlignment="Right"/>
-
                                 <TextBlock Text="REAL-TIME"
                                            Foreground="{DynamicResource AccentBrush}"
                                            FontSize="10"
                                            FontWeight="Bold"
                                            HorizontalAlignment="Right"
                                            Margin="0,3,0,0"/>
-
                             </StackPanel>
-
                             <Button Content="⚙  Настройки"
                                     MinWidth="126"
                                     Click="SettingsButton_Click"/>
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+            </Border>
 
+            <!-- =====================================================
+                 STEAMPUNK HEADER — МЕХАНИЧЕСКАЯ ПАНЕЛЬ
+                 ===================================================== -->
+            <Border Grid.Row="0"
+                    Visibility="{DynamicResource SteamPunkVisibility}"
+                    Background="{DynamicResource SteamPanelBrush}"
+                    BorderBrush="{DynamicResource SteamMetalBrush}"
+                    BorderThickness="2"
+                    CornerRadius="14"
+                    Padding="7"
+                    Margin="0,0,0,18">
+                <Grid>
+                    <Border Background="{DynamicResource SteamDarkMetalBrush}"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="10"/>
+
+                    <Grid Margin="17,11">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Grid Grid.Column="0"
+                              Width="62"
+                              Height="62"
+                              Margin="0,0,16,0">
+                            <Ellipse Fill="{DynamicResource SteamGlassBrush}"
+                                     Stroke="{DynamicResource SteamMetalBrush}"
+                                     StrokeThickness="4"/>
+                            <Ellipse Width="44"
+                                     Height="44"
+                                     Stroke="{DynamicResource AccentBrush}"
+                                     StrokeThickness="2"/>
+                            <Border Width="4"
+                                    Height="42"
+                                    Background="{DynamicResource SteamMetalBrush}"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"/>
+                            <Border Width="42"
+                                    Height="4"
+                                    Background="{DynamicResource SteamMetalBrush}"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"/>
+                            <Ellipse Width="17"
+                                     Height="17"
+                                     Fill="{DynamicResource SteamRivetBrush}"
+                                     Stroke="{DynamicResource SteamDarkMetalBrush}"
+                                     StrokeThickness="2"
+                                     HorizontalAlignment="Center"
+                                     VerticalAlignment="Center"/>
+                        </Grid>
+
+                        <StackPanel Grid.Column="1"
+                                    VerticalAlignment="Center">
+                            <TextBlock Text="THERMIQRA"
+                                       Style="{StaticResource SteamHeadingStyle}"
+                                       FontSize="28"/>
+                            <TextBlock Text="МЕХАНИЧЕСКАЯ СТАНЦИЯ МОНИТОРИНГА"
+                                       Foreground="{DynamicResource SecondaryTextBrush}"
+                                       FontSize="9"
+                                       FontWeight="SemiBold"
+                                       Margin="1,3,0,0"/>
                         </StackPanel>
 
+                        <Border Grid.Column="2"
+                                Margin="24,4,24,4"
+                                Background="{DynamicResource SteamGlassBrush}"
+                                BorderBrush="{DynamicResource BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="7"
+                                Padding="14,8">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0"
+                                            VerticalAlignment="Center">
+                                    <TextBlock Text="СОСТОЯНИЕ СИСТЕМЫ"
+                                               Foreground="{DynamicResource SecondaryTextBrush}"
+                                               FontSize="8"
+                                               FontWeight="Bold"/>
+                                    <StackPanel Orientation="Horizontal"
+                                                Margin="0,5,0,0">
+                                        <Ellipse x:Name="SteamLivePulseDot"
+                                                 Width="8"
+                                                 Height="8"
+                                                 Fill="{DynamicResource AccentBrush}"
+                                                 Margin="0,0,7,0"
+                                                 VerticalAlignment="Center"/>
+                                        <TextBlock Text="МОНИТОРИНГ АКТИВЕН"
+                                                   Foreground="{DynamicResource AccentBrush}"
+                                                   FontSize="10"
+                                                   FontWeight="Bold"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <TextBlock x:Name="SteamStatusText"
+                                           Grid.Column="1"
+                                           Text="Запуск мониторинга..."
+                                           Foreground="{DynamicResource PrimaryTextBrush}"
+                                           FontSize="11"
+                                           VerticalAlignment="Center"
+                                           HorizontalAlignment="Right"
+                                           Margin="18,0,0,0"/>
+                            </Grid>
+                        </Border>
+
+                        <Button Grid.Column="3"
+                                Content="⚙  НАСТРОЙКИ"
+                                MinWidth="132"
+                                BorderBrush="{DynamicResource SteamMetalBrush}"
+                                Background="{DynamicResource SteamGlassBrush}"
+                                Click="SettingsButton_Click"/>
                     </Grid>
 
+                    <Ellipse Width="8" Height="8" Margin="8"
+                             HorizontalAlignment="Left" VerticalAlignment="Top"
+                             Fill="{DynamicResource SteamRivetBrush}"/>
+                    <Ellipse Width="8" Height="8" Margin="8"
+                             HorizontalAlignment="Right" VerticalAlignment="Top"
+                             Fill="{DynamicResource SteamRivetBrush}"/>
+                    <Ellipse Width="8" Height="8" Margin="8"
+                             HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                             Fill="{DynamicResource SteamRivetBrush}"/>
+                    <Ellipse Width="8" Height="8" Margin="8"
+                             HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                             Fill="{DynamicResource SteamRivetBrush}"/>
                 </Grid>
-
             </Border>
 
 
-            <!-- =================================================
-                 CPU / GPU
-                 ================================================= -->
+            <!-- =====================================================
+                 FROST CORE HEADER — КРИОГЕННАЯ СТАНЦИЯ
+                 ===================================================== -->
+            <Border Grid.Row="0"
+                    Visibility="{DynamicResource FrostCoreVisibility}"
+                    Background="{DynamicResource FrostPanelBrush}"
+                    BorderBrush="{DynamicResource FrostSteelBrush}"
+                    BorderThickness="2"
+                    CornerRadius="18"
+                    Padding="8"
+                    Margin="0,0,0,18">
+                <Grid>
+                    <Border Background="{DynamicResource FrostGlassBrush}"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="13"/>
 
+                    <Border Height="4"
+                            Margin="28,0,28,0"
+                            VerticalAlignment="Top"
+                            Background="{DynamicResource FrostIceBrush}"
+                            CornerRadius="0,0,5,5"
+                            Opacity="0.82"/>
+
+                    <Grid Margin="17,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Криоячейка -->
+                        <Grid Grid.Column="0"
+                              Width="70"
+                              Height="70"
+                              Margin="0,0,16,0">
+                            <Border Background="{DynamicResource FrostGlassBrush}"
+                                    BorderBrush="{DynamicResource FrostSteelBrush}"
+                                    BorderThickness="3"
+                                    CornerRadius="18"/>
+                            <Border Width="48"
+                                    Height="48"
+                                    BorderBrush="{DynamicResource FrostIceBrush}"
+                                    BorderThickness="1.5"
+                                    CornerRadius="13"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"/>
+                            <Border Width="4"
+                                    Height="42"
+                                    Background="{DynamicResource FrostIceBrush}"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    CornerRadius="2"/>
+                            <Border Width="42"
+                                    Height="4"
+                                    Background="{DynamicResource FrostIceBrush}"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    CornerRadius="2"/>
+                            <Border Width="34"
+                                    Height="3"
+                                    Background="{DynamicResource FrostSteelBrush}"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    RenderTransformOrigin="0.5,0.5">
+                                <Border.RenderTransform>
+                                    <RotateTransform Angle="45"/>
+                                </Border.RenderTransform>
+                            </Border>
+                            <Border Width="34"
+                                    Height="3"
+                                    Background="{DynamicResource FrostSteelBrush}"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    RenderTransformOrigin="0.5,0.5">
+                                <Border.RenderTransform>
+                                    <RotateTransform Angle="-45"/>
+                                </Border.RenderTransform>
+                            </Border>
+                            <Ellipse Width="13"
+                                     Height="13"
+                                     Fill="{DynamicResource FrostIceBrush}"
+                                     Stroke="{DynamicResource FrostGlassBrush}"
+                                     StrokeThickness="2"/>
+                        </Grid>
+
+                        <StackPanel Grid.Column="1"
+                                    VerticalAlignment="Center">
+                            <TextBlock Text="THERMIQRA"
+                                       Style="{StaticResource FrostHeadingStyle}"
+                                       FontSize="28"/>
+                            <TextBlock Text="КРИОГЕННАЯ СИСТЕМА МОНИТОРИНГА"
+                                       Foreground="{DynamicResource SecondaryTextBrush}"
+                                       FontSize="9"
+                                       FontWeight="SemiBold"
+                                       Margin="1,3,0,0"/>
+                        </StackPanel>
+
+                        <Border Grid.Column="2"
+                                Margin="26,4,26,4"
+                                Background="#5A0D1A21"
+                                BorderBrush="{DynamicResource FrostSteelBrush}"
+                                BorderThickness="1"
+                                CornerRadius="11"
+                                Padding="15,8">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0"
+                                            VerticalAlignment="Center">
+                                    <TextBlock Text="КРИОКОНТУР"
+                                               Foreground="{DynamicResource SecondaryTextBrush}"
+                                               FontSize="8"
+                                               FontWeight="Bold"/>
+                                    <StackPanel Orientation="Horizontal"
+                                                Margin="0,5,0,0">
+                                        <Ellipse x:Name="FrostLivePulseDot"
+                                                 Width="8"
+                                                 Height="8"
+                                                 Fill="{DynamicResource FrostIceBrush}"
+                                                 Margin="0,0,7,0"
+                                                 VerticalAlignment="Center"/>
+                                        <TextBlock Text="ОХЛАЖДЕНИЕ АКТИВНО"
+                                                   Foreground="{DynamicResource AccentBrush}"
+                                                   FontSize="10"
+                                                   FontWeight="Bold"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <TextBlock x:Name="FrostStatusText"
+                                           Grid.Column="1"
+                                           Text="Запуск мониторинга..."
+                                           Foreground="{DynamicResource PrimaryTextBrush}"
+                                           FontSize="11"
+                                           VerticalAlignment="Center"
+                                           HorizontalAlignment="Right"
+                                           Margin="18,0,0,0"/>
+                            </Grid>
+                        </Border>
+
+                        <Button Grid.Column="3"
+                                Content="⚙  НАСТРОЙКИ"
+                                MinWidth="132"
+                                BorderBrush="{DynamicResource FrostSteelBrush}"
+                                Background="{DynamicResource FrostGlassBrush}"
+                                Click="SettingsButton_Click"/>
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <!-- =====================================================
+                 MILITARY OPS HEADER — ТАКТИЧЕСКИЙ ПУЛЬТ
+                 ===================================================== -->
+            <Border Grid.Row="0"
+                    Visibility="{DynamicResource MilitaryOpsVisibility}"
+                    Background="{DynamicResource MilitaryPanelBrush}"
+                    BorderBrush="{DynamicResource MilitaryKhakiBrush}"
+                    BorderThickness="2"
+                    CornerRadius="2"
+                    Padding="6"
+                    Margin="0,0,0,18">
+                <Grid>
+                    <Border Background="{DynamicResource MilitaryPlateBrush}"
+                            BorderBrush="{DynamicResource MilitaryGridBrush}"
+                            BorderThickness="1"/>
+
+                    <Border Height="3"
+                            Margin="14,0,14,0"
+                            VerticalAlignment="Top"
+                            Background="{DynamicResource MilitaryKhakiBrush}"/>
+                    <Border Height="3"
+                            Margin="14,0,14,0"
+                            VerticalAlignment="Bottom"
+                            Background="{DynamicResource MilitaryGridBrush}"/>
+
+                    <Grid Margin="16,11">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Компас -->
+                        <Grid Grid.Column="0"
+                              Width="68"
+                              Height="68"
+                              Margin="0,0,16,0">
+                            <Ellipse Fill="{DynamicResource MilitaryPlateBrush}"
+                                     Stroke="{DynamicResource MilitaryKhakiBrush}"
+                                     StrokeThickness="2"/>
+                            <Ellipse Width="50"
+                                     Height="50"
+                                     Stroke="{DynamicResource MilitaryGridBrush}"
+                                     StrokeThickness="1"/>
+                            <Border Width="2"
+                                    Height="48"
+                                    Background="{DynamicResource MilitaryGridBrush}"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"/>
+                            <Border Width="48"
+                                    Height="2"
+                                    Background="{DynamicResource MilitaryGridBrush}"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"/>
+                            <TextBlock Text="N"
+                                       Foreground="{DynamicResource AccentBrush}"
+                                       FontFamily="{DynamicResource DisplayFontFamily}"
+                                       FontSize="9"
+                                       FontWeight="Bold"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Top"
+                                       Margin="0,6,0,0"/>
+                            <TextBlock Text="S"
+                                       Foreground="{DynamicResource SecondaryTextBrush}"
+                                       FontFamily="{DynamicResource DisplayFontFamily}"
+                                       FontSize="8"
+                                       FontWeight="Bold"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Bottom"
+                                       Margin="0,0,0,6"/>
+                            <Path Data="M 0,12 L 6,0 L 12,12 L 6,9 Z"
+                                  Width="12"
+                                  Height="12"
+                                  Fill="{DynamicResource AccentBrush}"
+                                  Stretch="Fill"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Center"/>
+                        </Grid>
+
+                        <StackPanel Grid.Column="1"
+                                    VerticalAlignment="Center">
+                            <TextBlock Text="THERMIQRA"
+                                       Style="{StaticResource MilitaryHeadingStyle}"
+                                       FontSize="27"/>
+                            <TextBlock Text="ТАКТИЧЕСКИЙ ЦЕНТР МОНИТОРИНГА"
+                                       Foreground="{DynamicResource MilitaryKhakiBrush}"
+                                       FontFamily="{DynamicResource DisplayFontFamily}"
+                                       FontSize="9"
+                                       FontWeight="SemiBold"
+                                       Margin="1,3,0,0"/>
+                        </StackPanel>
+
+                        <Border Grid.Column="2"
+                                Margin="25,4,25,4"
+                                Background="{DynamicResource MilitaryPanelBrush}"
+                                BorderBrush="{DynamicResource MilitaryGridBrush}"
+                                BorderThickness="1"
+                                Padding="14,8">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0"
+                                            VerticalAlignment="Center">
+                                    <TextBlock Text="СТАТУС ПОСТА"
+                                               Foreground="{DynamicResource MilitaryKhakiBrush}"
+                                               FontFamily="{DynamicResource DisplayFontFamily}"
+                                               FontSize="8"
+                                               FontWeight="Bold"/>
+                                    <StackPanel Orientation="Horizontal"
+                                                Margin="0,5,0,0">
+                                        <Ellipse x:Name="MilitaryLivePulseDot"
+                                                 Width="8"
+                                                 Height="8"
+                                                 Fill="{DynamicResource AccentBrush}"
+                                                 Margin="0,0,7,0"
+                                                 VerticalAlignment="Center"/>
+                                        <TextBlock Text="ПОСТ АКТИВЕН"
+                                                   Foreground="{DynamicResource AccentBrush}"
+                                                   FontFamily="{DynamicResource DisplayFontFamily}"
+                                                   FontSize="10"
+                                                   FontWeight="Bold"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="1"
+                                            HorizontalAlignment="Right"
+                                            VerticalAlignment="Center"
+                                            Margin="18,0,0,0">
+                                    <TextBlock x:Name="MilitaryStatusText"
+                                               Text="Запуск мониторинга..."
+                                               Foreground="{DynamicResource PrimaryTextBrush}"
+                                               FontFamily="{DynamicResource DisplayFontFamily}"
+                                               FontSize="10"
+                                               HorizontalAlignment="Right"/>
+                                    <TextBlock Text="СЕКТОР 01  •  КАНАЛ A"
+                                               Foreground="{DynamicResource SecondaryTextBrush}"
+                                               FontFamily="{DynamicResource DisplayFontFamily}"
+                                               FontSize="8"
+                                               HorizontalAlignment="Right"
+                                               Margin="0,3,0,0"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <Button Grid.Column="3"
+                                Content="⚙  НАСТРОЙКИ"
+                                MinWidth="132"
+                                BorderBrush="{DynamicResource MilitaryKhakiBrush}"
+                                Background="{DynamicResource MilitaryPanelBrush}"
+                                Click="SettingsButton_Click"/>
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <!-- CPU / GPU -->
             <WrapPanel x:Name="MainGaugesPanel"
                        Grid.Row="1"
                        HorizontalAlignment="Center"
                        Margin="0,0,0,16"/>
 
-
-            <!-- =================================================
-                 RAM
-                 ================================================= -->
-
+            <!-- =====================================================
+                 CYBER TECH RAM
+                 ===================================================== -->
             <Border Grid.Row="2"
+                    Visibility="{DynamicResource MainCyberTechVisibility}"
                     Background="Transparent"
                     BorderThickness="0"
                     Margin="0,0,0,16">
-
                 <Grid>
-
                     <Grid.RowDefinitions>
                         <RowDefinition Height="3"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
-
 
                     <Path Grid.RowSpan="2"
                           Data="M 8,0 L 100,0 L 100,88 L 96,100 L 0,100 L 0,8 Z"
@@ -524,46 +855,47 @@
                           StrokeThickness="1"
                           SnapsToDevicePixels="True"/>
 
-
                     <Grid Grid.Row="0">
-
-                        <Border Width="82"
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="8*"/>
+                            <ColumnDefinition Width="92*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="1"
+                                Width="82"
                                 Height="3"
                                 HorizontalAlignment="Left"
-                                Margin="28,0,0,0"
+                                Margin="12,0,0,0"
                                 Background="{DynamicResource AccentBrush}"/>
-
                     </Grid>
 
+                    <Grid Grid.RowSpan="2"
+                          Height="2"
+                          VerticalAlignment="Bottom">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="96*"/>
+                            <ColumnDefinition Width="4*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0"
+                                Width="36"
+                                Height="2"
+                                HorizontalAlignment="Right"
+                                Margin="0,0,12,0"
+                                Background="{DynamicResource AccentBrush}"
+                                Opacity="0.72"/>
+                    </Grid>
 
-                    <Border Grid.RowSpan="2"
-                            Width="36"
-                            Height="2"
-                            HorizontalAlignment="Right"
-                            VerticalAlignment="Bottom"
-                            Margin="0,0,30,0"
-                            Background="{DynamicResource AccentBrush}"
-                            Opacity="0.72"/>
-
-
-                    <Grid Grid.Row="1"
-                          Margin="18,13,18,15">
-
+                    <Grid Grid.Row="1" Margin="18,13,18,15">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
 
-
-                        <!-- Значок -->
-
                         <Grid Grid.Column="0"
                               Width="50"
                               Height="50"
                               Margin="0,0,16,0"
                               VerticalAlignment="Center">
-
                             <Border Width="34"
                                     Height="30"
                                     BorderBrush="{DynamicResource AccentBrush}"
@@ -571,73 +903,46 @@
                                     CornerRadius="2"
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Center">
-
                                 <Grid>
-
                                     <Border Margin="6"
                                             BorderBrush="{DynamicResource BorderBrush}"
                                             BorderThickness="1"/>
-
                                     <StackPanel Orientation="Horizontal"
                                                 HorizontalAlignment="Center"
                                                 VerticalAlignment="Center">
-
-                                        <Border Width="3"
-                                                Height="12"
+                                        <Border Width="3" Height="12"
                                                 Background="{DynamicResource AccentBrush}"
                                                 Margin="1"/>
-
-                                        <Border Width="3"
-                                                Height="12"
+                                        <Border Width="3" Height="12"
                                                 Background="{DynamicResource AccentBrush}"
                                                 Margin="1"/>
-
-                                        <Border Width="3"
-                                                Height="12"
+                                        <Border Width="3" Height="12"
                                                 Background="{DynamicResource AccentBrush}"
                                                 Margin="1"/>
-
                                     </StackPanel>
-
                                 </Grid>
-
                             </Border>
-
                         </Grid>
 
-
-                        <!-- Основная RAM -->
-
                         <Grid Grid.Column="1">
-
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
-
-
                             <StackPanel Grid.Row="0"
                                         Orientation="Horizontal"
                                         Margin="0,0,0,6">
-
                                 <TextBlock Text="ОПЕРАТИВНАЯ ПАМЯТЬ"
                                            Style="{StaticResource SectionTitleStyle}"/>
-
-                                <Border Width="22"
-                                        Height="1"
-                                        Margin="11,0"
+                                <Border Width="22" Height="1" Margin="11,0"
                                         Background="{DynamicResource BorderBrush}"
                                         VerticalAlignment="Center"/>
-
                                 <TextBlock Text="MEMORY MODULE 03"
                                            Style="{StaticResource TechLabelStyle}"
                                            VerticalAlignment="Center"/>
-
                             </StackPanel>
-
-
                             <TextBlock x:Name="RamText"
                                        Grid.Row="1"
                                        Text="Нет данных"
@@ -645,206 +950,854 @@
                                        FontSize="21"
                                        FontWeight="SemiBold"
                                        Margin="0,0,0,8"/>
-
-
                             <ProgressBar x:Name="RamBar"
                                          Grid.Row="2"
                                          Minimum="0"
                                          Maximum="100"
                                          Height="9"/>
-
-
                             <TextBlock x:Name="RamPercentText"
                                        Grid.Row="3"
                                        Text="-- %"
                                        Style="{StaticResource SecondaryTextStyle}"
                                        Margin="0,6,0,0"/>
-
                         </Grid>
-
-
-                        <!-- Правая диагностическая метка -->
 
                         <StackPanel Grid.Column="2"
                                     Margin="20,0,0,0"
                                     VerticalAlignment="Center">
-
                             <TextBlock Text="STATUS"
                                        Style="{StaticResource TechLabelStyle}"
                                        HorizontalAlignment="Right"/>
-
                             <StackPanel Orientation="Horizontal"
                                         HorizontalAlignment="Right"
                                         Margin="0,4,0,0">
-
-                                <Ellipse Width="6"
-                                         Height="6"
+                                <Ellipse Width="6" Height="6"
                                          Fill="{DynamicResource AccentBrush}"
                                          Margin="0,0,6,0"
                                          VerticalAlignment="Center"/>
-
                                 <TextBlock Text="MEMORY LOAD"
                                            Foreground="{DynamicResource AccentBrush}"
                                            FontSize="9"
                                            FontWeight="Bold"/>
-
                             </StackPanel>
-
                         </StackPanel>
+                    </Grid>
+                </Grid>
+            </Border>
 
+            <!-- =====================================================
+                 STEAMPUNK RAM — ТРУБОПРОВОД ПАМЯТИ
+                 ===================================================== -->
+            <Border Grid.Row="2"
+                    Visibility="{DynamicResource SteamPunkVisibility}"
+                    Background="{DynamicResource SteamPanelBrush}"
+                    BorderBrush="{DynamicResource SteamMetalBrush}"
+                    BorderThickness="2"
+                    CornerRadius="14"
+                    Padding="7"
+                    Margin="0,0,0,18">
+                <Grid>
+                    <Border Background="{DynamicResource SteamDarkMetalBrush}"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="10"/>
+
+                    <Grid Margin="18,13">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="92"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="118"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Grid Grid.Column="0"
+                              Width="70"
+                              Height="70"
+                              HorizontalAlignment="Left"
+                              VerticalAlignment="Center">
+                            <Ellipse Fill="{DynamicResource SteamGlassBrush}"
+                                     Stroke="{DynamicResource SteamMetalBrush}"
+                                     StrokeThickness="4"/>
+                            <Ellipse Width="48"
+                                     Height="48"
+                                     Stroke="{DynamicResource AccentBrush}"
+                                     StrokeThickness="2"/>
+                            <Border Width="4"
+                                    Height="44"
+                                    Background="{DynamicResource SteamMetalBrush}"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"/>
+                            <Border Width="44"
+                                    Height="4"
+                                    Background="{DynamicResource SteamMetalBrush}"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"/>
+                            <Ellipse Width="16"
+                                     Height="16"
+                                     Fill="{DynamicResource SteamRivetBrush}"
+                                     Stroke="{DynamicResource SteamDarkMetalBrush}"
+                                     StrokeThickness="2"
+                                     HorizontalAlignment="Center"
+                                     VerticalAlignment="Center"/>
+                        </Grid>
+
+                        <Grid Grid.Column="1"
+                              Margin="0,0,22,0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Text="ОПЕРАТИВНАЯ ПАМЯТЬ"
+                                       Style="{StaticResource SteamHeadingStyle}"
+                                       FontSize="16"/>
+
+                            <TextBlock x:Name="SteamRamText"
+                                       Grid.Row="1"
+                                       Text="Нет данных"
+                                       Foreground="{DynamicResource PrimaryTextBrush}"
+                                       FontFamily="{DynamicResource DisplayFontFamily}"
+                                       FontSize="21"
+                                       FontWeight="Bold"
+                                       Margin="0,3,0,8"/>
+
+                            <Grid Grid.Row="2"
+                                  Height="46">
+                                <Border Width="22"
+                                        Height="38"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Center"
+                                        Background="{DynamicResource SteamMetalBrush}"
+                                        BorderBrush="{DynamicResource SteamDarkMetalBrush}"
+                                        BorderThickness="2"
+                                        CornerRadius="4"/>
+                                <Border Width="22"
+                                        Height="38"
+                                        HorizontalAlignment="Right"
+                                        VerticalAlignment="Center"
+                                        Background="{DynamicResource SteamMetalBrush}"
+                                        BorderBrush="{DynamicResource SteamDarkMetalBrush}"
+                                        BorderThickness="2"
+                                        CornerRadius="4"/>
+
+                                <ProgressBar x:Name="SteamRamBar"
+                                             Style="{StaticResource SteamPipeProgressStyle}"
+                                             Minimum="0"
+                                             Maximum="100"
+                                             Height="34"
+                                             Margin="14,0"
+                                             VerticalAlignment="Center"/>
+                            </Grid>
+
+                            <TextBlock Grid.Row="3"
+                                       Text="УРОВЕНЬ ЗАПОЛНЕНИЯ ТРУБОПРОВОДА ПАМЯТИ"
+                                       Foreground="{DynamicResource SecondaryTextBrush}"
+                                       FontSize="8"
+                                       FontWeight="SemiBold"
+                                       Margin="2,6,0,0"/>
+                        </Grid>
+
+                        <Grid Grid.Column="2"
+                              Width="94"
+                              Height="94"
+                              HorizontalAlignment="Right"
+                              VerticalAlignment="Center">
+                            <Ellipse Fill="{DynamicResource SteamGlassBrush}"
+                                     Stroke="{DynamicResource SteamMetalBrush}"
+                                     StrokeThickness="4"/>
+                            <Ellipse Width="76"
+                                     Height="76"
+                                     Stroke="{DynamicResource BorderBrush}"
+                                     StrokeThickness="1"/>
+                            <StackPanel HorizontalAlignment="Center"
+                                        VerticalAlignment="Center">
+                                <TextBlock Text="ЗАНЯТО"
+                                           Foreground="{DynamicResource SecondaryTextBrush}"
+                                           FontSize="8"
+                                           FontWeight="Bold"
+                                           HorizontalAlignment="Center"/>
+                                <TextBlock x:Name="SteamRamPercentText"
+                                           Text="-- %"
+                                           Foreground="{DynamicResource AccentBrush}"
+                                           FontFamily="{DynamicResource DisplayFontFamily}"
+                                           FontSize="24"
+                                           FontWeight="Bold"
+                                           HorizontalAlignment="Center"
+                                           Margin="0,1,0,0"/>
+                            </StackPanel>
+                            <Ellipse Width="7"
+                                     Height="7"
+                                     Fill="{DynamicResource AccentBrush}"
+                                     HorizontalAlignment="Center"
+                                     VerticalAlignment="Bottom"
+                                     Margin="0,0,0,9"/>
+                        </Grid>
                     </Grid>
 
+                    <Ellipse Width="8" Height="8" Margin="8"
+                             HorizontalAlignment="Left" VerticalAlignment="Top"
+                             Fill="{DynamicResource SteamRivetBrush}"/>
+                    <Ellipse Width="8" Height="8" Margin="8"
+                             HorizontalAlignment="Right" VerticalAlignment="Top"
+                             Fill="{DynamicResource SteamRivetBrush}"/>
+                    <Ellipse Width="8" Height="8" Margin="8"
+                             HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                             Fill="{DynamicResource SteamRivetBrush}"/>
+                    <Ellipse Width="8" Height="8" Margin="8"
+                             HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                             Fill="{DynamicResource SteamRivetBrush}"/>
                 </Grid>
-
             </Border>
 
 
-            <!-- =================================================
-                 НИЖНИЕ МОДУЛИ
-                 ================================================= -->
+            <!-- =====================================================
+                 FROST CORE RAM — КРИОКАМЕРА ПАМЯТИ
+                 ===================================================== -->
+            <Border Grid.Row="2"
+                    Visibility="{DynamicResource FrostCoreVisibility}"
+                    Background="{DynamicResource FrostPanelBrush}"
+                    BorderBrush="{DynamicResource FrostSteelBrush}"
+                    BorderThickness="2"
+                    CornerRadius="18"
+                    Padding="8"
+                    Margin="0,0,0,18">
+                <Grid>
+                    <Border Background="{DynamicResource FrostGlassBrush}"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="13"/>
 
+                    <Grid Margin="18,13">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="126"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="132"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Вертикальная криокапсула -->
+                        <Grid Grid.Column="0"
+                              Width="104"
+                              Height="120"
+                              HorizontalAlignment="Left"
+                              VerticalAlignment="Center">
+                            <Border Background="#88101E25"
+                                    BorderBrush="{DynamicResource FrostSteelBrush}"
+                                    BorderThickness="3"
+                                    CornerRadius="28"/>
+                            <Border Margin="13,11"
+                                    Background="{DynamicResource FrostGlassBrush}"
+                                    BorderBrush="{DynamicResource FrostIceBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="19"/>
+                            <Grid Margin="18,15"
+                                  ClipToBounds="True">
+                                <Border x:Name="FrostRamFill"
+                                        Width="58"
+                                        Height="0"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Bottom"
+                                        Background="{DynamicResource AccentBrush}"
+                                        CornerRadius="13"
+                                        Opacity="0.88"/>
+                                <Border Height="5"
+                                        Margin="9,8,9,0"
+                                        VerticalAlignment="Top"
+                                        Background="#36FFFFFF"
+                                        CornerRadius="3"/>
+                                <TextBlock Text="❄"
+                                           Foreground="{DynamicResource FrostIceBrush}"
+                                           FontSize="26"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"
+                                           Opacity="0.55"/>
+                            </Grid>
+                            <Border Width="44"
+                                    Height="5"
+                                    Background="{DynamicResource FrostSteelBrush}"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Top"
+                                    Margin="0,-2,0,0"
+                                    CornerRadius="2"/>
+                            <Border Width="44"
+                                    Height="5"
+                                    Background="{DynamicResource FrostSteelBrush}"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Bottom"
+                                    Margin="0,0,0,-2"
+                                    CornerRadius="2"/>
+                        </Grid>
+
+                        <Grid Grid.Column="1"
+                              Margin="0,0,22,0"
+                              VerticalAlignment="Center">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Text="КРИОКАМЕРА ОПЕРАТИВНОЙ ПАМЯТИ"
+                                       Style="{StaticResource FrostHeadingStyle}"
+                                       FontSize="16"/>
+
+                            <TextBlock x:Name="FrostRamText"
+                                       Grid.Row="1"
+                                       Text="Нет данных"
+                                       Foreground="{DynamicResource PrimaryTextBrush}"
+                                       FontSize="21"
+                                       FontWeight="Bold"
+                                       Margin="0,4,0,9"/>
+
+                            <ProgressBar x:Name="FrostRamBar"
+                                         Grid.Row="2"
+                                         Style="{StaticResource FrostCapsuleProgressStyle}"
+                                         Minimum="0"
+                                         Maximum="100"
+                                         Height="18"/>
+
+                            <StackPanel Grid.Row="3"
+                                        Orientation="Horizontal"
+                                        Margin="2,7,0,0">
+                                <Ellipse Width="6"
+                                         Height="6"
+                                         Fill="{DynamicResource FrostIceBrush}"
+                                         Margin="0,0,6,0"
+                                         VerticalAlignment="Center"/>
+                                <TextBlock Text="КОНТУР ОХЛАЖДАЮЩЕЙ ЖИДКОСТИ / ПАМЯТЬ"
+                                           Foreground="{DynamicResource SecondaryTextBrush}"
+                                           FontSize="8"
+                                           FontWeight="SemiBold"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <Border Grid.Column="2"
+                                Background="#66101E25"
+                                BorderBrush="{DynamicResource FrostSteelBrush}"
+                                BorderThickness="1.5"
+                                CornerRadius="18"
+                                Padding="13"
+                                VerticalAlignment="Center">
+                            <StackPanel>
+                                <TextBlock Text="ЗАПОЛНЕНИЕ"
+                                           Foreground="{DynamicResource SecondaryTextBrush}"
+                                           FontSize="8"
+                                           FontWeight="Bold"
+                                           HorizontalAlignment="Center"/>
+                                <TextBlock x:Name="FrostRamPercentText"
+                                           Text="-- %"
+                                           Foreground="{DynamicResource FrostIceBrush}"
+                                           FontSize="27"
+                                           FontWeight="Bold"
+                                           HorizontalAlignment="Center"
+                                           Margin="0,3,0,2"/>
+                                <Border Height="2"
+                                        Width="58"
+                                        Background="{DynamicResource AccentBrush}"
+                                        HorizontalAlignment="Center"
+                                        Margin="0,4,0,5"/>
+                                <TextBlock Text="КРИОУРОВЕНЬ"
+                                           Foreground="{DynamicResource SecondaryTextBrush}"
+                                           FontSize="8"
+                                           FontWeight="SemiBold"
+                                           HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <!-- =====================================================
+                 MILITARY OPS RAM — ОПЕРАТИВНЫЙ РЕЗЕРВ
+                 ===================================================== -->
+            <Border Grid.Row="2"
+                    Visibility="{DynamicResource MilitaryOpsVisibility}"
+                    Background="{DynamicResource MilitaryPanelBrush}"
+                    BorderBrush="{DynamicResource MilitaryKhakiBrush}"
+                    BorderThickness="2"
+                    CornerRadius="2"
+                    Padding="6"
+                    Margin="0,0,0,18">
+                <Grid>
+                    <Border Background="{DynamicResource MilitaryPlateBrush}"
+                            BorderBrush="{DynamicResource MilitaryGridBrush}"
+                            BorderThickness="1"/>
+
+                    <Grid Margin="17,13">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="112"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="120"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Кассета / магазин ресурса -->
+                        <Border Grid.Column="0"
+                                Width="86"
+                                Height="92"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                Background="{DynamicResource MilitaryPanelBrush}"
+                                BorderBrush="{DynamicResource MilitaryKhakiBrush}"
+                                BorderThickness="2">
+                            <Grid Margin="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0"
+                                        Margin="2,9,2,5"
+                                        Background="{DynamicResource MilitaryGridBrush}"
+                                        BorderBrush="{DynamicResource MilitaryKhakiBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="5,5,1,1"/>
+                                <Border Grid.Column="1"
+                                        Margin="2,3,2,5"
+                                        Background="{DynamicResource MilitaryGridBrush}"
+                                        BorderBrush="{DynamicResource MilitaryKhakiBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="5,5,1,1"/>
+                                <Border Grid.Column="2"
+                                        Margin="2,12,2,5"
+                                        Background="{DynamicResource MilitaryGridBrush}"
+                                        BorderBrush="{DynamicResource MilitaryKhakiBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="5,5,1,1"/>
+                                <Border Grid.Column="3"
+                                        Margin="2,6,2,5"
+                                        Background="{DynamicResource MilitaryGridBrush}"
+                                        BorderBrush="{DynamicResource MilitaryKhakiBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="5,5,1,1"/>
+                                <Border Grid.ColumnSpan="4"
+                                        Height="5"
+                                        VerticalAlignment="Bottom"
+                                        Background="{DynamicResource MilitaryKhakiBrush}"/>
+                            </Grid>
+                        </Border>
+
+                        <Grid Grid.Column="1"
+                              Margin="0,0,22,0"
+                              VerticalAlignment="Center">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Text="ОПЕРАТИВНЫЙ РЕЗЕРВ ПАМЯТИ"
+                                       Style="{StaticResource MilitaryHeadingStyle}"
+                                       FontSize="16"/>
+
+                            <TextBlock x:Name="MilitaryRamText"
+                                       Grid.Row="1"
+                                       Text="Нет данных"
+                                       Foreground="{DynamicResource PrimaryTextBrush}"
+                                       FontFamily="{DynamicResource DisplayFontFamily}"
+                                       FontSize="20"
+                                       FontWeight="Bold"
+                                       Margin="0,4,0,9"/>
+
+                            <Grid Grid.Row="2"
+                                  Height="20">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border x:Name="MilitaryRamSegment0" Grid.Column="0" Margin="0,0,3,0" Background="{DynamicResource MilitaryGridBrush}" BorderBrush="{DynamicResource MilitaryKhakiBrush}" BorderThickness="1"/>
+                                <Border x:Name="MilitaryRamSegment1" Grid.Column="1" Margin="0,0,3,0" Background="{DynamicResource MilitaryGridBrush}" BorderBrush="{DynamicResource MilitaryKhakiBrush}" BorderThickness="1"/>
+                                <Border x:Name="MilitaryRamSegment2" Grid.Column="2" Margin="0,0,3,0" Background="{DynamicResource MilitaryGridBrush}" BorderBrush="{DynamicResource MilitaryKhakiBrush}" BorderThickness="1"/>
+                                <Border x:Name="MilitaryRamSegment3" Grid.Column="3" Margin="0,0,3,0" Background="{DynamicResource MilitaryGridBrush}" BorderBrush="{DynamicResource MilitaryKhakiBrush}" BorderThickness="1"/>
+                                <Border x:Name="MilitaryRamSegment4" Grid.Column="4" Margin="0,0,3,0" Background="{DynamicResource MilitaryGridBrush}" BorderBrush="{DynamicResource MilitaryKhakiBrush}" BorderThickness="1"/>
+                                <Border x:Name="MilitaryRamSegment5" Grid.Column="5" Margin="0,0,3,0" Background="{DynamicResource MilitaryGridBrush}" BorderBrush="{DynamicResource MilitaryKhakiBrush}" BorderThickness="1"/>
+                                <Border x:Name="MilitaryRamSegment6" Grid.Column="6" Margin="0,0,3,0" Background="{DynamicResource MilitaryGridBrush}" BorderBrush="{DynamicResource MilitaryKhakiBrush}" BorderThickness="1"/>
+                                <Border x:Name="MilitaryRamSegment7" Grid.Column="7" Margin="0,0,3,0" Background="{DynamicResource MilitaryGridBrush}" BorderBrush="{DynamicResource MilitaryKhakiBrush}" BorderThickness="1"/>
+                                <Border x:Name="MilitaryRamSegment8" Grid.Column="8" Margin="0,0,3,0" Background="{DynamicResource MilitaryGridBrush}" BorderBrush="{DynamicResource MilitaryKhakiBrush}" BorderThickness="1"/>
+                                <Border x:Name="MilitaryRamSegment9" Grid.Column="9" Background="{DynamicResource MilitaryGridBrush}" BorderBrush="{DynamicResource MilitaryKhakiBrush}" BorderThickness="1"/>
+                            </Grid>
+
+                            <TextBlock Grid.Row="3"
+                                       Text="РЕСУРС ПАМЯТИ / 10 СЕКТОРОВ"
+                                       Foreground="{DynamicResource SecondaryTextBrush}"
+                                       FontFamily="{DynamicResource DisplayFontFamily}"
+                                       FontSize="8"
+                                       FontWeight="SemiBold"
+                                       Margin="1,6,0,0"/>
+                        </Grid>
+
+                        <Border Grid.Column="2"
+                                Background="{DynamicResource MilitaryPanelBrush}"
+                                BorderBrush="{DynamicResource MilitaryKhakiBrush}"
+                                BorderThickness="1.5"
+                                Padding="12"
+                                VerticalAlignment="Center">
+                            <StackPanel>
+                                <TextBlock Text="ЗАНЯТО"
+                                           Foreground="{DynamicResource MilitaryKhakiBrush}"
+                                           FontFamily="{DynamicResource DisplayFontFamily}"
+                                           FontSize="8"
+                                           FontWeight="Bold"
+                                           HorizontalAlignment="Center"/>
+                                <TextBlock x:Name="MilitaryRamPercentText"
+                                           Text="-- %"
+                                           Foreground="{DynamicResource AccentBrush}"
+                                           FontFamily="{DynamicResource DisplayFontFamily}"
+                                           FontSize="27"
+                                           FontWeight="Bold"
+                                           HorizontalAlignment="Center"
+                                           Margin="0,3,0,3"/>
+                                <Border Height="2"
+                                        Width="58"
+                                        Background="{DynamicResource MilitaryKhakiBrush}"
+                                        HorizontalAlignment="Center"
+                                        Margin="0,3,0,5"/>
+                                <TextBlock Text="РЕЗЕРВ"
+                                           Foreground="{DynamicResource SecondaryTextBrush}"
+                                           FontFamily="{DynamicResource DisplayFontFamily}"
+                                           FontSize="8"
+                                           HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+
+                    <Border Width="28" Height="3" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8" Background="{DynamicResource MilitaryKhakiBrush}"/>
+                    <Border Width="28" Height="3" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="8" Background="{DynamicResource MilitaryKhakiBrush}"/>
+                    <Border Width="28" Height="3" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="8" Background="{DynamicResource MilitaryKhakiBrush}"/>
+                    <Border Width="28" Height="3" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="8" Background="{DynamicResource MilitaryKhakiBrush}"/>
+                </Grid>
+            </Border>
+
+            <!-- =====================================================
+                 LOWER MODULES
+                 ===================================================== -->
             <StackPanel Grid.Row="3">
 
-
-                <!-- =================================================
-                     ДИСКИ — ЗАГОЛОВОК
-                     ================================================= -->
-
-                <Grid Margin="4,1,4,8">
-
+                <!-- CYBER DISKS HEADER -->
+                <Grid Margin="4,1,4,8"
+                      Visibility="{DynamicResource MainCyberTechVisibility}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-
-
-                    <Border Grid.Column="0"
-                            Width="3"
-                            Height="15"
+                    <Border Grid.Column="0" Width="3" Height="15"
                             Background="{DynamicResource AccentBrush}"
                             Margin="0,0,9,0"/>
-
-
-                    <TextBlock Grid.Column="1"
-                               Text="ДИСКИ"
+                    <TextBlock Grid.Column="1" Text="ДИСКИ"
                                Style="{StaticResource SectionTitleStyle}"
                                VerticalAlignment="Center"/>
-
-
-                    <Border Grid.Column="2"
-                            Height="1"
-                            Margin="13,0,13,0"
+                    <Border Grid.Column="2" Height="1" Margin="13,0"
                             Background="{DynamicResource BorderBrush}"
                             VerticalAlignment="Center"/>
-
-
-                    <TextBlock Grid.Column="3"
-                               Text="STORAGE VOLUME ARRAY"
+                    <TextBlock Grid.Column="3" Text="STORAGE VOLUME ARRAY"
                                Style="{StaticResource TechLabelStyle}"
                                VerticalAlignment="Center"/>
-
                 </Grid>
 
+                <!-- STEAMPUNK DISKS HEADER -->
+                <Border Visibility="{DynamicResource SteamPunkVisibility}"
+                        HorizontalAlignment="Left"
+                        Background="{DynamicResource SteamDarkMetalBrush}"
+                        BorderBrush="{DynamicResource SteamMetalBrush}"
+                        BorderThickness="2"
+                        CornerRadius="7"
+                        Padding="12,7"
+                        Margin="0,0,0,10">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="⚙"
+                                   Foreground="{DynamicResource AccentBrush}"
+                                   FontSize="18"
+                                   Margin="0,0,8,0"/>
+                        <TextBlock Text="ДИСКОВЫЕ МЕХАНИЗМЫ"
+                                   Style="{StaticResource SteamHeadingStyle}"
+                                   FontSize="15"
+                                   VerticalAlignment="Center"/>
+                        <TextBlock Text="  /  НАКОПИТЕЛИ"
+                                   Foreground="{DynamicResource SecondaryTextBrush}"
+                                   FontSize="9"
+                                   FontWeight="SemiBold"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+
+
+                <!-- FROST CORE DISKS HEADER -->
+                <Border Visibility="{DynamicResource FrostCoreVisibility}"
+                        HorizontalAlignment="Left"
+                        Background="{DynamicResource FrostGlassBrush}"
+                        BorderBrush="{DynamicResource FrostSteelBrush}"
+                        BorderThickness="1.5"
+                        CornerRadius="11"
+                        Padding="12,7"
+                        Margin="0,0,0,10">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="❄"
+                                   Foreground="{DynamicResource FrostIceBrush}"
+                                   FontSize="16"
+                                   Margin="0,0,8,0"/>
+                        <TextBlock Text="КРИОХРАНИЛИЩЕ ДАННЫХ"
+                                   Style="{StaticResource FrostHeadingStyle}"
+                                   FontSize="15"
+                                   VerticalAlignment="Center"/>
+                        <TextBlock Text="  /  ГЕРМЕТИЧНЫЕ МОДУЛИ"
+                                   Foreground="{DynamicResource SecondaryTextBrush}"
+                                   FontSize="9"
+                                   FontWeight="SemiBold"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- MILITARY OPS DISKS HEADER -->
+                <Border Visibility="{DynamicResource MilitaryOpsVisibility}"
+                        HorizontalAlignment="Left"
+                        Background="{DynamicResource MilitaryPanelBrush}"
+                        BorderBrush="{DynamicResource MilitaryKhakiBrush}"
+                        BorderThickness="2"
+                        CornerRadius="1"
+                        Padding="12,7"
+                        Margin="0,0,0,10">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="▣"
+                                   Foreground="{DynamicResource AccentBrush}"
+                                   FontFamily="{DynamicResource DisplayFontFamily}"
+                                   FontSize="15"
+                                   Margin="0,0,8,0"/>
+                        <TextBlock Text="СЕКТОР ХРАНИЛИЩ"
+                                   Style="{StaticResource MilitaryHeadingStyle}"
+                                   FontSize="15"
+                                   VerticalAlignment="Center"/>
+                        <TextBlock Text="  /  КОНТЕЙНЕРЫ ДАННЫХ"
+                                   Foreground="{DynamicResource MilitaryKhakiBrush}"
+                                   FontFamily="{DynamicResource DisplayFontFamily}"
+                                   FontSize="9"
+                                   FontWeight="SemiBold"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
 
                 <Grid x:Name="DrivesPanel"/>
 
-
-                <!-- =================================================
-                     ТЕМПЕРАТУРЫ — ЗАГОЛОВОК
-                     ================================================= -->
-
-                <Grid Margin="4,16,4,8">
-
+                <!-- CYBER TEMPERATURE HEADER -->
+                <Grid Margin="4,16,4,8"
+                      Visibility="{DynamicResource MainCyberTechVisibility}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-
-
-                    <Border Grid.Column="0"
-                            Width="3"
-                            Height="15"
+                    <Border Grid.Column="0" Width="3" Height="15"
                             Background="{DynamicResource AccentBrush}"
                             Margin="0,0,9,0"/>
-
-
-                    <TextBlock Grid.Column="1"
-                               Text="ТЕМПЕРАТУРА НАКОПИТЕЛЕЙ"
+                    <TextBlock Grid.Column="1" Text="ТЕМПЕРАТУРА НАКОПИТЕЛЕЙ"
                                Style="{StaticResource SectionTitleStyle}"
                                VerticalAlignment="Center"/>
-
-
-                    <Border Grid.Column="2"
-                            Height="1"
-                            Margin="13,0,13,0"
+                    <Border Grid.Column="2" Height="1" Margin="13,0"
                             Background="{DynamicResource BorderBrush}"
                             VerticalAlignment="Center"/>
-
-
-                    <TextBlock Grid.Column="3"
-                               Text="THERMAL SENSOR ARRAY"
+                    <TextBlock Grid.Column="3" Text="THERMAL SENSOR ARRAY"
                                Style="{StaticResource TechLabelStyle}"
                                VerticalAlignment="Center"/>
-
                 </Grid>
 
+                <!-- STEAMPUNK TEMPERATURE HEADER -->
+                <Border Visibility="{DynamicResource SteamPunkVisibility}"
+                        HorizontalAlignment="Left"
+                        Background="{DynamicResource SteamDarkMetalBrush}"
+                        BorderBrush="{DynamicResource SteamMetalBrush}"
+                        BorderThickness="2"
+                        CornerRadius="7"
+                        Padding="12,7"
+                        Margin="0,16,0,10">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="♨"
+                                   Foreground="{DynamicResource AccentBrush}"
+                                   FontSize="18"
+                                   Margin="0,0,8,0"/>
+                        <TextBlock Text="ТЕРМОМЕТРЫ НАКОПИТЕЛЕЙ"
+                                   Style="{StaticResource SteamHeadingStyle}"
+                                   FontSize="15"
+                                   VerticalAlignment="Center"/>
+                        <TextBlock Text="  /  КОНТРОЛЬ ТЕМПЕРАТУРЫ"
+                                   Foreground="{DynamicResource SecondaryTextBrush}"
+                                   FontSize="9"
+                                   FontWeight="SemiBold"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+
+
+                <!-- FROST CORE TEMPERATURE HEADER -->
+                <Border Visibility="{DynamicResource FrostCoreVisibility}"
+                        HorizontalAlignment="Left"
+                        Background="{DynamicResource FrostGlassBrush}"
+                        BorderBrush="{DynamicResource FrostSteelBrush}"
+                        BorderThickness="1.5"
+                        CornerRadius="11"
+                        Padding="12,7"
+                        Margin="0,16,0,10">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="❅"
+                                   Foreground="{DynamicResource FrostIceBrush}"
+                                   FontSize="16"
+                                   Margin="0,0,8,0"/>
+                        <TextBlock Text="ТЕМПЕРАТУРА КРИОМОДУЛЕЙ"
+                                   Style="{StaticResource FrostHeadingStyle}"
+                                   FontSize="15"
+                                   VerticalAlignment="Center"/>
+                        <TextBlock Text="  /  ТЕПЛОВОЙ КОНТРОЛЬ"
+                                   Foreground="{DynamicResource SecondaryTextBrush}"
+                                   FontSize="9"
+                                   FontWeight="SemiBold"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- MILITARY OPS TEMPERATURE HEADER -->
+                <Border Visibility="{DynamicResource MilitaryOpsVisibility}"
+                        HorizontalAlignment="Left"
+                        Background="{DynamicResource MilitaryPanelBrush}"
+                        BorderBrush="{DynamicResource MilitaryKhakiBrush}"
+                        BorderThickness="2"
+                        CornerRadius="1"
+                        Padding="12,7"
+                        Margin="0,16,0,10">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="⌖"
+                                   Foreground="{DynamicResource AccentBrush}"
+                                   FontFamily="{DynamicResource DisplayFontFamily}"
+                                   FontSize="16"
+                                   Margin="0,0,8,0"/>
+                        <TextBlock Text="ТЕПЛОВОЙ КОНТРОЛЬ СЕКТОРА"
+                                   Style="{StaticResource MilitaryHeadingStyle}"
+                                   FontSize="15"
+                                   VerticalAlignment="Center"/>
+                        <TextBlock Text="  /  ПОЛЕВЫЕ ДАТЧИКИ"
+                                   Foreground="{DynamicResource MilitaryKhakiBrush}"
+                                   FontFamily="{DynamicResource DisplayFontFamily}"
+                                   FontSize="9"
+                                   FontWeight="SemiBold"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
 
                 <Grid x:Name="StorageTemperaturePanel"/>
 
-
-                <!-- =================================================
-                     FOOTER
-                     ================================================= -->
-
-                <Grid Margin="0,17,0,3">
-
+                <!-- CYBER FOOTER -->
+                <Grid Margin="0,17,0,3"
+                      Visibility="{DynamicResource MainCyberTechVisibility}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-
-
-                    <Border Grid.Column="0"
-                            Height="1"
-                            Margin="0,0,14,0"
+                    <Border Grid.Column="0" Height="1" Margin="0,0,14,0"
                             Background="{DynamicResource BorderBrush}"
                             VerticalAlignment="Center"/>
-
-
-                    <StackPanel Grid.Column="1"
-                                Orientation="Horizontal">
-
-                        <TextBlock Text="THERMIQRA"
-                                   Style="{StaticResource TechLabelStyle}"/>
-
-                        <TextBlock Text="   •   "
-                                   Style="{StaticResource TechLabelStyle}"/>
-
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <TextBlock Text="THERMIQRA" Style="{StaticResource TechLabelStyle}"/>
+                        <TextBlock Text="   •   " Style="{StaticResource TechLabelStyle}"/>
                         <TextBlock Text="REAL-TIME HARDWARE MONITORING"
                                    Foreground="{DynamicResource AccentBrush}"
                                    FontSize="9"
                                    FontWeight="SemiBold"/>
-
                     </StackPanel>
-
-
-                    <Border Grid.Column="2"
-                            Height="1"
-                            Margin="14,0,0,0"
+                    <Border Grid.Column="2" Height="1" Margin="14,0,0,0"
                             Background="{DynamicResource BorderBrush}"
                             VerticalAlignment="Center"/>
-
                 </Grid>
 
+                <!-- STEAMPUNK FOOTER -->
+                <Border Visibility="{DynamicResource SteamPunkVisibility}"
+                        HorizontalAlignment="Center"
+                        Background="{DynamicResource SteamDarkMetalBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}"
+                        BorderThickness="1"
+                        CornerRadius="6"
+                        Padding="13,5"
+                        Margin="0,17,0,3">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="⚙"
+                                   Foreground="{DynamicResource AccentBrush}"
+                                   Margin="0,0,7,0"/>
+                        <TextBlock Text="THERMIQRA"
+                                   Foreground="{DynamicResource SecondaryTextBrush}"
+                                   FontFamily="{DynamicResource DisplayFontFamily}"
+                                   FontSize="9"
+                                   FontWeight="Bold"/>
+                        <TextBlock Text="  •  МЕХАНИЧЕСКАЯ СИСТЕМА МОНИТОРИНГА"
+                                   Foreground="{DynamicResource AccentBrush}"
+                                   FontSize="9"
+                                   FontWeight="Bold"/>
+                    </StackPanel>
+                </Border>
+
+
+
+                <!-- FROST CORE FOOTER -->
+                <Border Visibility="{DynamicResource FrostCoreVisibility}"
+                        HorizontalAlignment="Center"
+                        Background="{DynamicResource FrostGlassBrush}"
+                        BorderBrush="{DynamicResource FrostSteelBrush}"
+                        BorderThickness="1"
+                        CornerRadius="10"
+                        Padding="13,5"
+                        Margin="0,17,0,3">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="❄"
+                                   Foreground="{DynamicResource FrostIceBrush}"
+                                   Margin="0,0,7,0"/>
+                        <TextBlock Text="THERMIQRA"
+                                   Foreground="{DynamicResource SecondaryTextBrush}"
+                                   FontSize="9"
+                                   FontWeight="Bold"/>
+                        <TextBlock Text="  •  КРИОГЕННАЯ СИСТЕМА МОНИТОРИНГА"
+                                   Foreground="{DynamicResource AccentBrush}"
+                                   FontSize="9"
+                                   FontWeight="Bold"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- MILITARY OPS FOOTER -->
+                <Border Visibility="{DynamicResource MilitaryOpsVisibility}"
+                        HorizontalAlignment="Center"
+                        Background="{DynamicResource MilitaryPanelBrush}"
+                        BorderBrush="{DynamicResource MilitaryKhakiBrush}"
+                        BorderThickness="1.5"
+                        CornerRadius="1"
+                        Padding="13,5"
+                        Margin="0,17,0,3">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="⌖"
+                                   Foreground="{DynamicResource AccentBrush}"
+                                   FontFamily="{DynamicResource DisplayFontFamily}"
+                                   Margin="0,0,7,0"/>
+                        <TextBlock Text="THERMIQRA"
+                                   Foreground="{DynamicResource MilitaryKhakiBrush}"
+                                   FontFamily="{DynamicResource DisplayFontFamily}"
+                                   FontSize="9"
+                                   FontWeight="Bold"/>
+                        <TextBlock Text="  •  ТАКТИЧЕСКИЙ ЦЕНТР МОНИТОРИНГА"
+                                   Foreground="{DynamicResource AccentBrush}"
+                                   FontFamily="{DynamicResource DisplayFontFamily}"
+                                   FontSize="9"
+                                   FontWeight="Bold"/>
+                    </StackPanel>
+                </Border>
             </StackPanel>
 
         </Grid>
-
     </ScrollViewer>
-
 </Window>

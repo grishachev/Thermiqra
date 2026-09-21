@@ -1,4 +1,4 @@
-﻿<Window x:Class="PCHardwareMonitor.SettingsWindow"
+<Window x:Class="PCHardwareMonitor.SettingsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:primitives="clr-namespace:System.Windows.Controls.Primitives;assembly=PresentationFramework"
@@ -53,13 +53,13 @@
                     Value="36"/>
 
             <Setter Property="Background"
-                    Value="{DynamicResource InputBackgroundBrush}"/>
+                    Value="{DynamicResource SettingsInputBrush}"/>
 
             <Setter Property="Foreground"
                     Value="{DynamicResource PrimaryTextBrush}"/>
 
             <Setter Property="BorderBrush"
-                    Value="{DynamicResource BorderBrush}"/>
+                    Value="{DynamicResource SettingsCardBorderBrush}"/>
 
             <Setter Property="BorderThickness"
                     Value="1"/>
@@ -339,10 +339,10 @@
                     Value="{DynamicResource PrimaryTextBrush}"/>
 
             <Setter Property="Background"
-                    Value="{DynamicResource CardBackgroundBrush}"/>
+                    Value="{DynamicResource SettingsCardBrush}"/>
 
             <Setter Property="BorderBrush"
-                    Value="{DynamicResource BorderBrush}"/>
+                    Value="{DynamicResource SettingsCardBorderBrush}"/>
 
             <Setter Property="BorderThickness"
                     Value="1"/>
@@ -366,7 +366,7 @@
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="3">
+                                CornerRadius="{DynamicResource ButtonCornerRadius}">
 
                             <ContentPresenter HorizontalAlignment="Center"
                                               VerticalAlignment="Center"/>
@@ -392,7 +392,7 @@
 
                                 <Setter TargetName="ButtonBorder"
                                         Property="Background"
-                                        Value="{DynamicResource InputBackgroundBrush}"/>
+                                        Value="{DynamicResource SettingsInputBrush}"/>
 
                             </Trigger>
 
@@ -415,20 +415,125 @@
                TargetType="Border">
 
             <Setter Property="Background"
-                    Value="{DynamicResource CardBackgroundBrush}"/>
+                    Value="{DynamicResource SettingsCardBrush}"/>
 
             <Setter Property="BorderBrush"
-                    Value="{DynamicResource BorderBrush}"/>
+                    Value="{DynamicResource SettingsCardBorderBrush}"/>
 
             <Setter Property="BorderThickness"
                     Value="1"/>
 
             <Setter Property="CornerRadius"
-                    Value="5"/>
+                    Value="{DynamicResource PanelCornerRadius}"/>
 
             <Setter Property="Margin"
                     Value="0,0,0,14"/>
 
+        </Style>
+
+
+        <!-- ===================================================== -->
+        <!-- STEAMPUNK DECOR                                       -->
+        <!-- ===================================================== -->
+
+        <Style x:Key="SteamRivetStyle"
+               TargetType="Ellipse">
+            <Setter Property="Width"
+                    Value="7"/>
+            <Setter Property="Height"
+                    Value="7"/>
+            <Setter Property="Fill"
+                    Value="{DynamicResource SteamRivetBrush}"/>
+            <Setter Property="Stroke"
+                    Value="{DynamicResource SteamDarkMetalBrush}"/>
+            <Setter Property="StrokeThickness"
+                    Value="1"/>
+            <Setter Property="Margin"
+                    Value="8"/>
+            <Setter Property="IsHitTestVisible"
+                    Value="False"/>
+            <Setter Property="Visibility"
+                    Value="{DynamicResource SteamPunkVisibility}"/>
+        </Style>
+
+        <Style x:Key="SteamPlateTextStyle"
+               TargetType="TextBlock">
+            <Setter Property="Foreground"
+                    Value="{DynamicResource SecondaryTextBrush}"/>
+            <Setter Property="FontSize"
+                    Value="8"/>
+            <Setter Property="FontWeight"
+                    Value="Bold"/>
+        </Style>
+
+        <!-- ===================================================== -->
+        <!-- FROST CORE / MILITARY OPS DECOR                      -->
+        <!-- ===================================================== -->
+
+        <Style x:Key="FrostSectionFrameStyle"
+               TargetType="Border">
+            <Setter Property="Visibility"
+                    Value="{DynamicResource FrostCoreVisibility}"/>
+            <Setter Property="Margin"
+                    Value="5"/>
+            <Setter Property="BorderBrush"
+                    Value="{DynamicResource FrostSteelBrush}"/>
+            <Setter Property="BorderThickness"
+                    Value="1"/>
+            <Setter Property="CornerRadius"
+                    Value="10"/>
+            <Setter Property="Opacity"
+                    Value="0.72"/>
+            <Setter Property="IsHitTestVisible"
+                    Value="False"/>
+        </Style>
+
+        <Style x:Key="MilitarySectionFrameStyle"
+               TargetType="Border">
+            <Setter Property="Visibility"
+                    Value="{DynamicResource MilitaryOpsVisibility}"/>
+            <Setter Property="Margin"
+                    Value="5"/>
+            <Setter Property="BorderBrush"
+                    Value="{DynamicResource MilitaryKhakiBrush}"/>
+            <Setter Property="BorderThickness"
+                    Value="1"/>
+            <Setter Property="CornerRadius"
+                    Value="1"/>
+            <Setter Property="Opacity"
+                    Value="0.78"/>
+            <Setter Property="IsHitTestVisible"
+                    Value="False"/>
+        </Style>
+
+        <Style x:Key="FrostTopStripStyle"
+               TargetType="Border">
+            <Setter Property="Visibility"
+                    Value="{DynamicResource FrostCoreVisibility}"/>
+            <Setter Property="Width" Value="92"/>
+            <Setter Property="Height" Value="4"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="VerticalAlignment" Value="Top"/>
+            <Setter Property="Margin" Value="22,0,0,0"/>
+            <Setter Property="CornerRadius" Value="0,0,4,4"/>
+            <Setter Property="Background"
+                    Value="{DynamicResource FrostIceBrush}"/>
+            <Setter Property="Opacity" Value="0.86"/>
+            <Setter Property="IsHitTestVisible" Value="False"/>
+        </Style>
+
+        <Style x:Key="MilitaryTopStripStyle"
+               TargetType="Border">
+            <Setter Property="Visibility"
+                    Value="{DynamicResource MilitaryOpsVisibility}"/>
+            <Setter Property="Width" Value="82"/>
+            <Setter Property="Height" Value="3"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="VerticalAlignment" Value="Top"/>
+            <Setter Property="Margin" Value="18,0,0,0"/>
+            <Setter Property="Background"
+                    Value="{DynamicResource MilitaryKhakiBrush}"/>
+            <Setter Property="IsHitTestVisible" Value="False"/>
         </Style>
 
     </Window.Resources>
@@ -436,11 +541,47 @@
 
     <Grid>
 
+        <!-- Frost Core: холодная лабораторная подложка -->
+        <Rectangle Visibility="{DynamicResource FrostCoreVisibility}"
+                   IsHitTestVisible="False"
+                   Opacity="0.09">
+            <Rectangle.Fill>
+                <DrawingBrush TileMode="Tile"
+                              Viewport="0,0,64,64"
+                              ViewportUnits="Absolute"
+                              Viewbox="0,0,64,64"
+                              ViewboxUnits="Absolute">
+                    <DrawingBrush.Drawing>
+                        <GeometryDrawing>
+                            <GeometryDrawing.Pen>
+                                <Pen Brush="{DynamicResource FrostSteelBrush}"
+                                     Thickness="0.7"/>
+                            </GeometryDrawing.Pen>
+                            <GeometryDrawing.Geometry>
+                                <GeometryGroup>
+                                    <LineGeometry StartPoint="0,0" EndPoint="64,0"/>
+                                    <LineGeometry StartPoint="0,32" EndPoint="64,32"/>
+                                    <LineGeometry StartPoint="0,0" EndPoint="0,64"/>
+                                </GeometryGroup>
+                            </GeometryDrawing.Geometry>
+                        </GeometryDrawing>
+                    </DrawingBrush.Drawing>
+                </DrawingBrush>
+            </Rectangle.Fill>
+        </Rectangle>
+
+        <!-- Military Ops: статичный цифровой камуфляж фона -->
+        <Rectangle Visibility="{DynamicResource MilitaryOpsVisibility}"
+                   Fill="{DynamicResource MilitaryPanelBrush}"
+                   Opacity="0.16"
+                   IsHitTestVisible="False"/>
+
         <!-- ===================================================== -->
         <!-- СЛАБАЯ HUD-СЕТКА                                      -->
         <!-- ===================================================== -->
 
         <Rectangle IsHitTestVisible="False"
+                   Visibility="{DynamicResource CyberTechVisibility}"
                    Opacity="0.10">
 
             <Rectangle.Fill>
@@ -483,6 +624,23 @@
 
         </Rectangle>
 
+        <!-- Статические латунные направляющие фона SteamPunk -->
+        <Border Visibility="{DynamicResource SteamPunkVisibility}"
+                Width="3"
+                HorizontalAlignment="Left"
+                Margin="8,18,0,18"
+                Background="{DynamicResource SteamMetalBrush}"
+                Opacity="0.55"
+                IsHitTestVisible="False"/>
+
+        <Border Visibility="{DynamicResource SteamPunkVisibility}"
+                Width="3"
+                HorizontalAlignment="Right"
+                Margin="0,18,8,18"
+                Background="{DynamicResource SteamMetalBrush}"
+                Opacity="0.55"
+                IsHitTestVisible="False"/>
+
 
         <Grid Margin="18">
 
@@ -498,10 +656,10 @@
             <!-- ================================================= -->
 
             <Border Grid.Row="0"
-                    Background="{DynamicResource CardBackgroundBrush}"
-                    BorderBrush="{DynamicResource BorderBrush}"
+                    Background="{DynamicResource SettingsCardBrush}"
+                    BorderBrush="{DynamicResource SettingsCardBorderBrush}"
                     BorderThickness="1"
-                    CornerRadius="5"
+                    CornerRadius="{DynamicResource PanelCornerRadius}"
                     Margin="0,0,0,14">
 
                 <Grid>
@@ -561,7 +719,7 @@
                             <StackPanel Orientation="Horizontal"
                                         Margin="1,2,0,0">
 
-                                <TextBlock Text="SYSTEM CONFIGURATION"
+                                <TextBlock Text="НАСТРОЙКИ СИСТЕМЫ"
                                            Style="{StaticResource TechLabelStyle}"/>
 
                                 <Border Width="30"
@@ -570,7 +728,7 @@
                                         Margin="9,0"
                                         VerticalAlignment="Center"/>
 
-                                <TextBlock Text="CONTROL PANEL"
+                                <TextBlock Text="ПАНЕЛЬ УПРАВЛЕНИЯ"
                                            Style="{StaticResource TechLabelStyle}"/>
 
                             </StackPanel>
@@ -582,19 +740,283 @@
                                     VerticalAlignment="Center"
                                     HorizontalAlignment="Right">
 
-                            <TextBlock Text="CONFIG"
+                            <TextBlock Text="НАСТРОЙКИ"
                                        Foreground="{DynamicResource AccentBrush}"
                                        FontSize="10"
                                        FontWeight="Bold"
                                        HorizontalAlignment="Right"/>
 
-                            <TextBlock Text="LOCAL PROFILE"
+                            <TextBlock Text="ЛОКАЛЬНЫЙ ПРОФИЛЬ"
                                        Style="{StaticResource TechLabelStyle}"
                                        Margin="0,2,0,0"
                                        HorizontalAlignment="Right"/>
 
                         </StackPanel>
 
+                    </Grid>
+
+                    <!-- Отдельная шапка SteamPunk поверх Cyber Tech -->
+                    <Grid Grid.RowSpan="2"
+                          Visibility="{DynamicResource SteamPunkVisibility}"
+                          Background="{DynamicResource SteamPanelBrush}">
+
+                        <Border Margin="5"
+                                BorderBrush="{DynamicResource SteamMetalBrush}"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                IsHitTestVisible="False"/>
+
+                        <Ellipse Style="{StaticResource SteamRivetStyle}"
+                                 HorizontalAlignment="Left"
+                                 VerticalAlignment="Top"/>
+                        <Ellipse Style="{StaticResource SteamRivetStyle}"
+                                 HorizontalAlignment="Right"
+                                 VerticalAlignment="Top"/>
+                        <Ellipse Style="{StaticResource SteamRivetStyle}"
+                                 HorizontalAlignment="Left"
+                                 VerticalAlignment="Bottom"/>
+                        <Ellipse Style="{StaticResource SteamRivetStyle}"
+                                 HorizontalAlignment="Right"
+                                 VerticalAlignment="Bottom"/>
+
+                        <Grid Margin="18,12">
+
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="14"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Grid Width="46"
+                                  Height="46"
+                                  VerticalAlignment="Center">
+
+                                <Ellipse Fill="{DynamicResource SteamGlassBrush}"
+                                         Stroke="{DynamicResource SteamMetalBrush}"
+                                         StrokeThickness="3"/>
+
+                                <Ellipse Width="29"
+                                         Height="29"
+                                         Stroke="{DynamicResource BorderBrush}"
+                                         StrokeThickness="1"/>
+
+                                <TextBlock Text="⚙"
+                                           Foreground="{DynamicResource AccentBrush}"
+                                           FontSize="25"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"/>
+
+                            </Grid>
+
+                            <StackPanel Grid.Column="2"
+                                        VerticalAlignment="Center">
+
+                                <TextBlock Text="THERMIQRA"
+                                           FontFamily="{DynamicResource DisplayFontFamily}"
+                                           FontSize="22"
+                                           FontWeight="Bold"/>
+
+                                <TextBlock Text="МЕХАНИЧЕСКАЯ ПАНЕЛЬ НАСТРОЕК"
+                                           Style="{StaticResource SteamPlateTextStyle}"
+                                           Margin="1,2,0,0"/>
+
+                            </StackPanel>
+
+                            <Border Grid.Column="3"
+                                    Background="{DynamicResource SteamGlassBrush}"
+                                    BorderBrush="{DynamicResource SteamMetalBrush}"
+                                    BorderThickness="2"
+                                    CornerRadius="8"
+                                    Padding="12,7"
+                                    VerticalAlignment="Center">
+
+                                <StackPanel>
+
+                                    <TextBlock Text="КОНФИГУРАЦИЯ"
+                                               Foreground="{DynamicResource AccentBrush}"
+                                               FontSize="9"
+                                               FontWeight="Bold"
+                                               HorizontalAlignment="Center"/>
+
+                                    <TextBlock Text="ЛОКАЛЬНЫЙ ПРОФИЛЬ"
+                                               Style="{StaticResource SteamPlateTextStyle}"
+                                               Margin="0,2,0,0"
+                                               HorizontalAlignment="Center"/>
+
+                                </StackPanel>
+
+                            </Border>
+
+                        </Grid>
+
+                    </Grid>
+
+                    <!-- Отдельная шапка Frost Core -->
+                    <Grid Grid.RowSpan="2"
+                          Visibility="{DynamicResource FrostCoreVisibility}"
+                          Background="{DynamicResource FrostPanelBrush}">
+
+                        <Border Margin="5"
+                                BorderBrush="{DynamicResource FrostSteelBrush}"
+                                BorderThickness="1"
+                                CornerRadius="12"
+                                IsHitTestVisible="False"/>
+
+                        <Border Height="4"
+                                Margin="22,0,22,0"
+                                VerticalAlignment="Top"
+                                Background="{DynamicResource FrostIceBrush}"
+                                CornerRadius="0,0,5,5"
+                                Opacity="0.85"
+                                IsHitTestVisible="False"/>
+
+                        <Grid Margin="18,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="14"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Grid Width="48" Height="48" VerticalAlignment="Center">
+                                <Border Background="{DynamicResource FrostGlassBrush}"
+                                        BorderBrush="{DynamicResource FrostSteelBrush}"
+                                        BorderThickness="2"
+                                        CornerRadius="14"/>
+                                <TextBlock Text="❄"
+                                           Foreground="{DynamicResource FrostIceBrush}"
+                                           FontSize="28"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"/>
+                            </Grid>
+
+                            <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                <TextBlock Text="THERMIQRA"
+                                           FontSize="22"
+                                           FontWeight="Bold"/>
+                                <TextBlock Text="КРИОГЕННАЯ ПАНЕЛЬ НАСТРОЕК"
+                                           Foreground="{DynamicResource SecondaryTextBrush}"
+                                           FontSize="8"
+                                           FontWeight="Bold"
+                                           Margin="1,2,0,0"/>
+                            </StackPanel>
+
+                            <Border Grid.Column="3"
+                                    Background="{DynamicResource FrostGlassBrush}"
+                                    BorderBrush="{DynamicResource FrostSteelBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="10"
+                                    Padding="12,7"
+                                    VerticalAlignment="Center">
+                                <StackPanel>
+                                    <TextBlock Text="КРИОКОНТУР"
+                                               Foreground="{DynamicResource AccentBrush}"
+                                               FontSize="9"
+                                               FontWeight="Bold"
+                                               HorizontalAlignment="Center"/>
+                                    <TextBlock Text="ЛОКАЛЬНЫЙ ПРОФИЛЬ"
+                                               Foreground="{DynamicResource SecondaryTextBrush}"
+                                               FontSize="8"
+                                               FontWeight="SemiBold"
+                                               Margin="0,2,0,0"
+                                               HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </Grid>
+
+                    <!-- Отдельная шапка Military Ops -->
+                    <Grid Grid.RowSpan="2"
+                          Visibility="{DynamicResource MilitaryOpsVisibility}"
+                          Background="{DynamicResource MilitaryPanelBrush}">
+
+                        <Border Margin="5"
+                                BorderBrush="{DynamicResource MilitaryKhakiBrush}"
+                                BorderThickness="1"
+                                CornerRadius="1"
+                                Opacity="0.85"
+                                IsHitTestVisible="False"/>
+
+                        <Border Height="3"
+                                Margin="20,0,20,0"
+                                VerticalAlignment="Top"
+                                Background="{DynamicResource MilitaryKhakiBrush}"
+                                IsHitTestVisible="False"/>
+
+                        <Grid Margin="18,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="14"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Grid Width="48" Height="48" VerticalAlignment="Center">
+                                <Ellipse Fill="{DynamicResource MilitaryPlateBrush}"
+                                         Stroke="{DynamicResource MilitaryKhakiBrush}"
+                                         StrokeThickness="2"/>
+                                <Border Width="1" Height="34"
+                                        Background="{DynamicResource MilitaryGridBrush}"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"/>
+                                <Border Width="34" Height="1"
+                                        Background="{DynamicResource MilitaryGridBrush}"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"/>
+                                <TextBlock Text="N"
+                                           Foreground="{DynamicResource AccentBrush}"
+                                           FontFamily="{DynamicResource DisplayFontFamily}"
+                                           FontSize="7"
+                                           FontWeight="Bold"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Top"
+                                           Margin="0,4,0,0"/>
+                                <Path Data="M 0,12 L 6,0 L 12,12 L 6,9 Z"
+                                      Width="12" Height="12"
+                                      Stretch="Fill"
+                                      Fill="{DynamicResource AccentBrush}"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"/>
+                            </Grid>
+
+                            <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                <TextBlock Text="THERMIQRA"
+                                           FontFamily="{DynamicResource DisplayFontFamily}"
+                                           FontSize="22"
+                                           FontWeight="Bold"/>
+                                <TextBlock Text="ТАКТИЧЕСКАЯ ПАНЕЛЬ НАСТРОЕК"
+                                           Foreground="{DynamicResource MilitaryKhakiBrush}"
+                                           FontFamily="{DynamicResource DisplayFontFamily}"
+                                           FontSize="8"
+                                           FontWeight="Bold"
+                                           Margin="1,2,0,0"/>
+                            </StackPanel>
+
+                            <Border Grid.Column="3"
+                                    Background="{DynamicResource MilitaryPlateBrush}"
+                                    BorderBrush="{DynamicResource MilitaryKhakiBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="1"
+                                    Padding="12,7"
+                                    VerticalAlignment="Center">
+                                <StackPanel>
+                                    <TextBlock Text="КОНФИГУРАЦИЯ"
+                                               Foreground="{DynamicResource AccentBrush}"
+                                               FontFamily="{DynamicResource DisplayFontFamily}"
+                                               FontSize="9"
+                                               FontWeight="Bold"
+                                               HorizontalAlignment="Center"/>
+                                    <TextBlock Text="ПОЛЕВОЙ ПРОФИЛЬ"
+                                               Foreground="{DynamicResource MilitaryKhakiBrush}"
+                                               FontFamily="{DynamicResource DisplayFontFamily}"
+                                               FontSize="8"
+                                               FontWeight="SemiBold"
+                                               Margin="0,2,0,0"
+                                               HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
                     </Grid>
 
                 </Grid>
@@ -615,20 +1037,89 @@
 
 
                     <!-- ========================================= -->
-                    <!-- ТЕМЫ                                      -->
+                    <!-- ВНЕШНИЙ ВИД                               -->
                     <!-- ========================================= -->
 
                     <Border Style="{StaticResource TechCardStyle}">
 
                         <Grid>
-
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="3"/>
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
 
+                            <Border Grid.RowSpan="10"
+                                    Visibility="{DynamicResource SteamPunkVisibility}"
+                                    Margin="4"
+                                    BorderBrush="{DynamicResource SteamMetalBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="8"
+                                    IsHitTestVisible="False"/>
+
+                            <Ellipse Grid.RowSpan="10"
+                                     Style="{StaticResource SteamRivetStyle}"
+                                     HorizontalAlignment="Left"
+                                     VerticalAlignment="Top"/>
+
+                            <Ellipse Grid.RowSpan="10"
+                                     Style="{StaticResource SteamRivetStyle}"
+                                     HorizontalAlignment="Right"
+                                     VerticalAlignment="Top"/>
+
+                            <Ellipse Grid.RowSpan="10"
+                                     Style="{StaticResource SteamRivetStyle}"
+                                     HorizontalAlignment="Left"
+                                     VerticalAlignment="Bottom"/>
+
+                            <Ellipse Grid.RowSpan="10"
+                                     Style="{StaticResource SteamRivetStyle}"
+                                     HorizontalAlignment="Right"
+                                     VerticalAlignment="Bottom"/>
+
+
+                            <Border Grid.RowSpan="10"
+                                    Style="{StaticResource FrostSectionFrameStyle}"/>
+
+                            <Border Grid.RowSpan="10"
+                                    Style="{StaticResource MilitarySectionFrameStyle}"/>
+
+                            <TextBlock Grid.RowSpan="10"
+                                       Visibility="{DynamicResource FrostCoreVisibility}"
+                                       Text="❄"
+                                       Foreground="{DynamicResource FrostIceBrush}"
+                                       FontSize="48"
+                                       Opacity="0.055"
+                                       HorizontalAlignment="Right"
+                                       VerticalAlignment="Center"
+                                       Margin="0,0,22,0"
+                                       IsHitTestVisible="False"/>
+
+                            <Grid Grid.RowSpan="10"
+                                  Visibility="{DynamicResource MilitaryOpsVisibility}"
+                                  Width="54"
+                                  Height="30"
+                                  HorizontalAlignment="Right"
+                                  VerticalAlignment="Top"
+                                  Margin="0,8,10,0"
+                                  Opacity="0.34"
+                                  IsHitTestVisible="False">
+                                <Border Width="1" Height="28"
+                                        Background="{DynamicResource MilitaryGridBrush}"
+                                        HorizontalAlignment="Center"/>
+                                <Border Width="52" Height="1"
+                                        Background="{DynamicResource MilitaryGridBrush}"
+                                        VerticalAlignment="Center"/>
+                                <Ellipse Width="13" Height="13"
+                                         Stroke="{DynamicResource MilitaryKhakiBrush}"
+                                         StrokeThickness="1"/>
+                            </Grid>
+
+                            <Border Style="{StaticResource FrostTopStripStyle}"/>
+                            <Border Style="{StaticResource MilitaryTopStripStyle}"/>
+
                             <Border Width="105"
                                     Height="3"
+                                    Visibility="{DynamicResource CyberTechVisibility}"
                                     HorizontalAlignment="Left"
                                     Margin="18,0,0,0"
                                     Background="{DynamicResource AccentBrush}"/>
@@ -648,7 +1139,7 @@
                                         <TextBlock Text="ВНЕШНИЙ ВИД"
                                                    Style="{StaticResource SectionTitleStyle}"/>
 
-                                        <TextBlock Text="VISUAL INTERFACE / THEME PROFILE"
+                                        <TextBlock Text="ВЫБОР СКИНА ИНТЕРФЕЙСА"
                                                    Style="{StaticResource TechLabelStyle}"
                                                    Margin="1,2,0,0"/>
 
@@ -664,12 +1155,15 @@
                                 </Grid>
 
 
+                                <TextBlock Text="СКИН ИНТЕРФЕЙСА"
+                                           Style="{StaticResource TechLabelStyle}"
+                                           Margin="1,0,0,6"/>
+
                                 <UniformGrid Columns="2"
-                                             Rows="2">
+                                             Margin="0,0,0,0">
 
-
-                                    <Border x:Name="SteelBlueThemeCard"
-                                            Tag="SteelBlue"
+                                    <Border x:Name="CyberTechSkinCard"
+                                            Tag="CyberTech"
                                             Background="#0D1A21"
                                             BorderBrush="#234754"
                                             BorderThickness="2"
@@ -677,9 +1171,7 @@
                                             Padding="12"
                                             Margin="0,0,6,6"
                                             Cursor="Hand"
-                                            MouseEnter="ThemeCard_MouseEnter"
-                                            MouseLeave="ThemeCard_MouseLeave"
-                                            MouseLeftButtonDown="ThemeCard_MouseLeftButtonDown">
+                                            MouseLeftButtonDown="SkinCard_MouseLeftButtonDown">
 
                                         <Grid>
 
@@ -696,7 +1188,7 @@
                                                     <ColumnDefinition Width="Auto"/>
                                                 </Grid.ColumnDefinitions>
 
-                                                <TextBlock Text="STEEL BLUE"
+                                                <TextBlock Text="CYBER TECH"
                                                            Foreground="#EAF8FF"
                                                            FontSize="14"
                                                            FontWeight="Bold"/>
@@ -710,7 +1202,7 @@
                                             </Grid>
 
                                             <TextBlock Grid.Row="1"
-                                                       Text="CYBER CYAN"
+                                                       Text="ТЕХНИЧЕСКИЙ HUD-ИНТЕРФЕЙС"
                                                        Foreground="#74909E"
                                                        FontSize="9"
                                                        FontWeight="SemiBold"
@@ -727,19 +1219,16 @@
 
                                     </Border>
 
-
-                                    <Border x:Name="GraphiteGreenThemeCard"
-                                            Tag="GraphiteGreen"
-                                            Background="#0E1A17"
-                                            BorderBrush="#244C3E"
+                                    <Border x:Name="SteamPunkSkinCard"
+                                            Tag="SteamPunk"
+                                            Background="#1A120C"
+                                            BorderBrush="#6E4A2A"
                                             BorderThickness="2"
-                                            CornerRadius="4"
+                                            CornerRadius="8"
                                             Padding="12"
                                             Margin="6,0,0,6"
                                             Cursor="Hand"
-                                            MouseEnter="ThemeCard_MouseEnter"
-                                            MouseLeave="ThemeCard_MouseLeave"
-                                            MouseLeftButtonDown="ThemeCard_MouseLeftButtonDown">
+                                            MouseLeftButtonDown="SkinCard_MouseLeftButtonDown">
 
                                         <Grid>
 
@@ -756,22 +1245,22 @@
                                                     <ColumnDefinition Width="Auto"/>
                                                 </Grid.ColumnDefinitions>
 
-                                                <TextBlock Text="GRAPHITE GREEN"
-                                                           Foreground="#EAF8F2"
+                                                <TextBlock Text="STEAMPUNK"
+                                                           Foreground="#F4E3C1"
                                                            FontSize="14"
                                                            FontWeight="Bold"/>
 
                                                 <Border Grid.Column="1"
                                                         Width="7"
                                                         Height="7"
-                                                        Background="#35E0A1"
+                                                        Background="#F39A32"
                                                         VerticalAlignment="Center"/>
 
                                             </Grid>
 
                                             <TextBlock Grid.Row="1"
-                                                       Text="TACTICAL GREEN"
-                                                       Foreground="#739487"
+                                                       Text="ЛАТУНЬ / МЕДЬ / МЕХАНИКА"
+                                                       Foreground="#B99A73"
                                                        FontSize="9"
                                                        FontWeight="SemiBold"
                                                        Margin="0,3,0,0"/>
@@ -780,26 +1269,23 @@
                                                     Height="3"
                                                     Width="70"
                                                     HorizontalAlignment="Left"
-                                                    Background="#35E0A1"
+                                                    Background="#F39A32"
                                                     Margin="0,12,0,0"/>
 
                                         </Grid>
 
                                     </Border>
 
-
-                                    <Border x:Name="VioletNeonThemeCard"
-                                            Tag="VioletNeon"
-                                            Background="#181122"
-                                            BorderBrush="#4A3263"
+                                    <Border x:Name="FrostCoreSkinCard"
+                                            Tag="FrostCore"
+                                            Background="#111C22"
+                                            BorderBrush="#4A6570"
                                             BorderThickness="2"
-                                            CornerRadius="4"
+                                            CornerRadius="10"
                                             Padding="12"
                                             Margin="0,6,6,0"
                                             Cursor="Hand"
-                                            MouseEnter="ThemeCard_MouseEnter"
-                                            MouseLeave="ThemeCard_MouseLeave"
-                                            MouseLeftButtonDown="ThemeCard_MouseLeftButtonDown">
+                                            MouseLeftButtonDown="SkinCard_MouseLeftButtonDown">
 
                                         <Grid>
 
@@ -816,22 +1302,23 @@
                                                     <ColumnDefinition Width="Auto"/>
                                                 </Grid.ColumnDefinitions>
 
-                                                <TextBlock Text="VIOLET NEON"
-                                                           Foreground="#F5F0FF"
+                                                <TextBlock Text="FROST CORE"
+                                                           Foreground="#EAF8FC"
                                                            FontSize="14"
                                                            FontWeight="Bold"/>
 
-                                                <Border Grid.Column="1"
-                                                        Width="7"
-                                                        Height="7"
-                                                        Background="#B56CFF"
-                                                        VerticalAlignment="Center"/>
+                                                <TextBlock Grid.Column="1"
+                                                           Text="❄"
+                                                           Foreground="#76E7FF"
+                                                           FontSize="14"
+                                                           FontWeight="Bold"
+                                                           VerticalAlignment="Center"/>
 
                                             </Grid>
 
                                             <TextBlock Grid.Row="1"
-                                                       Text="VIOLET SYSTEM"
-                                                       Foreground="#9C87B6"
+                                                       Text="КРИОГЕННАЯ СТАНЦИЯ"
+                                                       Foreground="#8FAAB4"
                                                        FontSize="9"
                                                        FontWeight="SemiBold"
                                                        Margin="0,3,0,0"/>
@@ -840,26 +1327,23 @@
                                                     Height="3"
                                                     Width="70"
                                                     HorizontalAlignment="Left"
-                                                    Background="#B56CFF"
+                                                    Background="#76E7FF"
                                                     Margin="0,12,0,0"/>
 
                                         </Grid>
 
                                     </Border>
 
-
-                                    <Border x:Name="LightTechThemeCard"
-                                            Tag="LightTech"
-                                            Background="#F8FBFD"
-                                            BorderBrush="#B4CBD4"
+                                    <Border x:Name="MilitaryOpsSkinCard"
+                                            Tag="MilitaryOps"
+                                            Background="#151B10"
+                                            BorderBrush="#4B5A37"
                                             BorderThickness="2"
-                                            CornerRadius="4"
+                                            CornerRadius="2"
                                             Padding="12"
                                             Margin="6,6,0,0"
                                             Cursor="Hand"
-                                            MouseEnter="ThemeCard_MouseEnter"
-                                            MouseLeave="ThemeCard_MouseLeave"
-                                            MouseLeftButtonDown="ThemeCard_MouseLeftButtonDown">
+                                            MouseLeftButtonDown="SkinCard_MouseLeftButtonDown">
 
                                         <Grid>
 
@@ -876,22 +1360,24 @@
                                                     <ColumnDefinition Width="Auto"/>
                                                 </Grid.ColumnDefinitions>
 
-                                                <TextBlock Text="LIGHT TECH"
-                                                           Foreground="#15242C"
+                                                <TextBlock Text="MILITARY OPS"
+                                                           Foreground="#E6E8D3"
                                                            FontSize="14"
                                                            FontWeight="Bold"/>
 
                                                 <Border Grid.Column="1"
-                                                        Width="7"
-                                                        Height="7"
-                                                        Background="#087FA8"
+                                                        Width="9"
+                                                        Height="9"
+                                                        Background="#9BCF4A"
+                                                        BorderBrush="#1C2413"
+                                                        BorderThickness="1"
                                                         VerticalAlignment="Center"/>
 
                                             </Grid>
 
                                             <TextBlock Grid.Row="1"
-                                                       Text="LIGHT TERMINAL"
-                                                       Foreground="#607781"
+                                                       Text="ТАКТИЧЕСКИЙ ЦЕНТР"
+                                                       Foreground="#96A07A"
                                                        FontSize="9"
                                                        FontWeight="SemiBold"
                                                        Margin="0,3,0,0"/>
@@ -900,7 +1386,7 @@
                                                     Height="3"
                                                     Width="70"
                                                     HorizontalAlignment="Left"
-                                                    Background="#087FA8"
+                                                    Background="#9BCF4A"
                                                     Margin="0,12,0,0"/>
 
                                         </Grid>
@@ -909,8 +1395,7 @@
 
                                 </UniformGrid>
 
-
-                                <TextBlock Text="Наведи курсор для предпросмотра. Щёлкни по карточке, чтобы выбрать тему."
+                                <TextBlock Text="Каждый скин использует собственное цветовое оформление."
                                            Foreground="{DynamicResource SecondaryTextBrush}"
                                            FontSize="11"
                                            Margin="0,12,0,0"
@@ -930,14 +1415,83 @@
                     <Border Style="{StaticResource TechCardStyle}">
 
                         <Grid>
-
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="3"/>
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
 
+                            <Border Grid.RowSpan="10"
+                                    Visibility="{DynamicResource SteamPunkVisibility}"
+                                    Margin="4"
+                                    BorderBrush="{DynamicResource SteamMetalBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="8"
+                                    IsHitTestVisible="False"/>
+
+                            <Ellipse Grid.RowSpan="10"
+                                     Style="{StaticResource SteamRivetStyle}"
+                                     HorizontalAlignment="Left"
+                                     VerticalAlignment="Top"/>
+
+                            <Ellipse Grid.RowSpan="10"
+                                     Style="{StaticResource SteamRivetStyle}"
+                                     HorizontalAlignment="Right"
+                                     VerticalAlignment="Top"/>
+
+                            <Ellipse Grid.RowSpan="10"
+                                     Style="{StaticResource SteamRivetStyle}"
+                                     HorizontalAlignment="Left"
+                                     VerticalAlignment="Bottom"/>
+
+                            <Ellipse Grid.RowSpan="10"
+                                     Style="{StaticResource SteamRivetStyle}"
+                                     HorizontalAlignment="Right"
+                                     VerticalAlignment="Bottom"/>
+
+
+                            <Border Grid.RowSpan="10"
+                                    Style="{StaticResource FrostSectionFrameStyle}"/>
+
+                            <Border Grid.RowSpan="10"
+                                    Style="{StaticResource MilitarySectionFrameStyle}"/>
+
+                            <TextBlock Grid.RowSpan="10"
+                                       Visibility="{DynamicResource FrostCoreVisibility}"
+                                       Text="❄"
+                                       Foreground="{DynamicResource FrostIceBrush}"
+                                       FontSize="48"
+                                       Opacity="0.055"
+                                       HorizontalAlignment="Right"
+                                       VerticalAlignment="Center"
+                                       Margin="0,0,22,0"
+                                       IsHitTestVisible="False"/>
+
+                            <Grid Grid.RowSpan="10"
+                                  Visibility="{DynamicResource MilitaryOpsVisibility}"
+                                  Width="54"
+                                  Height="30"
+                                  HorizontalAlignment="Right"
+                                  VerticalAlignment="Top"
+                                  Margin="0,8,10,0"
+                                  Opacity="0.34"
+                                  IsHitTestVisible="False">
+                                <Border Width="1" Height="28"
+                                        Background="{DynamicResource MilitaryGridBrush}"
+                                        HorizontalAlignment="Center"/>
+                                <Border Width="52" Height="1"
+                                        Background="{DynamicResource MilitaryGridBrush}"
+                                        VerticalAlignment="Center"/>
+                                <Ellipse Width="13" Height="13"
+                                         Stroke="{DynamicResource MilitaryKhakiBrush}"
+                                         StrokeThickness="1"/>
+                            </Grid>
+
+                            <Border Style="{StaticResource FrostTopStripStyle}"/>
+                            <Border Style="{StaticResource MilitaryTopStripStyle}"/>
+
                             <Border Width="105"
                                     Height="3"
+                                    Visibility="{DynamicResource CyberTechVisibility}"
                                     HorizontalAlignment="Left"
                                     Margin="18,0,0,0"
                                     Background="{DynamicResource AccentBrush}"/>
@@ -1006,14 +1560,83 @@
                     <Border Style="{StaticResource TechCardStyle}">
 
                         <Grid>
-
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="3"/>
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
 
+                            <Border Grid.RowSpan="10"
+                                    Visibility="{DynamicResource SteamPunkVisibility}"
+                                    Margin="4"
+                                    BorderBrush="{DynamicResource SteamMetalBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="8"
+                                    IsHitTestVisible="False"/>
+
+                            <Ellipse Grid.RowSpan="10"
+                                     Style="{StaticResource SteamRivetStyle}"
+                                     HorizontalAlignment="Left"
+                                     VerticalAlignment="Top"/>
+
+                            <Ellipse Grid.RowSpan="10"
+                                     Style="{StaticResource SteamRivetStyle}"
+                                     HorizontalAlignment="Right"
+                                     VerticalAlignment="Top"/>
+
+                            <Ellipse Grid.RowSpan="10"
+                                     Style="{StaticResource SteamRivetStyle}"
+                                     HorizontalAlignment="Left"
+                                     VerticalAlignment="Bottom"/>
+
+                            <Ellipse Grid.RowSpan="10"
+                                     Style="{StaticResource SteamRivetStyle}"
+                                     HorizontalAlignment="Right"
+                                     VerticalAlignment="Bottom"/>
+
+
+                            <Border Grid.RowSpan="10"
+                                    Style="{StaticResource FrostSectionFrameStyle}"/>
+
+                            <Border Grid.RowSpan="10"
+                                    Style="{StaticResource MilitarySectionFrameStyle}"/>
+
+                            <TextBlock Grid.RowSpan="10"
+                                       Visibility="{DynamicResource FrostCoreVisibility}"
+                                       Text="❄"
+                                       Foreground="{DynamicResource FrostIceBrush}"
+                                       FontSize="48"
+                                       Opacity="0.055"
+                                       HorizontalAlignment="Right"
+                                       VerticalAlignment="Center"
+                                       Margin="0,0,22,0"
+                                       IsHitTestVisible="False"/>
+
+                            <Grid Grid.RowSpan="10"
+                                  Visibility="{DynamicResource MilitaryOpsVisibility}"
+                                  Width="54"
+                                  Height="30"
+                                  HorizontalAlignment="Right"
+                                  VerticalAlignment="Top"
+                                  Margin="0,8,10,0"
+                                  Opacity="0.34"
+                                  IsHitTestVisible="False">
+                                <Border Width="1" Height="28"
+                                        Background="{DynamicResource MilitaryGridBrush}"
+                                        HorizontalAlignment="Center"/>
+                                <Border Width="52" Height="1"
+                                        Background="{DynamicResource MilitaryGridBrush}"
+                                        VerticalAlignment="Center"/>
+                                <Ellipse Width="13" Height="13"
+                                         Stroke="{DynamicResource MilitaryKhakiBrush}"
+                                         StrokeThickness="1"/>
+                            </Grid>
+
+                            <Border Style="{StaticResource FrostTopStripStyle}"/>
+                            <Border Style="{StaticResource MilitaryTopStripStyle}"/>
+
                             <Border Width="105"
                                     Height="3"
+                                    Visibility="{DynamicResource CyberTechVisibility}"
                                     HorizontalAlignment="Left"
                                     Margin="18,0,0,0"
                                     Background="{DynamicResource AccentBrush}"/>
@@ -1130,14 +1753,83 @@
                                 Margin="0">
 
                             <Grid>
-
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="3"/>
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
+                                <Border Grid.RowSpan="10"
+                                        Visibility="{DynamicResource SteamPunkVisibility}"
+                                        Margin="4"
+                                        BorderBrush="{DynamicResource SteamMetalBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="8"
+                                        IsHitTestVisible="False"/>
+
+                                <Ellipse Grid.RowSpan="10"
+                                         Style="{StaticResource SteamRivetStyle}"
+                                         HorizontalAlignment="Left"
+                                         VerticalAlignment="Top"/>
+
+                                <Ellipse Grid.RowSpan="10"
+                                         Style="{StaticResource SteamRivetStyle}"
+                                         HorizontalAlignment="Right"
+                                         VerticalAlignment="Top"/>
+
+                                <Ellipse Grid.RowSpan="10"
+                                         Style="{StaticResource SteamRivetStyle}"
+                                         HorizontalAlignment="Left"
+                                         VerticalAlignment="Bottom"/>
+
+                                <Ellipse Grid.RowSpan="10"
+                                         Style="{StaticResource SteamRivetStyle}"
+                                         HorizontalAlignment="Right"
+                                         VerticalAlignment="Bottom"/>
+
+
+                                <Border Grid.RowSpan="10"
+                                        Style="{StaticResource FrostSectionFrameStyle}"/>
+
+                                <Border Grid.RowSpan="10"
+                                        Style="{StaticResource MilitarySectionFrameStyle}"/>
+
+                                <TextBlock Grid.RowSpan="10"
+                                           Visibility="{DynamicResource FrostCoreVisibility}"
+                                           Text="❄"
+                                           Foreground="{DynamicResource FrostIceBrush}"
+                                           FontSize="44"
+                                           Opacity="0.05"
+                                           HorizontalAlignment="Right"
+                                           VerticalAlignment="Center"
+                                           Margin="0,0,18,0"
+                                           IsHitTestVisible="False"/>
+
+                                <Grid Grid.RowSpan="10"
+                                      Visibility="{DynamicResource MilitaryOpsVisibility}"
+                                      Width="48"
+                                      Height="28"
+                                      HorizontalAlignment="Right"
+                                      VerticalAlignment="Top"
+                                      Margin="0,8,9,0"
+                                      Opacity="0.32"
+                                      IsHitTestVisible="False">
+                                    <Border Width="1" Height="26"
+                                            Background="{DynamicResource MilitaryGridBrush}"
+                                            HorizontalAlignment="Center"/>
+                                    <Border Width="46" Height="1"
+                                            Background="{DynamicResource MilitaryGridBrush}"
+                                            VerticalAlignment="Center"/>
+                                    <Ellipse Width="12" Height="12"
+                                             Stroke="{DynamicResource MilitaryKhakiBrush}"
+                                             StrokeThickness="1"/>
+                                </Grid>
+
+                                <Border Style="{StaticResource FrostTopStripStyle}"/>
+                                <Border Style="{StaticResource MilitaryTopStripStyle}"/>
+
                                 <Border Width="82"
                                         Height="3"
+                                        Visibility="{DynamicResource CyberTechVisibility}"
                                         HorizontalAlignment="Left"
                                         Margin="18,0,0,0"
                                         Background="{DynamicResource AccentBrush}"/>
@@ -1157,7 +1849,7 @@
                                             <TextBlock Text="CPU"
                                                        Style="{StaticResource SectionTitleStyle}"/>
 
-                                            <TextBlock Text="THERMAL LIMITS"
+                                            <TextBlock Text="ТЕМПЕРАТУРНЫЕ ПОРОГИ"
                                                        Style="{StaticResource TechLabelStyle}"
                                                        Margin="1,2,0,0"/>
 
@@ -1203,14 +1895,83 @@
                                 Margin="0">
 
                             <Grid>
-
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="3"/>
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
+                                <Border Grid.RowSpan="10"
+                                        Visibility="{DynamicResource SteamPunkVisibility}"
+                                        Margin="4"
+                                        BorderBrush="{DynamicResource SteamMetalBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="8"
+                                        IsHitTestVisible="False"/>
+
+                                <Ellipse Grid.RowSpan="10"
+                                         Style="{StaticResource SteamRivetStyle}"
+                                         HorizontalAlignment="Left"
+                                         VerticalAlignment="Top"/>
+
+                                <Ellipse Grid.RowSpan="10"
+                                         Style="{StaticResource SteamRivetStyle}"
+                                         HorizontalAlignment="Right"
+                                         VerticalAlignment="Top"/>
+
+                                <Ellipse Grid.RowSpan="10"
+                                         Style="{StaticResource SteamRivetStyle}"
+                                         HorizontalAlignment="Left"
+                                         VerticalAlignment="Bottom"/>
+
+                                <Ellipse Grid.RowSpan="10"
+                                         Style="{StaticResource SteamRivetStyle}"
+                                         HorizontalAlignment="Right"
+                                         VerticalAlignment="Bottom"/>
+
+
+                                <Border Grid.RowSpan="10"
+                                        Style="{StaticResource FrostSectionFrameStyle}"/>
+
+                                <Border Grid.RowSpan="10"
+                                        Style="{StaticResource MilitarySectionFrameStyle}"/>
+
+                                <TextBlock Grid.RowSpan="10"
+                                           Visibility="{DynamicResource FrostCoreVisibility}"
+                                           Text="❄"
+                                           Foreground="{DynamicResource FrostIceBrush}"
+                                           FontSize="44"
+                                           Opacity="0.05"
+                                           HorizontalAlignment="Right"
+                                           VerticalAlignment="Center"
+                                           Margin="0,0,18,0"
+                                           IsHitTestVisible="False"/>
+
+                                <Grid Grid.RowSpan="10"
+                                      Visibility="{DynamicResource MilitaryOpsVisibility}"
+                                      Width="48"
+                                      Height="28"
+                                      HorizontalAlignment="Right"
+                                      VerticalAlignment="Top"
+                                      Margin="0,8,9,0"
+                                      Opacity="0.32"
+                                      IsHitTestVisible="False">
+                                    <Border Width="1" Height="26"
+                                            Background="{DynamicResource MilitaryGridBrush}"
+                                            HorizontalAlignment="Center"/>
+                                    <Border Width="46" Height="1"
+                                            Background="{DynamicResource MilitaryGridBrush}"
+                                            VerticalAlignment="Center"/>
+                                    <Ellipse Width="12" Height="12"
+                                             Stroke="{DynamicResource MilitaryKhakiBrush}"
+                                             StrokeThickness="1"/>
+                                </Grid>
+
+                                <Border Style="{StaticResource FrostTopStripStyle}"/>
+                                <Border Style="{StaticResource MilitaryTopStripStyle}"/>
+
                                 <Border Width="82"
                                         Height="3"
+                                        Visibility="{DynamicResource CyberTechVisibility}"
                                         HorizontalAlignment="Left"
                                         Margin="18,0,0,0"
                                         Background="{DynamicResource AccentBrush}"/>
@@ -1230,7 +1991,7 @@
                                             <TextBlock Text="GPU"
                                                        Style="{StaticResource SectionTitleStyle}"/>
 
-                                            <TextBlock Text="THERMAL LIMITS"
+                                            <TextBlock Text="ТЕМПЕРАТУРНЫЕ ПОРОГИ"
                                                        Style="{StaticResource TechLabelStyle}"
                                                        Margin="1,2,0,0"/>
 
@@ -1279,14 +2040,83 @@
                             Margin="0">
 
                         <Grid>
-
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="3"/>
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
 
+                            <Border Grid.RowSpan="10"
+                                    Visibility="{DynamicResource SteamPunkVisibility}"
+                                    Margin="4"
+                                    BorderBrush="{DynamicResource SteamMetalBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="8"
+                                    IsHitTestVisible="False"/>
+
+                            <Ellipse Grid.RowSpan="10"
+                                     Style="{StaticResource SteamRivetStyle}"
+                                     HorizontalAlignment="Left"
+                                     VerticalAlignment="Top"/>
+
+                            <Ellipse Grid.RowSpan="10"
+                                     Style="{StaticResource SteamRivetStyle}"
+                                     HorizontalAlignment="Right"
+                                     VerticalAlignment="Top"/>
+
+                            <Ellipse Grid.RowSpan="10"
+                                     Style="{StaticResource SteamRivetStyle}"
+                                     HorizontalAlignment="Left"
+                                     VerticalAlignment="Bottom"/>
+
+                            <Ellipse Grid.RowSpan="10"
+                                     Style="{StaticResource SteamRivetStyle}"
+                                     HorizontalAlignment="Right"
+                                     VerticalAlignment="Bottom"/>
+
+
+                            <Border Grid.RowSpan="10"
+                                    Style="{StaticResource FrostSectionFrameStyle}"/>
+
+                            <Border Grid.RowSpan="10"
+                                    Style="{StaticResource MilitarySectionFrameStyle}"/>
+
+                            <TextBlock Grid.RowSpan="10"
+                                       Visibility="{DynamicResource FrostCoreVisibility}"
+                                       Text="❄"
+                                       Foreground="{DynamicResource FrostIceBrush}"
+                                       FontSize="48"
+                                       Opacity="0.055"
+                                       HorizontalAlignment="Right"
+                                       VerticalAlignment="Center"
+                                       Margin="0,0,22,0"
+                                       IsHitTestVisible="False"/>
+
+                            <Grid Grid.RowSpan="10"
+                                  Visibility="{DynamicResource MilitaryOpsVisibility}"
+                                  Width="54"
+                                  Height="30"
+                                  HorizontalAlignment="Right"
+                                  VerticalAlignment="Top"
+                                  Margin="0,8,10,0"
+                                  Opacity="0.34"
+                                  IsHitTestVisible="False">
+                                <Border Width="1" Height="28"
+                                        Background="{DynamicResource MilitaryGridBrush}"
+                                        HorizontalAlignment="Center"/>
+                                <Border Width="52" Height="1"
+                                        Background="{DynamicResource MilitaryGridBrush}"
+                                        VerticalAlignment="Center"/>
+                                <Ellipse Width="13" Height="13"
+                                         Stroke="{DynamicResource MilitaryKhakiBrush}"
+                                         StrokeThickness="1"/>
+                            </Grid>
+
+                            <Border Style="{StaticResource FrostTopStripStyle}"/>
+                            <Border Style="{StaticResource MilitaryTopStripStyle}"/>
+
                             <Border Width="105"
                                     Height="3"
+                                    Visibility="{DynamicResource CyberTechVisibility}"
                                     HorizontalAlignment="Left"
                                     Margin="18,0,0,0"
                                     Background="{DynamicResource AccentBrush}"/>
@@ -1306,7 +2136,7 @@
                                         <TextBlock Text="НАКОПИТЕЛИ"
                                                    Style="{StaticResource SectionTitleStyle}"/>
 
-                                        <TextBlock Text="STORAGE THERMAL / CAPACITY LIMITS"
+                                        <TextBlock Text="ТЕМПЕРАТУРА И ЗАПОЛНЕНИЕ ДИСКОВ"
                                                    Style="{StaticResource TechLabelStyle}"
                                                    Margin="1,2,0,0"/>
 
@@ -1408,13 +2238,40 @@
             <!-- ================================================= -->
 
             <Border Grid.Row="2"
-                    Background="{DynamicResource CardBackgroundBrush}"
-                    BorderBrush="{DynamicResource BorderBrush}"
+                    Background="{DynamicResource SettingsCardBrush}"
+                    BorderBrush="{DynamicResource SettingsCardBorderBrush}"
                     BorderThickness="1"
-                    CornerRadius="5"
+                    CornerRadius="{DynamicResource PanelCornerRadius}"
                     Margin="0,14,0,0">
 
-                <Grid Margin="14,10">
+                <Grid>
+
+                    <Border Visibility="{DynamicResource SteamPunkVisibility}"
+                            Margin="4"
+                            BorderBrush="{DynamicResource SteamMetalBrush}"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            IsHitTestVisible="False"/>
+
+                    <Ellipse Style="{StaticResource SteamRivetStyle}"
+                             HorizontalAlignment="Left"
+                             VerticalAlignment="Top"/>
+                    <Ellipse Style="{StaticResource SteamRivetStyle}"
+                             HorizontalAlignment="Right"
+                             VerticalAlignment="Top"/>
+                    <Ellipse Style="{StaticResource SteamRivetStyle}"
+                             HorizontalAlignment="Left"
+                             VerticalAlignment="Bottom"/>
+                    <Ellipse Style="{StaticResource SteamRivetStyle}"
+                             HorizontalAlignment="Right"
+                             VerticalAlignment="Bottom"/>
+
+                    <Border Style="{StaticResource FrostSectionFrameStyle}"/>
+                    <Border Style="{StaticResource MilitarySectionFrameStyle}"/>
+                    <Border Style="{StaticResource FrostTopStripStyle}"/>
+                    <Border Style="{StaticResource MilitaryTopStripStyle}"/>
+
+                    <Grid Margin="14,10">
 
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -1426,7 +2283,7 @@
 
                     <StackPanel VerticalAlignment="Center">
 
-                        <TextBlock Text="THERMIQRA // CONFIGURATION"
+                        <TextBlock Text="THERMIQRA // НАСТРОЙКИ"
                                    Style="{StaticResource TechLabelStyle}"/>
 
                         <StackPanel Orientation="Horizontal"
@@ -1438,7 +2295,7 @@
                                     Margin="0,0,8,0"
                                     VerticalAlignment="Center"/>
 
-                            <TextBlock Text="LOCAL SETTINGS"
+                            <TextBlock Text="ЛОКАЛЬНЫЕ ПАРАМЕТРЫ"
                                        Foreground="{DynamicResource SecondaryTextBrush}"
                                        FontSize="8"
                                        FontWeight="SemiBold"/>
@@ -1460,6 +2317,8 @@
                             BorderBrush="{DynamicResource AccentBrush}"
                             Foreground="{DynamicResource AccentBrush}"
                             Click="Save_Click"/>
+
+                    </Grid>
 
                 </Grid>
 

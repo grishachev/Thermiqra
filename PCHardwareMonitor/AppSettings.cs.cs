@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Text.Json;
 
@@ -11,6 +11,8 @@ public sealed class AppSettings
     // ============================================================
 
     public bool FirstRunCompleted { get; set; } = false;
+
+    public string SkinName { get; set; } = "CyberTech";
 
     public string ThemeName { get; set; } = "SteelBlue";
 

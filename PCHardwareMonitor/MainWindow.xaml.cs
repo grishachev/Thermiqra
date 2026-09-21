@@ -152,6 +152,16 @@ public partial class MainWindow : Window
             };
 
         window.ShowDialog();
+
+        if (window.Saved &&
+            _lastSnapshot != null)
+        {
+            UpdateDrives(
+                _lastSnapshot);
+
+            UpdateStorageTemperatures(
+                _lastSnapshot);
+        }
     }
 
     private void SettingsButton_Click(
@@ -287,22 +297,58 @@ public partial class MainWindow : Window
             _alerts.Evaluate(
                 snapshot);
 
-            StatusText.Text =
+            string statusText =
                 $"Обновлено: " +
                 $"{DateTime.Now:HH:mm:ss}";
+
+            StatusText.Text =
+                statusText;
+
+            SteamStatusText.Text =
+                statusText;
+
+            FrostStatusText.Text =
+                statusText;
+
+            MilitaryStatusText.Text =
+                statusText;
 
             _livePulseBright =
                 !_livePulseBright;
 
-            LivePulseDot.Opacity =
+            double pulseOpacity =
                 _livePulseBright
                     ? 1.0
                     : 0.35;
+
+            LivePulseDot.Opacity =
+                pulseOpacity;
+
+            SteamLivePulseDot.Opacity =
+                pulseOpacity;
+
+            FrostLivePulseDot.Opacity =
+                pulseOpacity;
+
+            MilitaryLivePulseDot.Opacity =
+                pulseOpacity;
         }
         catch (Exception ex)
         {
-            StatusText.Text =
+            string errorText =
                 $"Ошибка: {ex.Message}";
+
+            StatusText.Text =
+                errorText;
+
+            SteamStatusText.Text =
+                errorText;
+
+            FrostStatusText.Text =
+                errorText;
+
+            MilitaryStatusText.Text =
+                errorText;
         }
     }
 
@@ -421,18 +467,32 @@ public partial class MainWindow : Window
         float? total =
             snapshot.Memory.TotalGb;
 
+        string memoryText;
+
         if (used.HasValue &&
             total.HasValue)
         {
-            RamText.Text =
+            memoryText =
                 $"{used.Value:F1} ГБ " +
                 $"из {total.Value:F1} ГБ";
         }
         else
         {
-            RamText.Text =
+            memoryText =
                 "Нет данных";
         }
+
+        RamText.Text =
+            memoryText;
+
+        SteamRamText.Text =
+            memoryText;
+
+        FrostRamText.Text =
+            memoryText;
+
+        MilitaryRamText.Text =
+            memoryText;
 
         double ramLoad =
             ClampPercent(
@@ -441,31 +501,104 @@ public partial class MainWindow : Window
         RamBar.Value =
             ramLoad;
 
+        SteamRamBar.Value =
+            ramLoad;
+
+        FrostRamBar.Value =
+            ramLoad;
+
+        Brush ramBrush;
+
         if (ramLoad >= 90)
         {
-            RamBar.Foreground =
+            ramBrush =
                 System.Windows.Media.Brushes.Red;
         }
         else if (ramLoad >= 85)
         {
-            RamBar.Foreground =
+            ramBrush =
                 System.Windows.Media.Brushes.Orange;
         }
         else if (ramLoad >= 70)
         {
-            RamBar.Foreground =
+            ramBrush =
                 System.Windows.Media.Brushes.Gold;
         }
         else
         {
-            RamBar.Foreground =
+            ramBrush =
                 UiBrushes.Theme(
                     "AccentBrush");
+        }
+
+        RamBar.Foreground =
+            ramBrush;
+
+        SteamRamBar.Foreground =
+            ramBrush;
+
+        FrostRamBar.Foreground =
+            ramBrush;
+
+        FrostRamFill.Background =
+            ramBrush;
+
+        FrostRamFill.Height =
+            78.0 * ramLoad / 100.0;
+
+        Border[] militaryRamSegments =
+        {
+            MilitaryRamSegment0,
+            MilitaryRamSegment1,
+            MilitaryRamSegment2,
+            MilitaryRamSegment3,
+            MilitaryRamSegment4,
+            MilitaryRamSegment5,
+            MilitaryRamSegment6,
+            MilitaryRamSegment7,
+            MilitaryRamSegment8,
+            MilitaryRamSegment9
+        };
+
+        int activeMilitarySegments =
+            ramLoad <= 0
+                ? 0
+                : Math.Clamp(
+                    (int)Math.Ceiling(
+                        ramLoad / 10.0),
+                    0,
+                    10);
+
+        for (int i = 0;
+             i < militaryRamSegments.Length;
+             i++)
+        {
+            if (i < activeMilitarySegments)
+            {
+                militaryRamSegments[i].Background =
+                    ramBrush;
+            }
+            else
+            {
+                militaryRamSegments[i]
+                    .SetResourceReference(
+                        Border.BackgroundProperty,
+                        "MilitaryGridBrush");
+            }
         }
 
         RamPercentText.Text =
             $"Использовано: " +
             $"{FormatPercent(snapshot.Memory.Load)}";
+
+        SteamRamPercentText.Text =
+            $"{ramLoad:F0} %";
+
+        FrostRamPercentText.Text =
+            $"{ramLoad:F0} %";
+
+        MilitaryRamPercentText.Text =
+            $"{ramLoad:F0} %";
     }
 
     // ============================================================
@@ -517,6 +650,35 @@ public partial class MainWindow : Window
     int column,
     int columns)
     {
+        string skinName =
+            SettingsService
+                .Current
+                .SkinName;
+
+        if (skinName == "SteamPunk")
+        {
+            return CreateSteamDriveCard(
+                drive,
+                column,
+                columns);
+        }
+
+        if (skinName == "FrostCore")
+        {
+            return CreateFrostDriveCard(
+                drive,
+                column,
+                columns);
+        }
+
+        if (skinName == "MilitaryOps")
+        {
+            return CreateMilitaryDriveCard(
+                drive,
+                column,
+                columns);
+        }
+
         Border border =
             CreateGridCardBorder(
                 column,
@@ -575,42 +737,10 @@ public partial class MainWindow : Window
             });
 
 
-        System.Windows.Shapes.Path frame =
-            new()
-            {
-                Data =
-                    Geometry.Parse(
-                        "M 8,0 L 100,0 L 100,84 L 94,100 L 0,100 L 0,8 Z"),
-
-                Stretch =
-                    Stretch.Fill,
-
-                StrokeThickness = 1,
-
-                IsHitTestVisible =
-                    false
-            };
-
-        frame.SetResourceReference(
-            System.Windows.Shapes.Shape.FillProperty,
-            "CardBackgroundBrush");
-
-        frame.SetResourceReference(
-            System.Windows.Shapes.Shape.StrokeProperty,
-            "BorderBrush");
-
-        Grid.SetRowSpan(
-            frame,
-            2);
-
-        root.Children.Add(
-            frame);
-
-
         Border topAccent =
             new()
             {
-                Width = 62,
+                Width = 72,
                 Height = 3,
 
                 HorizontalAlignment =
@@ -618,7 +748,7 @@ public partial class MainWindow : Window
 
                 Margin =
                     new Thickness(
-                        26, 0, 0, 0)
+                        14, 0, 0, 0)
             };
 
         topAccent.SetResourceReference(
@@ -632,37 +762,6 @@ public partial class MainWindow : Window
 
         root.Children.Add(
             topAccent);
-
-
-        Border bottomAccent =
-            new()
-            {
-                Width = 30,
-                Height = 2,
-
-                HorizontalAlignment =
-                    HorizontalAlignment.Right,
-
-                VerticalAlignment =
-                    VerticalAlignment.Bottom,
-
-                Margin =
-                    new Thickness(
-                        0, 0, 28, 0),
-
-                Opacity = 0.68
-            };
-
-        bottomAccent.SetResourceReference(
-            Border.BackgroundProperty,
-            "AccentBrush");
-
-        Grid.SetRowSpan(
-            bottomAccent,
-            2);
-
-        root.Children.Add(
-            bottomAccent);
 
 
         Grid body =
@@ -845,7 +944,7 @@ public partial class MainWindow : Window
             {
                 Text = "STORAGE VOLUME",
 
-                FontSize = 9,
+                FontSize = 8,
 
                 FontWeight =
                     FontWeights.SemiBold,
@@ -891,7 +990,7 @@ public partial class MainWindow : Window
                     $"{FormatSize(freeGb)} " +
                     $"из {FormatSize(totalGb)}",
 
-                FontSize = 11,
+                FontSize = 12,
 
                 Margin =
                     new Thickness(
@@ -972,7 +1071,7 @@ public partial class MainWindow : Window
             {
                 Text = "ЗАНЯТО",
 
-                FontSize = 9,
+                FontSize = 8,
 
                 FontWeight =
                     FontWeights.SemiBold,
@@ -1074,6 +1173,1183 @@ public partial class MainWindow : Window
         return border;
     }
 
+    private UIElement CreateSteamDriveCard(
+        LogicalDriveInfo drive,
+        int column,
+        int columns)
+    {
+        string label =
+            string.IsNullOrWhiteSpace(
+                drive.VolumeLabel)
+
+                ? drive.Name
+
+                : $"{drive.Name} {drive.VolumeLabel}";
+
+        double totalGb =
+            BytesToGb(
+                drive.TotalBytes);
+
+        double freeGb =
+            BytesToGb(
+                drive.FreeBytes);
+
+        double usedPercent =
+            0;
+
+        if (drive.TotalBytes > 0)
+        {
+            usedPercent =
+                100.0 -
+                (
+                    drive.FreeBytes /
+                    (double)drive.TotalBytes *
+                    100.0
+                );
+        }
+
+        Brush statusBrush =
+            UiBrushes.DiskUsage(
+                usedPercent);
+
+        Border outer =
+            CreateSteamGridCardBorder(
+                column,
+                columns);
+
+        Grid root = new()
+        {
+            Height = 116
+        };
+
+        // Центральный корпус — не карточка, а горизонтальный механический модуль.
+        Border body = new()
+        {
+            Margin =
+                new Thickness(
+                    38, 8, 38, 8),
+
+            Padding =
+                new Thickness(
+                    54, 10, 66, 10),
+
+            BorderThickness =
+                new Thickness(2),
+
+            CornerRadius =
+                new CornerRadius(24)
+        };
+
+        body.SetResourceReference(
+            Border.BackgroundProperty,
+            "SteamPanelBrush");
+
+        body.SetResourceReference(
+            Border.BorderBrushProperty,
+            "SteamMetalBrush");
+
+        StackPanel information = new()
+        {
+            VerticalAlignment =
+                VerticalAlignment.Center
+        };
+
+        TextBlock name = new()
+        {
+            Text = label,
+            FontSize = 15,
+            FontWeight =
+                FontWeights.Bold,
+            TextTrimming =
+                TextTrimming.CharacterEllipsis
+        };
+
+        name.SetResourceReference(
+            TextBlock.ForegroundProperty,
+            "PrimaryTextBrush");
+
+        TextBlock free = new()
+        {
+            Text =
+                $"Свободно: " +
+                $"{FormatSize(freeGb)} " +
+                $"из {FormatSize(totalGb)}",
+
+            FontSize = 10,
+
+            Margin =
+                new Thickness(
+                    0, 3, 0, 7)
+        };
+
+        free.SetResourceReference(
+            TextBlock.ForegroundProperty,
+            "SecondaryTextBrush");
+
+        Grid fillRow = new();
+
+        fillRow.ColumnDefinitions.Add(
+            new ColumnDefinition
+            {
+                Width = new GridLength(
+                    1,
+                    GridUnitType.Star)
+            });
+
+        fillRow.ColumnDefinitions.Add(
+            new ColumnDefinition
+            {
+                Width = GridLength.Auto
+            });
+
+        ProgressBar fillBar = new()
+        {
+            Minimum = 0,
+            Maximum = 100,
+            Value =
+                Math.Clamp(
+                    usedPercent,
+                    0,
+                    100),
+            Height = 22,
+            Foreground =
+                statusBrush,
+            VerticalAlignment =
+                VerticalAlignment.Center
+        };
+
+        if (TryFindResource(
+                "SteamPipeProgressStyle")
+            is Style pipeStyle)
+        {
+            fillBar.Style =
+                pipeStyle;
+        }
+
+        TextBlock fillText = new()
+        {
+            Text =
+                $"Занято {usedPercent:F0} %",
+            Foreground =
+                statusBrush,
+            FontSize = 10,
+            FontWeight =
+                FontWeights.Bold,
+            VerticalAlignment =
+                VerticalAlignment.Center,
+            Margin =
+                new Thickness(
+                    10, 0, 0, 0)
+        };
+
+        Grid.SetColumn(
+            fillBar,
+            0);
+
+        Grid.SetColumn(
+            fillText,
+            1);
+
+        fillRow.Children.Add(
+            fillBar);
+
+        fillRow.Children.Add(
+            fillText);
+
+        information.Children.Add(
+            name);
+
+        information.Children.Add(
+            free);
+
+        information.Children.Add(
+            fillRow);
+
+        body.Child =
+            information;
+
+        root.Children.Add(
+            body);
+
+        // Левый барабан с буквой диска.
+        Grid drum = new()
+        {
+            Width = 82,
+            Height = 82,
+            HorizontalAlignment =
+                HorizontalAlignment.Left,
+            VerticalAlignment =
+                VerticalAlignment.Center,
+            Margin =
+                new Thickness(
+                    5, 0, 0, 0)
+        };
+
+        System.Windows.Shapes.Ellipse drumOuter =
+            new()
+            {
+                StrokeThickness = 4
+            };
+
+        drumOuter.SetResourceReference(
+            System.Windows.Shapes.Shape.FillProperty,
+            "SteamGlassBrush");
+
+        drumOuter.SetResourceReference(
+            System.Windows.Shapes.Shape.StrokeProperty,
+            "SteamMetalBrush");
+
+        System.Windows.Shapes.Ellipse drumMiddle =
+            new()
+            {
+                Width = 60,
+                Height = 60,
+                StrokeThickness = 2
+            };
+
+        drumMiddle.SetResourceReference(
+            System.Windows.Shapes.Shape.StrokeProperty,
+            "BorderBrush");
+
+        Border drumVertical =
+            new()
+            {
+                Width = 3,
+                Height = 46,
+                HorizontalAlignment =
+                    HorizontalAlignment.Center,
+                VerticalAlignment =
+                    VerticalAlignment.Center
+            };
+
+        drumVertical.SetResourceReference(
+            Border.BackgroundProperty,
+            "SteamMetalBrush");
+
+        Border drumHorizontal =
+            new()
+            {
+                Width = 46,
+                Height = 3,
+                HorizontalAlignment =
+                    HorizontalAlignment.Center,
+                VerticalAlignment =
+                    VerticalAlignment.Center
+            };
+
+        drumHorizontal.SetResourceReference(
+            Border.BackgroundProperty,
+            "SteamMetalBrush");
+
+        System.Windows.Shapes.Ellipse drumHub =
+            new()
+            {
+                Width = 35,
+                Height = 35,
+                StrokeThickness = 2
+            };
+
+        drumHub.SetResourceReference(
+            System.Windows.Shapes.Shape.FillProperty,
+            "SteamDarkMetalBrush");
+
+        drumHub.SetResourceReference(
+            System.Windows.Shapes.Shape.StrokeProperty,
+            "AccentBrush");
+
+        TextBlock driveLetter =
+            new()
+            {
+                Text =
+                    drive.Name
+                        .TrimEnd('\\'),
+
+                FontSize = 11,
+
+                FontWeight =
+                    FontWeights.Bold,
+
+                HorizontalAlignment =
+                    HorizontalAlignment.Center,
+
+                VerticalAlignment =
+                    VerticalAlignment.Center
+            };
+
+        driveLetter.SetResourceReference(
+            TextBlock.ForegroundProperty,
+            "AccentBrush");
+
+        drum.Children.Add(
+            drumOuter);
+
+        drum.Children.Add(
+            drumMiddle);
+
+        drum.Children.Add(
+            drumVertical);
+
+        drum.Children.Add(
+            drumHorizontal);
+
+        drum.Children.Add(
+            drumHub);
+
+        drum.Children.Add(
+            driveLetter);
+
+        root.Children.Add(
+            drum);
+
+        // Правый круглый счётчик.
+        Grid meter = new()
+        {
+            Width = 74,
+            Height = 74,
+            HorizontalAlignment =
+                HorizontalAlignment.Right,
+            VerticalAlignment =
+                VerticalAlignment.Center,
+            Margin =
+                new Thickness(
+                    0, 0, 7, 0)
+        };
+
+        System.Windows.Shapes.Ellipse meterOuter =
+            new()
+            {
+                StrokeThickness = 4
+            };
+
+        meterOuter.SetResourceReference(
+            System.Windows.Shapes.Shape.FillProperty,
+            "SteamGlassBrush");
+
+        meterOuter.SetResourceReference(
+            System.Windows.Shapes.Shape.StrokeProperty,
+            "SteamMetalBrush");
+
+        System.Windows.Shapes.Ellipse meterInner =
+            new()
+            {
+                Width = 58,
+                Height = 58,
+                StrokeThickness = 1
+            };
+
+        meterInner.SetResourceReference(
+            System.Windows.Shapes.Shape.StrokeProperty,
+            "BorderBrush");
+
+        StackPanel meterText = new()
+        {
+            HorizontalAlignment =
+                HorizontalAlignment.Center,
+            VerticalAlignment =
+                VerticalAlignment.Center
+        };
+
+        TextBlock meterLabel =
+            new()
+            {
+                Text = "ЗАНЯТО",
+                FontSize = 7,
+                FontWeight =
+                    FontWeights.Bold,
+                HorizontalAlignment =
+                    HorizontalAlignment.Center
+            };
+
+        meterLabel.SetResourceReference(
+            TextBlock.ForegroundProperty,
+            "SecondaryTextBrush");
+
+        TextBlock usage =
+            new()
+            {
+                Text =
+                    $"{usedPercent:F0}%",
+
+                FontSize = 18,
+                FontWeight =
+                    FontWeights.Bold,
+                Foreground =
+                    statusBrush,
+                HorizontalAlignment =
+                    HorizontalAlignment.Center,
+                Margin =
+                    new Thickness(
+                        0, 1, 0, 0)
+            };
+
+        meterText.Children.Add(
+            meterLabel);
+
+        meterText.Children.Add(
+            usage);
+
+        meter.Children.Add(
+            meterOuter);
+
+        meter.Children.Add(
+            meterInner);
+
+        meter.Children.Add(
+            meterText);
+
+        root.Children.Add(
+            meter);
+
+        outer.Child =
+            root;
+
+        return outer;
+    }
+
+
+    private UIElement CreateFrostDriveCard(
+        LogicalDriveInfo drive,
+        int column,
+        int columns)
+    {
+        string label =
+            string.IsNullOrWhiteSpace(
+                drive.VolumeLabel)
+                ? drive.Name
+                : $"{drive.Name} {drive.VolumeLabel}";
+
+        double totalGb =
+            BytesToGb(
+                drive.TotalBytes);
+
+        double freeGb =
+            BytesToGb(
+                drive.FreeBytes);
+
+        double usedPercent = 0;
+
+        if (drive.TotalBytes > 0)
+        {
+            usedPercent =
+                100.0 -
+                (
+                    drive.FreeBytes /
+                    (double)drive.TotalBytes *
+                    100.0
+                );
+        }
+
+        Brush statusBrush =
+            UiBrushes.DiskUsage(
+                usedPercent);
+
+        Border outer =
+            CreateFrostGridCardBorder(
+                column,
+                columns);
+
+        Border body = new()
+        {
+            Height = 116,
+            Padding = new Thickness(12),
+            BorderThickness = new Thickness(2),
+            CornerRadius = new CornerRadius(18)
+        };
+
+        body.SetResourceReference(
+            Border.BackgroundProperty,
+            "FrostPanelBrush");
+
+        body.SetResourceReference(
+            Border.BorderBrushProperty,
+            "FrostSteelBrush");
+
+        Grid layout = new();
+
+        layout.ColumnDefinitions.Add(
+            new ColumnDefinition
+            {
+                Width = new GridLength(86)
+            });
+
+        layout.ColumnDefinitions.Add(
+            new ColumnDefinition
+            {
+                Width = new GridLength(
+                    1,
+                    GridUnitType.Star)
+            });
+
+        layout.ColumnDefinitions.Add(
+            new ColumnDefinition
+            {
+                Width = new GridLength(94)
+            });
+
+        // Герметичная криокассета.
+        Grid capsule = new()
+        {
+            Width = 68,
+            Height = 84,
+            HorizontalAlignment =
+                HorizontalAlignment.Left,
+            VerticalAlignment =
+                VerticalAlignment.Center
+        };
+
+        Border capsuleOuter = new()
+        {
+            BorderThickness = new Thickness(3),
+            CornerRadius = new CornerRadius(22)
+        };
+
+        capsuleOuter.SetResourceReference(
+            Border.BackgroundProperty,
+            "FrostGlassBrush");
+
+        capsuleOuter.SetResourceReference(
+            Border.BorderBrushProperty,
+            "FrostSteelBrush");
+
+        Border capsuleInner = new()
+        {
+            Margin = new Thickness(9),
+            BorderThickness = new Thickness(1),
+            CornerRadius = new CornerRadius(15)
+        };
+
+        capsuleInner.SetResourceReference(
+            Border.BorderBrushProperty,
+            "FrostIceBrush");
+
+        TextBlock frostMark = new()
+        {
+            Text = "❄",
+            FontSize = 20,
+            HorizontalAlignment =
+                HorizontalAlignment.Center,
+            VerticalAlignment =
+                VerticalAlignment.Top,
+            Margin = new Thickness(0, 11, 0, 0),
+            Opacity = 0.72
+        };
+
+        frostMark.SetResourceReference(
+            TextBlock.ForegroundProperty,
+            "FrostIceBrush");
+
+        Border divider = new()
+        {
+            Width = 32,
+            Height = 1,
+            HorizontalAlignment =
+                HorizontalAlignment.Center,
+            VerticalAlignment =
+                VerticalAlignment.Center
+        };
+
+        divider.SetResourceReference(
+            Border.BackgroundProperty,
+            "FrostSteelBrush");
+
+        TextBlock driveLetter = new()
+        {
+            Text = drive.Name.TrimEnd('\\'),
+            FontSize = 13,
+            FontWeight = FontWeights.Bold,
+            HorizontalAlignment =
+                HorizontalAlignment.Center,
+            VerticalAlignment =
+                VerticalAlignment.Bottom,
+            Margin = new Thickness(0, 0, 0, 12)
+        };
+
+        driveLetter.SetResourceReference(
+            TextBlock.ForegroundProperty,
+            "AccentBrush");
+
+        capsule.Children.Add(capsuleOuter);
+        capsule.Children.Add(capsuleInner);
+        capsule.Children.Add(frostMark);
+        capsule.Children.Add(divider);
+        capsule.Children.Add(driveLetter);
+
+        StackPanel information = new()
+        {
+            VerticalAlignment =
+                VerticalAlignment.Center,
+            Margin = new Thickness(0, 0, 14, 0)
+        };
+
+        TextBlock caption = new()
+        {
+            Text = "КРИОМОДУЛЬ ХРАНЕНИЯ",
+            FontSize = 8,
+            FontWeight = FontWeights.Bold
+        };
+
+        caption.SetResourceReference(
+            TextBlock.ForegroundProperty,
+            "SecondaryTextBrush");
+
+        TextBlock name = new()
+        {
+            Text = label,
+            FontSize = 15,
+            FontWeight = FontWeights.Bold,
+            TextTrimming =
+                TextTrimming.CharacterEllipsis,
+            Margin = new Thickness(0, 2, 0, 3)
+        };
+
+        name.SetResourceReference(
+            TextBlock.ForegroundProperty,
+            "PrimaryTextBrush");
+
+        TextBlock free = new()
+        {
+            Text =
+                $"Свободно: " +
+                $"{FormatSize(freeGb)} " +
+                $"из {FormatSize(totalGb)}",
+            FontSize = 10,
+            Margin = new Thickness(0, 0, 0, 7)
+        };
+
+        free.SetResourceReference(
+            TextBlock.ForegroundProperty,
+            "SecondaryTextBrush");
+
+        ProgressBar fillBar = new()
+        {
+            Minimum = 0,
+            Maximum = 100,
+            Value = Math.Clamp(
+                usedPercent,
+                0,
+                100),
+            Height = 16,
+            Foreground = statusBrush
+        };
+
+        if (TryFindResource(
+                "FrostCapsuleProgressStyle")
+            is Style frostProgressStyle)
+        {
+            fillBar.Style =
+                frostProgressStyle;
+        }
+
+        information.Children.Add(caption);
+        information.Children.Add(name);
+        information.Children.Add(free);
+        information.Children.Add(fillBar);
+
+        Border meter = new()
+        {
+            Padding = new Thickness(10),
+            BorderThickness = new Thickness(1.5),
+            CornerRadius = new CornerRadius(15),
+            VerticalAlignment =
+                VerticalAlignment.Center
+        };
+
+        meter.SetResourceReference(
+            Border.BackgroundProperty,
+            "FrostGlassBrush");
+
+        meter.SetResourceReference(
+            Border.BorderBrushProperty,
+            "FrostSteelBrush");
+
+        StackPanel meterStack = new();
+
+        TextBlock meterLabel = new()
+        {
+            Text = "ЗАНЯТО",
+            FontSize = 7,
+            FontWeight = FontWeights.Bold,
+            HorizontalAlignment =
+                HorizontalAlignment.Center
+        };
+
+        meterLabel.SetResourceReference(
+            TextBlock.ForegroundProperty,
+            "SecondaryTextBrush");
+
+        TextBlock usage = new()
+        {
+            Text = $"{usedPercent:F0}%",
+            FontSize = 21,
+            FontWeight = FontWeights.Bold,
+            Foreground = statusBrush,
+            HorizontalAlignment =
+                HorizontalAlignment.Center,
+            Margin = new Thickness(0, 2, 0, 2)
+        };
+
+        TextBlock levelLabel = new()
+        {
+            Text = "КРИОУРОВЕНЬ",
+            FontSize = 7,
+            HorizontalAlignment =
+                HorizontalAlignment.Center
+        };
+
+        levelLabel.SetResourceReference(
+            TextBlock.ForegroundProperty,
+            "SecondaryTextBrush");
+
+        meterStack.Children.Add(meterLabel);
+        meterStack.Children.Add(usage);
+        meterStack.Children.Add(levelLabel);
+        meter.Child = meterStack;
+
+        Grid.SetColumn(capsule, 0);
+        Grid.SetColumn(information, 1);
+        Grid.SetColumn(meter, 2);
+
+        layout.Children.Add(capsule);
+        layout.Children.Add(information);
+        layout.Children.Add(meter);
+        body.Child = layout;
+        outer.Child = body;
+
+        return outer;
+    }
+
+
+    private UIElement CreateMilitaryDriveCard(
+        LogicalDriveInfo drive,
+        int column,
+        int columns)
+    {
+        string label =
+            string.IsNullOrWhiteSpace(
+                drive.VolumeLabel)
+                ? drive.Name
+                : $"{drive.Name} {drive.VolumeLabel}";
+
+        double totalGb =
+            BytesToGb(
+                drive.TotalBytes);
+
+        double freeGb =
+            BytesToGb(
+                drive.FreeBytes);
+
+        double usedPercent = 0;
+
+        if (drive.TotalBytes > 0)
+        {
+            usedPercent =
+                100.0 -
+                (
+                    drive.FreeBytes /
+                    (double)drive.TotalBytes *
+                    100.0
+                );
+        }
+
+        Brush statusBrush =
+            UiBrushes.DiskUsage(
+                usedPercent);
+
+        Border outer =
+            CreateMilitaryGridCardBorder(
+                column,
+                columns);
+
+        Grid root = new()
+        {
+            Height = 108
+        };
+
+        Border body = new()
+        {
+            Padding = new Thickness(12, 10, 12, 10),
+            BorderThickness = new Thickness(2),
+            CornerRadius = new CornerRadius(1)
+        };
+
+        body.SetResourceReference(
+            Border.BackgroundProperty,
+            "MilitaryPanelBrush");
+
+        body.SetResourceReference(
+            Border.BorderBrushProperty,
+            "MilitaryKhakiBrush");
+
+        Grid layout = new();
+
+        layout.ColumnDefinitions.Add(
+            new ColumnDefinition
+            {
+                Width = new GridLength(82)
+            });
+
+        layout.ColumnDefinitions.Add(
+            new ColumnDefinition
+            {
+                Width = new GridLength(
+                    1,
+                    GridUnitType.Star)
+            });
+
+        layout.ColumnDefinitions.Add(
+            new ColumnDefinition
+            {
+                Width = new GridLength(96)
+            });
+
+        // Компас / маркировка контейнера.
+        Grid compass = new()
+        {
+            Width = 62,
+            Height = 62,
+            HorizontalAlignment =
+                HorizontalAlignment.Left,
+            VerticalAlignment =
+                VerticalAlignment.Center
+        };
+
+        System.Windows.Shapes.Ellipse compassOuter =
+            new()
+            {
+                StrokeThickness = 2
+            };
+
+        compassOuter.SetResourceReference(
+            System.Windows.Shapes.Shape.FillProperty,
+            "MilitaryPlateBrush");
+
+        compassOuter.SetResourceReference(
+            System.Windows.Shapes.Shape.StrokeProperty,
+            "MilitaryKhakiBrush");
+
+        Border compassVertical = new()
+        {
+            Width = 1,
+            Height = 44,
+            HorizontalAlignment =
+                HorizontalAlignment.Center,
+            VerticalAlignment =
+                VerticalAlignment.Center
+        };
+
+        compassVertical.SetResourceReference(
+            Border.BackgroundProperty,
+            "MilitaryGridBrush");
+
+        Border compassHorizontal = new()
+        {
+            Width = 44,
+            Height = 1,
+            HorizontalAlignment =
+                HorizontalAlignment.Center,
+            VerticalAlignment =
+                VerticalAlignment.Center
+        };
+
+        compassHorizontal.SetResourceReference(
+            Border.BackgroundProperty,
+            "MilitaryGridBrush");
+
+        TextBlock north = new()
+        {
+            Text = "N",
+            FontSize = 8,
+            FontWeight = FontWeights.Bold,
+            HorizontalAlignment =
+                HorizontalAlignment.Center,
+            VerticalAlignment =
+                VerticalAlignment.Top,
+            Margin = new Thickness(0, 4, 0, 0)
+        };
+
+        north.SetResourceReference(
+            TextBlock.ForegroundProperty,
+            "AccentBrush");
+
+        Border centerPlate = new()
+        {
+            Width = 30,
+            Height = 23,
+            BorderThickness = new Thickness(1),
+            HorizontalAlignment =
+                HorizontalAlignment.Center,
+            VerticalAlignment =
+                VerticalAlignment.Center
+        };
+
+        centerPlate.SetResourceReference(
+            Border.BackgroundProperty,
+            "MilitaryPanelBrush");
+
+        centerPlate.SetResourceReference(
+            Border.BorderBrushProperty,
+            "MilitaryKhakiBrush");
+
+        TextBlock driveLetter = new()
+        {
+            Text = drive.Name.TrimEnd('\\'),
+            FontSize = 11,
+            FontWeight = FontWeights.Bold,
+            HorizontalAlignment =
+                HorizontalAlignment.Center,
+            VerticalAlignment =
+                VerticalAlignment.Center
+        };
+
+        driveLetter.SetResourceReference(
+            TextBlock.ForegroundProperty,
+            "PrimaryTextBrush");
+
+        centerPlate.Child = driveLetter;
+        compass.Children.Add(compassOuter);
+        compass.Children.Add(compassVertical);
+        compass.Children.Add(compassHorizontal);
+        compass.Children.Add(north);
+        compass.Children.Add(centerPlate);
+
+        Grid information = new()
+        {
+            Margin = new Thickness(0, 0, 14, 0),
+            VerticalAlignment =
+                VerticalAlignment.Center
+        };
+
+        information.RowDefinitions.Add(
+            new RowDefinition
+            {
+                Height = GridLength.Auto
+            });
+        information.RowDefinitions.Add(
+            new RowDefinition
+            {
+                Height = GridLength.Auto
+            });
+        information.RowDefinitions.Add(
+            new RowDefinition
+            {
+                Height = GridLength.Auto
+            });
+        information.RowDefinitions.Add(
+            new RowDefinition
+            {
+                Height = GridLength.Auto
+            });
+
+        TextBlock caption = new()
+        {
+            Text = "КОНТЕЙНЕР ДАННЫХ / СЕКТОР",
+            FontSize = 8,
+            FontWeight = FontWeights.Bold
+        };
+
+        caption.SetResourceReference(
+            TextBlock.ForegroundProperty,
+            "MilitaryKhakiBrush");
+
+        TextBlock name = new()
+        {
+            Text = label,
+            FontSize = 14,
+            FontWeight = FontWeights.Bold,
+            TextTrimming =
+                TextTrimming.CharacterEllipsis,
+            Margin = new Thickness(0, 2, 0, 2)
+        };
+
+        name.SetResourceReference(
+            TextBlock.ForegroundProperty,
+            "PrimaryTextBrush");
+
+        TextBlock free = new()
+        {
+            Text =
+                $"Свободно: " +
+                $"{FormatSize(freeGb)} " +
+                $"из {FormatSize(totalGb)}",
+            FontSize = 9,
+            Margin = new Thickness(0, 0, 0, 6)
+        };
+
+        free.SetResourceReference(
+            TextBlock.ForegroundProperty,
+            "SecondaryTextBrush");
+
+        Grid segments = new()
+        {
+            Height = 14
+        };
+
+        int activeSegments =
+            usedPercent <= 0
+                ? 0
+                : Math.Clamp(
+                    (int)Math.Ceiling(
+                        usedPercent / 10.0),
+                    0,
+                    10);
+
+        for (int i = 0;
+             i < 10;
+             i++)
+        {
+            segments.ColumnDefinitions.Add(
+                new ColumnDefinition
+                {
+                    Width = new GridLength(
+                        1,
+                        GridUnitType.Star)
+                });
+
+            Border segment = new()
+            {
+                Margin = new Thickness(
+                    0,
+                    0,
+                    i == 9 ? 0 : 3,
+                    0),
+                BorderThickness = new Thickness(1),
+                Background =
+                    i < activeSegments
+                        ? statusBrush
+                        : UiBrushes.Theme(
+                            "MilitaryGridBrush")
+            };
+
+            segment.SetResourceReference(
+                Border.BorderBrushProperty,
+                "MilitaryKhakiBrush");
+
+            Grid.SetColumn(
+                segment,
+                i);
+
+            segments.Children.Add(
+                segment);
+        }
+
+        Grid.SetRow(caption, 0);
+        Grid.SetRow(name, 1);
+        Grid.SetRow(free, 2);
+        Grid.SetRow(segments, 3);
+
+        information.Children.Add(caption);
+        information.Children.Add(name);
+        information.Children.Add(free);
+        information.Children.Add(segments);
+
+        Border meter = new()
+        {
+            Padding = new Thickness(9),
+            BorderThickness = new Thickness(1.5),
+            CornerRadius = new CornerRadius(1),
+            VerticalAlignment =
+                VerticalAlignment.Center
+        };
+
+        meter.SetResourceReference(
+            Border.BackgroundProperty,
+            "MilitaryPlateBrush");
+
+        meter.SetResourceReference(
+            Border.BorderBrushProperty,
+            "MilitaryKhakiBrush");
+
+        StackPanel meterStack = new();
+
+        TextBlock meterLabel = new()
+        {
+            Text = "ЗАНЯТО",
+            FontSize = 7,
+            FontWeight = FontWeights.Bold,
+            HorizontalAlignment =
+                HorizontalAlignment.Center
+        };
+
+        meterLabel.SetResourceReference(
+            TextBlock.ForegroundProperty,
+            "MilitaryKhakiBrush");
+
+        TextBlock usage = new()
+        {
+            Text = $"{usedPercent:F0}%",
+            FontSize = 20,
+            FontWeight = FontWeights.Bold,
+            Foreground = statusBrush,
+            HorizontalAlignment =
+                HorizontalAlignment.Center,
+            Margin = new Thickness(0, 2, 0, 2)
+        };
+
+        TextBlock sector = new()
+        {
+            Text = "СЕКТОР STG",
+            FontSize = 7,
+            HorizontalAlignment =
+                HorizontalAlignment.Center
+        };
+
+        sector.SetResourceReference(
+            TextBlock.ForegroundProperty,
+            "SecondaryTextBrush");
+
+        meterStack.Children.Add(meterLabel);
+        meterStack.Children.Add(usage);
+        meterStack.Children.Add(sector);
+        meter.Child = meterStack;
+
+        Grid.SetColumn(compass, 0);
+        Grid.SetColumn(information, 1);
+        Grid.SetColumn(meter, 2);
+
+        layout.Children.Add(compass);
+        layout.Children.Add(information);
+        layout.Children.Add(meter);
+        body.Child = layout;
+        root.Children.Add(body);
+
+        Border topLeft = new()
+        {
+            Width = 24,
+            Height = 3,
+            HorizontalAlignment =
+                HorizontalAlignment.Left,
+            VerticalAlignment =
+                VerticalAlignment.Top,
+            Margin = new Thickness(7)
+        };
+
+        topLeft.SetResourceReference(
+            Border.BackgroundProperty,
+            "MilitaryKhakiBrush");
+
+        Border bottomRight = new()
+        {
+            Width = 24,
+            Height = 3,
+            HorizontalAlignment =
+                HorizontalAlignment.Right,
+            VerticalAlignment =
+                VerticalAlignment.Bottom,
+            Margin = new Thickness(7)
+        };
+
+        bottomRight.SetResourceReference(
+            Border.BackgroundProperty,
+            "MilitaryKhakiBrush");
+
+        root.Children.Add(topLeft);
+        root.Children.Add(bottomRight);
+        outer.Child = root;
+
+        return outer;
+    }
+
+
     // ============================================================
     // ТЕМПЕРАТУРА НАКОПИТЕЛЕЙ
     // ============================================================
@@ -1098,6 +2374,83 @@ public partial class MainWindow : Window
 
             int column =
                 i % columns;
+
+            string skinName =
+                SettingsService
+                    .Current
+                    .SkinName;
+
+            if (skinName == "SteamPunk")
+            {
+                Border steamCard =
+                    CreateSteamStorageCard(
+                        storage,
+                        column,
+                        columns);
+
+                Grid.SetRow(
+                    steamCard,
+                    row);
+
+                Grid.SetColumn(
+                    steamCard,
+                    column);
+
+                StorageTemperaturePanel
+                    .Children
+                    .Add(
+                        steamCard);
+
+                continue;
+            }
+
+            if (skinName == "FrostCore")
+            {
+                Border frostCard =
+                    CreateFrostStorageCard(
+                        storage,
+                        column,
+                        columns);
+
+                Grid.SetRow(
+                    frostCard,
+                    row);
+
+                Grid.SetColumn(
+                    frostCard,
+                    column);
+
+                StorageTemperaturePanel
+                    .Children
+                    .Add(
+                        frostCard);
+
+                continue;
+            }
+
+            if (skinName == "MilitaryOps")
+            {
+                Border militaryCard =
+                    CreateMilitaryStorageCard(
+                        storage,
+                        column,
+                        columns);
+
+                Grid.SetRow(
+                    militaryCard,
+                    row);
+
+                Grid.SetColumn(
+                    militaryCard,
+                    column);
+
+                StorageTemperaturePanel
+                    .Children
+                    .Add(
+                        militaryCard);
+
+                continue;
+            }
 
             Border border =
                 CreateGridCardBorder(
@@ -1139,42 +2492,10 @@ public partial class MainWindow : Window
                 });
 
 
-            System.Windows.Shapes.Path frame =
-                new()
-                {
-                    Data =
-                        Geometry.Parse(
-                            "M 8,0 L 100,0 L 100,84 L 94,100 L 0,100 L 0,8 Z"),
-
-                    Stretch =
-                        Stretch.Fill,
-
-                    StrokeThickness = 1,
-
-                    IsHitTestVisible =
-                        false
-                };
-
-            frame.SetResourceReference(
-                System.Windows.Shapes.Shape.FillProperty,
-                "CardBackgroundBrush");
-
-            frame.SetResourceReference(
-                System.Windows.Shapes.Shape.StrokeProperty,
-                "BorderBrush");
-
-            Grid.SetRowSpan(
-                frame,
-                2);
-
-            root.Children.Add(
-                frame);
-
-
             Border topAccent =
                 new()
                 {
-                    Width = 62,
+                    Width = 72,
                     Height = 3,
 
                     HorizontalAlignment =
@@ -1182,7 +2503,7 @@ public partial class MainWindow : Window
 
                     Margin =
                         new Thickness(
-                            26, 0, 0, 0)
+                            14, 0, 0, 0)
                 };
 
             topAccent.SetResourceReference(
@@ -1196,37 +2517,6 @@ public partial class MainWindow : Window
 
             root.Children.Add(
                 topAccent);
-
-
-            Border bottomAccent =
-                new()
-                {
-                    Width = 30,
-                    Height = 2,
-
-                    HorizontalAlignment =
-                        HorizontalAlignment.Right,
-
-                    VerticalAlignment =
-                        VerticalAlignment.Bottom,
-
-                    Margin =
-                        new Thickness(
-                            0, 0, 28, 0),
-
-                    Opacity = 0.68
-                };
-
-            bottomAccent.SetResourceReference(
-                Border.BackgroundProperty,
-                "AccentBrush");
-
-            Grid.SetRowSpan(
-                bottomAccent,
-                2);
-
-            root.Children.Add(
-                bottomAccent);
 
 
             Grid body =
@@ -1410,7 +2700,7 @@ public partial class MainWindow : Window
                 {
                     Text = "THERMAL SENSOR",
 
-                    FontSize = 9,
+                    FontSize = 8,
 
                     FontWeight =
                         FontWeights.SemiBold,
@@ -1569,7 +2859,7 @@ public partial class MainWindow : Window
                             ? "SENSOR ACTIVE"
                             : "NO DATA",
 
-                    FontSize = 9,
+                    FontSize = 8,
 
                     FontWeight =
                         FontWeights.SemiBold
@@ -1645,6 +2935,1133 @@ public partial class MainWindow : Window
                 .Add(
                     border);
         }
+    }
+
+    private Border CreateSteamStorageCard(
+        StorageDeviceInfo storage,
+        int column,
+        int columns)
+    {
+        Brush statusBrush =
+            UiBrushes.StorageTemperature(
+                storage.Temperature);
+
+        double rawTemperature =
+            storage.Temperature ?? 0;
+
+        double normalized =
+            Math.Clamp(
+                (rawTemperature - 20.0) /
+                50.0,
+                0,
+                1);
+
+        Border outer =
+            CreateSteamGridCardBorder(
+                column,
+                columns);
+
+        Grid root = new()
+        {
+            Height = 112
+        };
+
+        // Центральная часть выглядит как секция котловой магистрали.
+        Border body =
+            new()
+            {
+                Margin =
+                    new Thickness(
+                        34, 8, 38, 8),
+
+                Padding =
+                    new Thickness(
+                        53, 11, 67, 11),
+
+                BorderThickness =
+                    new Thickness(2),
+
+                CornerRadius =
+                    new CornerRadius(22)
+            };
+
+        body.SetResourceReference(
+            Border.BackgroundProperty,
+            "SteamPanelBrush");
+
+        body.SetResourceReference(
+            Border.BorderBrushProperty,
+            "SteamMetalBrush");
+
+        StackPanel information =
+            new()
+            {
+                VerticalAlignment =
+                    VerticalAlignment.Center
+            };
+
+        TextBlock caption =
+            new()
+            {
+                Text =
+                    "ТЕМПЕРАТУРА НАКОПИТЕЛЯ",
+
+                FontSize = 8,
+
+                FontWeight =
+                    FontWeights.Bold
+            };
+
+        caption.SetResourceReference(
+            TextBlock.ForegroundProperty,
+            "SecondaryTextBrush");
+
+        TextBlock name =
+            new()
+            {
+                Text =
+                    storage.Name,
+
+                FontSize = 12,
+
+                FontWeight =
+                    FontWeights.SemiBold,
+
+                TextWrapping =
+                    TextWrapping.Wrap,
+
+                TextTrimming =
+                    TextTrimming.CharacterEllipsis,
+
+                Margin =
+                    new Thickness(
+                        0, 3, 0, 7)
+            };
+
+        name.SetResourceReference(
+            TextBlock.ForegroundProperty,
+            "PrimaryTextBrush");
+
+        StackPanel statusRow =
+            new()
+            {
+                Orientation =
+                    Orientation.Horizontal
+            };
+
+        System.Windows.Shapes.Ellipse lamp =
+            new()
+            {
+                Width = 6,
+                Height = 6,
+
+                Fill =
+                    storage.Temperature.HasValue
+                        ? statusBrush
+                        : Brushes.Gray,
+
+                Margin =
+                    new Thickness(
+                        0, 0, 6, 0),
+
+                VerticalAlignment =
+                    VerticalAlignment.Center
+            };
+
+        TextBlock status =
+            new()
+            {
+                Text =
+                    storage.Temperature.HasValue
+                        ? "Датчик активен"
+                        : "Нет данных",
+
+                FontSize = 9,
+
+                FontWeight =
+                    FontWeights.SemiBold
+            };
+
+        status.SetResourceReference(
+            TextBlock.ForegroundProperty,
+            "SecondaryTextBrush");
+
+        statusRow.Children.Add(
+            lamp);
+
+        statusRow.Children.Add(
+            status);
+
+        information.Children.Add(
+            caption);
+
+        information.Children.Add(
+            name);
+
+        information.Children.Add(
+            statusRow);
+
+        body.Child =
+            information;
+
+        root.Children.Add(
+            body);
+
+        // Слева — настоящий вертикальный термометр с колбой.
+        Grid thermometerHousing =
+            new()
+            {
+                Width = 72,
+                Height = 88,
+                HorizontalAlignment =
+                    HorizontalAlignment.Left,
+                VerticalAlignment =
+                    VerticalAlignment.Center,
+                Margin =
+                    new Thickness(
+                        3, 0, 0, 0)
+            };
+
+        System.Windows.Shapes.Ellipse plate =
+            new()
+            {
+                StrokeThickness = 4
+            };
+
+        plate.SetResourceReference(
+            System.Windows.Shapes.Shape.FillProperty,
+            "SteamGlassBrush");
+
+        plate.SetResourceReference(
+            System.Windows.Shapes.Shape.StrokeProperty,
+            "SteamMetalBrush");
+
+        Grid thermometer =
+            new()
+            {
+                Width = 28,
+                Height = 63,
+                HorizontalAlignment =
+                    HorizontalAlignment.Center,
+                VerticalAlignment =
+                    VerticalAlignment.Center
+            };
+
+        Border tube =
+            new()
+            {
+                Width = 11,
+                Height = 43,
+                CornerRadius =
+                    new CornerRadius(6),
+                BorderBrush =
+                    statusBrush,
+                BorderThickness =
+                    new Thickness(2),
+                VerticalAlignment =
+                    VerticalAlignment.Top,
+                HorizontalAlignment =
+                    HorizontalAlignment.Center
+            };
+
+        Border fill =
+            new()
+            {
+                Width = 5,
+                Height =
+                    7 +
+                    (28 * normalized),
+                CornerRadius =
+                    new CornerRadius(3),
+                Background =
+                    statusBrush,
+                VerticalAlignment =
+                    VerticalAlignment.Bottom,
+                HorizontalAlignment =
+                    HorizontalAlignment.Center,
+                Margin =
+                    new Thickness(
+                        0, 0, 0, 16)
+            };
+
+        System.Windows.Shapes.Ellipse bulb =
+            new()
+            {
+                Width = 18,
+                Height = 18,
+                Fill =
+                    statusBrush,
+                Stroke =
+                    statusBrush,
+                StrokeThickness = 1,
+                VerticalAlignment =
+                    VerticalAlignment.Bottom,
+                HorizontalAlignment =
+                    HorizontalAlignment.Center
+            };
+
+        thermometer.Children.Add(
+            tube);
+
+        thermometer.Children.Add(
+            fill);
+
+        thermometer.Children.Add(
+            bulb);
+
+        thermometerHousing.Children.Add(
+            plate);
+
+        thermometerHousing.Children.Add(
+            thermometer);
+
+        root.Children.Add(
+            thermometerHousing);
+
+        // Справа — встроенный круглый цифровой термометр.
+        Grid meter =
+            new()
+            {
+                Width = 78,
+                Height = 78,
+                HorizontalAlignment =
+                    HorizontalAlignment.Right,
+                VerticalAlignment =
+                    VerticalAlignment.Center,
+                Margin =
+                    new Thickness(
+                        0, 0, 5, 0)
+            };
+
+        System.Windows.Shapes.Ellipse meterOuter =
+            new()
+            {
+                StrokeThickness = 4
+            };
+
+        meterOuter.SetResourceReference(
+            System.Windows.Shapes.Shape.FillProperty,
+            "SteamGlassBrush");
+
+        meterOuter.SetResourceReference(
+            System.Windows.Shapes.Shape.StrokeProperty,
+            "SteamMetalBrush");
+
+        System.Windows.Shapes.Ellipse meterInner =
+            new()
+            {
+                Width = 60,
+                Height = 60,
+                StrokeThickness = 1
+            };
+
+        meterInner.SetResourceReference(
+            System.Windows.Shapes.Shape.StrokeProperty,
+            "BorderBrush");
+
+        StackPanel temperatureStack =
+            new()
+            {
+                HorizontalAlignment =
+                    HorizontalAlignment.Center,
+                VerticalAlignment =
+                    VerticalAlignment.Center
+            };
+
+        TextBlock tempLabel =
+            new()
+            {
+                Text = "ТЕМП.",
+                FontSize = 7,
+                FontWeight =
+                    FontWeights.Bold,
+                HorizontalAlignment =
+                    HorizontalAlignment.Center
+            };
+
+        tempLabel.SetResourceReference(
+            TextBlock.ForegroundProperty,
+            "SecondaryTextBrush");
+
+        TextBlock temperature =
+            new()
+            {
+                Text =
+                    FormatTemperature(
+                        storage.Temperature),
+
+                Foreground =
+                    statusBrush,
+
+                FontSize = 16,
+                FontWeight =
+                    FontWeights.Bold,
+                HorizontalAlignment =
+                    HorizontalAlignment.Center,
+                Margin =
+                    new Thickness(
+                        0, 1, 0, 0)
+            };
+
+        temperatureStack.Children.Add(
+            tempLabel);
+
+        temperatureStack.Children.Add(
+            temperature);
+
+        meter.Children.Add(
+            meterOuter);
+
+        meter.Children.Add(
+            meterInner);
+
+        meter.Children.Add(
+            temperatureStack);
+
+        root.Children.Add(
+            meter);
+
+        outer.Child =
+            root;
+
+        return outer;
+    }
+
+
+    private Border CreateFrostStorageCard(
+        StorageDeviceInfo storage,
+        int column,
+        int columns)
+    {
+        Brush statusBrush =
+            UiBrushes.StorageTemperature(
+                storage.Temperature);
+
+        double rawTemperature =
+            storage.Temperature ?? 0;
+
+        double normalized =
+            Math.Clamp(
+                (rawTemperature - 20.0) /
+                50.0,
+                0,
+                1);
+
+        Border outer =
+            CreateFrostGridCardBorder(
+                column,
+                columns);
+
+        Border body = new()
+        {
+            Height = 112,
+            Padding = new Thickness(12),
+            BorderThickness = new Thickness(2),
+            CornerRadius = new CornerRadius(18)
+        };
+
+        body.SetResourceReference(
+            Border.BackgroundProperty,
+            "FrostPanelBrush");
+
+        body.SetResourceReference(
+            Border.BorderBrushProperty,
+            "FrostSteelBrush");
+
+        Grid layout = new();
+
+        layout.ColumnDefinitions.Add(
+            new ColumnDefinition
+            {
+                Width = new GridLength(84)
+            });
+
+        layout.ColumnDefinitions.Add(
+            new ColumnDefinition
+            {
+                Width = new GridLength(
+                    1,
+                    GridUnitType.Star)
+            });
+
+        layout.ColumnDefinitions.Add(
+            new ColumnDefinition
+            {
+                Width = new GridLength(98)
+            });
+
+        Grid cryoProbe = new()
+        {
+            Width = 62,
+            Height = 82,
+            HorizontalAlignment =
+                HorizontalAlignment.Left,
+            VerticalAlignment =
+                VerticalAlignment.Center
+        };
+
+        Border probeOuter = new()
+        {
+            BorderThickness = new Thickness(3),
+            CornerRadius = new CornerRadius(21)
+        };
+
+        probeOuter.SetResourceReference(
+            Border.BackgroundProperty,
+            "FrostGlassBrush");
+
+        probeOuter.SetResourceReference(
+            Border.BorderBrushProperty,
+            "FrostSteelBrush");
+
+        Border probeInner = new()
+        {
+            Width = 28,
+            Height = 58,
+            CornerRadius = new CornerRadius(14),
+            BorderThickness = new Thickness(1),
+            HorizontalAlignment =
+                HorizontalAlignment.Center,
+            VerticalAlignment =
+                VerticalAlignment.Center
+        };
+
+        probeInner.SetResourceReference(
+            Border.BorderBrushProperty,
+            "FrostIceBrush");
+
+        Border fill = new()
+        {
+            Width = 20,
+            Height = 6 + 44 * normalized,
+            CornerRadius = new CornerRadius(10),
+            Background = statusBrush,
+            HorizontalAlignment =
+                HorizontalAlignment.Center,
+            VerticalAlignment =
+                VerticalAlignment.Bottom,
+            Margin = new Thickness(0, 0, 0, 13),
+            Opacity = 0.9
+        };
+
+        TextBlock snow = new()
+        {
+            Text = "❄",
+            FontSize = 13,
+            HorizontalAlignment =
+                HorizontalAlignment.Center,
+            VerticalAlignment =
+                VerticalAlignment.Top,
+            Margin = new Thickness(0, 8, 0, 0),
+            Opacity = 0.65
+        };
+
+        snow.SetResourceReference(
+            TextBlock.ForegroundProperty,
+            "FrostIceBrush");
+
+        cryoProbe.Children.Add(probeOuter);
+        cryoProbe.Children.Add(probeInner);
+        cryoProbe.Children.Add(fill);
+        cryoProbe.Children.Add(snow);
+
+        StackPanel information = new()
+        {
+            VerticalAlignment =
+                VerticalAlignment.Center,
+            Margin = new Thickness(0, 0, 14, 0)
+        };
+
+        TextBlock caption = new()
+        {
+            Text = "КРИОТЕРМОДАТЧИК НАКОПИТЕЛЯ",
+            FontSize = 8,
+            FontWeight = FontWeights.Bold
+        };
+
+        caption.SetResourceReference(
+            TextBlock.ForegroundProperty,
+            "SecondaryTextBrush");
+
+        TextBlock name = new()
+        {
+            Text = storage.Name,
+            FontSize = 12,
+            FontWeight = FontWeights.SemiBold,
+            TextWrapping = TextWrapping.Wrap,
+            TextTrimming =
+                TextTrimming.CharacterEllipsis,
+            Margin = new Thickness(0, 3, 0, 7)
+        };
+
+        name.SetResourceReference(
+            TextBlock.ForegroundProperty,
+            "PrimaryTextBrush");
+
+        StackPanel statusRow = new()
+        {
+            Orientation = Orientation.Horizontal
+        };
+
+        System.Windows.Shapes.Ellipse lamp =
+            new()
+            {
+                Width = 6,
+                Height = 6,
+                Fill = storage.Temperature.HasValue
+                    ? statusBrush
+                    : Brushes.Gray,
+                Margin = new Thickness(0, 0, 6, 0),
+                VerticalAlignment =
+                    VerticalAlignment.Center
+            };
+
+        TextBlock status = new()
+        {
+            Text = storage.Temperature.HasValue
+                ? "Контур датчика активен"
+                : "Нет данных",
+            FontSize = 9,
+            FontWeight = FontWeights.SemiBold
+        };
+
+        status.SetResourceReference(
+            TextBlock.ForegroundProperty,
+            "SecondaryTextBrush");
+
+        statusRow.Children.Add(lamp);
+        statusRow.Children.Add(status);
+
+        information.Children.Add(caption);
+        information.Children.Add(name);
+        information.Children.Add(statusRow);
+
+        Border meter = new()
+        {
+            Padding = new Thickness(9),
+            BorderThickness = new Thickness(1.5),
+            CornerRadius = new CornerRadius(15),
+            VerticalAlignment =
+                VerticalAlignment.Center
+        };
+
+        meter.SetResourceReference(
+            Border.BackgroundProperty,
+            "FrostGlassBrush");
+
+        meter.SetResourceReference(
+            Border.BorderBrushProperty,
+            "FrostSteelBrush");
+
+        StackPanel temperatureStack = new();
+
+        TextBlock tempLabel = new()
+        {
+            Text = "ТЕМП.",
+            FontSize = 7,
+            FontWeight = FontWeights.Bold,
+            HorizontalAlignment =
+                HorizontalAlignment.Center
+        };
+
+        tempLabel.SetResourceReference(
+            TextBlock.ForegroundProperty,
+            "SecondaryTextBrush");
+
+        TextBlock temperature = new()
+        {
+            Text = FormatTemperature(
+                storage.Temperature),
+            Foreground = statusBrush,
+            FontSize = 17,
+            FontWeight = FontWeights.Bold,
+            HorizontalAlignment =
+                HorizontalAlignment.Center,
+            Margin = new Thickness(0, 2, 0, 2)
+        };
+
+        TextBlock state = new()
+        {
+            Text = "КРИОКОНТРОЛЬ",
+            FontSize = 7,
+            HorizontalAlignment =
+                HorizontalAlignment.Center
+        };
+
+        state.SetResourceReference(
+            TextBlock.ForegroundProperty,
+            "SecondaryTextBrush");
+
+        temperatureStack.Children.Add(tempLabel);
+        temperatureStack.Children.Add(temperature);
+        temperatureStack.Children.Add(state);
+        meter.Child = temperatureStack;
+
+        Grid.SetColumn(cryoProbe, 0);
+        Grid.SetColumn(information, 1);
+        Grid.SetColumn(meter, 2);
+
+        layout.Children.Add(cryoProbe);
+        layout.Children.Add(information);
+        layout.Children.Add(meter);
+        body.Child = layout;
+        outer.Child = body;
+
+        return outer;
+    }
+
+
+    private Border CreateMilitaryStorageCard(
+        StorageDeviceInfo storage,
+        int column,
+        int columns)
+    {
+        Brush statusBrush =
+            UiBrushes.StorageTemperature(
+                storage.Temperature);
+
+        double rawTemperature =
+            storage.Temperature ?? 0;
+
+        double normalized =
+            Math.Clamp(
+                (rawTemperature - 20.0) /
+                50.0,
+                0,
+                1);
+
+        Border outer =
+            CreateMilitaryGridCardBorder(
+                column,
+                columns);
+
+        Grid root = new()
+        {
+            Height = 104
+        };
+
+        Border body = new()
+        {
+            Padding = new Thickness(12, 10, 12, 10),
+            BorderThickness = new Thickness(2),
+            CornerRadius = new CornerRadius(1)
+        };
+
+        body.SetResourceReference(
+            Border.BackgroundProperty,
+            "MilitaryPanelBrush");
+
+        body.SetResourceReference(
+            Border.BorderBrushProperty,
+            "MilitaryKhakiBrush");
+
+        Grid layout = new();
+
+        layout.ColumnDefinitions.Add(
+            new ColumnDefinition
+            {
+                Width = new GridLength(72)
+            });
+
+        layout.ColumnDefinitions.Add(
+            new ColumnDefinition
+            {
+                Width = new GridLength(
+                    1,
+                    GridUnitType.Star)
+            });
+
+        layout.ColumnDefinitions.Add(
+            new ColumnDefinition
+            {
+                Width = new GridLength(102)
+            });
+
+        // Прицельная сетка датчика.
+        Grid sensor = new()
+        {
+            Width = 56,
+            Height = 56,
+            HorizontalAlignment =
+                HorizontalAlignment.Left,
+            VerticalAlignment =
+                VerticalAlignment.Center
+        };
+
+        System.Windows.Shapes.Ellipse sensorOuter =
+            new()
+            {
+                StrokeThickness = 2
+            };
+
+        sensorOuter.SetResourceReference(
+            System.Windows.Shapes.Shape.FillProperty,
+            "MilitaryPlateBrush");
+
+        sensorOuter.SetResourceReference(
+            System.Windows.Shapes.Shape.StrokeProperty,
+            "MilitaryKhakiBrush");
+
+        System.Windows.Shapes.Ellipse sensorInner =
+            new()
+            {
+                Width = 34,
+                Height = 34,
+                StrokeThickness = 1
+            };
+
+        sensorInner.SetResourceReference(
+            System.Windows.Shapes.Shape.StrokeProperty,
+            "MilitaryGridBrush");
+
+        Border sensorVertical = new()
+        {
+            Width = 1,
+            Height = 46,
+            HorizontalAlignment =
+                HorizontalAlignment.Center,
+            VerticalAlignment =
+                VerticalAlignment.Center
+        };
+
+        sensorVertical.SetResourceReference(
+            Border.BackgroundProperty,
+            "MilitaryGridBrush");
+
+        Border sensorHorizontal = new()
+        {
+            Width = 46,
+            Height = 1,
+            HorizontalAlignment =
+                HorizontalAlignment.Center,
+            VerticalAlignment =
+                VerticalAlignment.Center
+        };
+
+        sensorHorizontal.SetResourceReference(
+            Border.BackgroundProperty,
+            "MilitaryGridBrush");
+
+        System.Windows.Shapes.Ellipse sensorCenter =
+            new()
+            {
+                Width = 9,
+                Height = 9,
+                Fill = statusBrush,
+                StrokeThickness = 1
+            };
+
+        sensorCenter.SetResourceReference(
+            System.Windows.Shapes.Shape.StrokeProperty,
+            "MilitaryKhakiBrush");
+
+        sensor.Children.Add(sensorOuter);
+        sensor.Children.Add(sensorInner);
+        sensor.Children.Add(sensorVertical);
+        sensor.Children.Add(sensorHorizontal);
+        sensor.Children.Add(sensorCenter);
+
+        Grid information = new()
+        {
+            Margin = new Thickness(0, 0, 14, 0),
+            VerticalAlignment =
+                VerticalAlignment.Center
+        };
+
+        information.RowDefinitions.Add(
+            new RowDefinition
+            {
+                Height = GridLength.Auto
+            });
+        information.RowDefinitions.Add(
+            new RowDefinition
+            {
+                Height = GridLength.Auto
+            });
+        information.RowDefinitions.Add(
+            new RowDefinition
+            {
+                Height = GridLength.Auto
+            });
+
+        TextBlock caption = new()
+        {
+            Text = "ПОЛЕВОЙ ТЕРМОДАТЧИК",
+            FontSize = 8,
+            FontWeight = FontWeights.Bold
+        };
+
+        caption.SetResourceReference(
+            TextBlock.ForegroundProperty,
+            "MilitaryKhakiBrush");
+
+        TextBlock name = new()
+        {
+            Text = storage.Name,
+            FontSize = 12,
+            FontWeight = FontWeights.SemiBold,
+            TextWrapping = TextWrapping.Wrap,
+            TextTrimming =
+                TextTrimming.CharacterEllipsis,
+            Margin = new Thickness(0, 3, 0, 7)
+        };
+
+        name.SetResourceReference(
+            TextBlock.ForegroundProperty,
+            "PrimaryTextBrush");
+
+        Grid threatBar = new()
+        {
+            Height = 13
+        };
+
+        int activeSegments =
+            normalized <= 0
+                ? 0
+                : Math.Clamp(
+                    (int)Math.Ceiling(
+                        normalized * 5),
+                    0,
+                    5);
+
+        for (int i = 0;
+             i < 5;
+             i++)
+        {
+            threatBar.ColumnDefinitions.Add(
+                new ColumnDefinition
+                {
+                    Width = new GridLength(
+                        1,
+                        GridUnitType.Star)
+                });
+
+            Border segment = new()
+            {
+                Margin = new Thickness(
+                    0,
+                    0,
+                    i == 4 ? 0 : 3,
+                    0),
+                BorderThickness = new Thickness(1),
+                Background =
+                    i < activeSegments
+                        ? statusBrush
+                        : UiBrushes.Theme(
+                            "MilitaryGridBrush")
+            };
+
+            segment.SetResourceReference(
+                Border.BorderBrushProperty,
+                "MilitaryKhakiBrush");
+
+            Grid.SetColumn(
+                segment,
+                i);
+
+            threatBar.Children.Add(
+                segment);
+        }
+
+        Grid.SetRow(caption, 0);
+        Grid.SetRow(name, 1);
+        Grid.SetRow(threatBar, 2);
+
+        information.Children.Add(caption);
+        information.Children.Add(name);
+        information.Children.Add(threatBar);
+
+        Border meter = new()
+        {
+            Padding = new Thickness(9),
+            BorderThickness = new Thickness(1.5),
+            CornerRadius = new CornerRadius(1),
+            VerticalAlignment =
+                VerticalAlignment.Center
+        };
+
+        meter.SetResourceReference(
+            Border.BackgroundProperty,
+            "MilitaryPlateBrush");
+
+        meter.SetResourceReference(
+            Border.BorderBrushProperty,
+            "MilitaryKhakiBrush");
+
+        StackPanel meterStack = new();
+
+        TextBlock meterLabel = new()
+        {
+            Text = storage.Temperature.HasValue
+                ? "ТЕМПЕРАТУРА"
+                : "НЕТ ДАННЫХ",
+            FontSize = 7,
+            FontWeight = FontWeights.Bold,
+            HorizontalAlignment =
+                HorizontalAlignment.Center
+        };
+
+        meterLabel.SetResourceReference(
+            TextBlock.ForegroundProperty,
+            "MilitaryKhakiBrush");
+
+        TextBlock temperature = new()
+        {
+            Text = FormatTemperature(
+                storage.Temperature),
+            Foreground = statusBrush,
+            FontSize = 17,
+            FontWeight = FontWeights.Bold,
+            HorizontalAlignment =
+                HorizontalAlignment.Center,
+            Margin = new Thickness(0, 2, 0, 2)
+        };
+
+        TextBlock sector = new()
+        {
+            Text = "СЕКТОР THM",
+            FontSize = 7,
+            HorizontalAlignment =
+                HorizontalAlignment.Center
+        };
+
+        sector.SetResourceReference(
+            TextBlock.ForegroundProperty,
+            "SecondaryTextBrush");
+
+        meterStack.Children.Add(meterLabel);
+        meterStack.Children.Add(temperature);
+        meterStack.Children.Add(sector);
+        meter.Child = meterStack;
+
+        Grid.SetColumn(sensor, 0);
+        Grid.SetColumn(information, 1);
+        Grid.SetColumn(meter, 2);
+
+        layout.Children.Add(sensor);
+        layout.Children.Add(information);
+        layout.Children.Add(meter);
+        body.Child = layout;
+        root.Children.Add(body);
+        outer.Child = root;
+
+        return outer;
+    }
+
+
+    private static Border CreateSteamGridCardBorder(
+        int column,
+        int columns)
+    {
+        double rightMargin =
+            column < columns - 1
+                ? 12
+                : 0;
+
+        return new Border
+        {
+            Padding =
+                new Thickness(0),
+
+            BorderThickness =
+                new Thickness(0),
+
+            Background =
+                Brushes.Transparent,
+
+            Margin =
+                new Thickness(
+                    0,
+                    0,
+                    rightMargin,
+                    12),
+
+            HorizontalAlignment =
+                HorizontalAlignment.Stretch
+        };
+    }
+
+
+    private static Border CreateFrostGridCardBorder(
+        int column,
+        int columns)
+    {
+        double rightMargin =
+            column < columns - 1
+                ? 12
+                : 0;
+
+        return new Border
+        {
+            Padding = new Thickness(0),
+            BorderThickness = new Thickness(0),
+            Background = Brushes.Transparent,
+            Margin = new Thickness(
+                0,
+                0,
+                rightMargin,
+                12),
+            HorizontalAlignment =
+                HorizontalAlignment.Stretch
+        };
+    }
+
+
+    private static Border CreateMilitaryGridCardBorder(
+        int column,
+        int columns)
+    {
+        double rightMargin =
+            column < columns - 1
+                ? 12
+                : 0;
+
+        return new Border
+        {
+            Padding = new Thickness(0),
+            BorderThickness = new Thickness(0),
+            Background = Brushes.Transparent,
+            Margin = new Thickness(
+                0,
+                0,
+                rightMargin,
+                12),
+            HorizontalAlignment =
+                HorizontalAlignment.Stretch
+        };
+    }
+
+
+    private static void AddSteamCardRivet(
+        Grid root,
+        HorizontalAlignment horizontal,
+        VerticalAlignment vertical)
+    {
+        System.Windows.Shapes.Ellipse rivet =
+            new()
+            {
+                Width = 7,
+                Height = 7,
+                Margin =
+                    new Thickness(7),
+                HorizontalAlignment =
+                    horizontal,
+                VerticalAlignment =
+                    vertical,
+                StrokeThickness = 1,
+                IsHitTestVisible = false
+            };
+
+        rivet.SetResourceReference(
+            System.Windows.Shapes.Shape.FillProperty,
+            "SteamRivetBrush");
+
+        rivet.SetResourceReference(
+            System.Windows.Shapes.Shape.StrokeProperty,
+            "SteamDarkMetalBrush");
+
+        root.Children.Add(
+            rivet);
     }
 
     // ============================================================
@@ -1741,16 +4158,13 @@ public partial class MainWindow : Window
             new()
             {
                 CornerRadius =
-                    new CornerRadius(0),
+                    new CornerRadius(6),
 
                 Padding =
                     new Thickness(0),
 
                 BorderThickness =
-                    new Thickness(0),
-
-                Background =
-                    Brushes.Transparent,
+                    new Thickness(1),
 
                 Margin =
                     new Thickness(
@@ -1762,6 +4176,14 @@ public partial class MainWindow : Window
                 HorizontalAlignment =
                     HorizontalAlignment.Stretch
             };
+
+        border.SetResourceReference(
+            Border.BackgroundProperty,
+            "CardBackgroundBrush");
+
+        border.SetResourceReference(
+            Border.BorderBrushProperty,
+            "BorderBrush");
 
         return border;
     }

@@ -11,9 +11,11 @@ public partial class SettingsWindow : Window
 {
     private readonly bool _firstRun;
 
-    private readonly string _originalTheme;
+    private readonly string _originalSkin;
 
-    private string _selectedTheme;
+    private string _selectedSkin;
+
+    private readonly string _originalTheme;
 
     private bool _saved;
 
@@ -28,17 +30,22 @@ public partial class SettingsWindow : Window
         _firstRun =
             firstRun;
 
+        _originalSkin =
+            SettingsService
+                .Current
+                .SkinName;
+
+        _selectedSkin =
+            _originalSkin;
+
         _originalTheme =
             SettingsService
                 .Current
                 .ThemeName;
 
-        _selectedTheme =
-            _originalTheme;
-
         LoadSettings();
 
-        UpdateThemeCards();
+        UpdateSkinCards();
     }
 
     // ============================================================
@@ -132,43 +139,10 @@ public partial class SettingsWindow : Window
     }
 
     // ============================================================
-    // ПРЕДПРОСМОТР ТЕМЫ ПРИ НАВЕДЕНИИ
+    // ВЫБОР СКИНА
     // ============================================================
 
-    private void ThemeCard_MouseEnter(
-        object sender,
-        MouseEventArgs e)
-    {
-        if (sender is not Border border)
-            return;
-
-        if (border.Tag
-            is not string themeName)
-        {
-            return;
-        }
-
-        ThemeManager.ApplyTheme(
-            themeName);
-    }
-
-    // ============================================================
-    // УВЕЛИ КУРСОР — ВОЗВРАЩАЕМ ВЫБРАННУЮ ТЕМУ
-    // ============================================================
-
-    private void ThemeCard_MouseLeave(
-        object sender,
-        MouseEventArgs e)
-    {
-        ThemeManager.ApplyTheme(
-            _selectedTheme);
-    }
-
-    // ============================================================
-    // ЩЕЛЧОК ПО ТЕМЕ
-    // ============================================================
-
-    private void ThemeCard_MouseLeftButtonDown(
+    private void SkinCard_MouseLeftButtonDown(
         object sender,
         MouseButtonEventArgs e)
     {
@@ -176,85 +150,76 @@ public partial class SettingsWindow : Window
             return;
 
         if (border.Tag
-            is not string themeName)
+            is not string skinName)
         {
             return;
         }
 
-        _selectedTheme =
-            themeName;
+        _selectedSkin =
+            skinName;
 
-        ThemeManager.ApplyTheme(
-            themeName);
+        ThemeManager.ApplyAppearance(
+            _selectedSkin,
+            _originalTheme);
 
-        UpdateThemeCards();
+        UpdateSkinCards();
     }
 
-    // ============================================================
-    // ВЫДЕЛЕНИЕ ВЫБРАННОЙ ТЕМЫ
-    // ============================================================
 
-    private void UpdateThemeCards()
+    private void UpdateSkinCards()
     {
-        SetThemeCardState(
-            SteelBlueThemeCard,
-            "SteelBlue");
+        SetSkinCardState(
+            CyberTechSkinCard,
+            "CyberTech");
 
-        SetThemeCardState(
-            GraphiteGreenThemeCard,
-            "GraphiteGreen");
+        SetSkinCardState(
+            SteamPunkSkinCard,
+            "SteamPunk");
 
-        SetThemeCardState(
-            VioletNeonThemeCard,
-            "VioletNeon");
+        SetSkinCardState(
+            FrostCoreSkinCard,
+            "FrostCore");
 
-        SetThemeCardState(
-            LightTechThemeCard,
-            "LightTech");
+        SetSkinCardState(
+            MilitaryOpsSkinCard,
+            "MilitaryOps");
     }
 
-    private void SetThemeCardState(
+
+    private void SetSkinCardState(
         Border card,
-        string themeName)
+        string skinName)
     {
         bool selected =
-            _selectedTheme ==
-            themeName;
+            _selectedSkin ==
+            skinName;
 
         card.BorderThickness =
             selected
                 ? new Thickness(3)
                 : new Thickness(2);
 
-        if (selected)
-        {
-            card.BorderBrush =
-                UiBrushes.Theme(
-                    "AccentBrush");
+        string borderColor =
+            skinName switch
+            {
+                "SteamPunk" =>
+                    selected ? "#F39A32" : "#6E4A2A",
 
-            card.Effect =
-                new System.Windows.Media.Effects
-                    .DropShadowEffect
-                {
-                    Color =
-                        Colors.Black,
+                "FrostCore" =>
+                    selected ? "#76E7FF" : "#4A6570",
 
-                    BlurRadius = 12,
+                "MilitaryOps" =>
+                    selected ? "#9BCF4A" : "#4B5A37",
 
-                    ShadowDepth = 0,
+                _ =>
+                    selected ? "#2ED9FF" : "#234754"
+            };
 
-                    Opacity = 0.25
-                };
-        }
-        else
-        {
-            card.BorderBrush =
-                UiBrushes.Theme(
-                    "BorderBrush");
-
-            card.Effect =
-                null;
-        }
+        card.BorderBrush =
+            new SolidColorBrush(
+                (Color)
+                ColorConverter.ConvertFromString(
+                    borderColor));
     }
 
     // ============================================================
@@ -411,8 +376,8 @@ public partial class SettingsWindow : Window
         AppSettings settings =
             SettingsService.Current;
 
-        settings.ThemeName =
-            _selectedTheme;
+        settings.SkinName =
+            _selectedSkin;
 
         // Запуск / трей
         settings.AutoStartWithWindows =
@@ -494,7 +459,8 @@ public partial class SettingsWindow : Window
 
         SettingsService.Save();
 
-        ThemeManager.ApplyTheme(
+        ThemeManager.ApplyAppearance(
+            settings.SkinName,
             settings.ThemeName);
 
         _saved =
@@ -522,7 +488,8 @@ public partial class SettingsWindow : Window
     {
         if (!_saved)
         {
-            ThemeManager.ApplyTheme(
+            ThemeManager.ApplyAppearance(
+                _originalSkin,
                 _originalTheme);
         }
 

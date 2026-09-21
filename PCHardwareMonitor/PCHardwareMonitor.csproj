@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
@@ -21,9 +21,9 @@
 		<Description>Hardware monitoring for Windows</Description>
 
 		<!-- Тестовая версия -->
-		<Version>0.2.0</Version>
-		<FileVersion>0.2.0.0</FileVersion>
-		<AssemblyVersion>0.2.0.0</AssemblyVersion>
+		<Version>0.3.0</Version>
+		<FileVersion>0.3.0.0</FileVersion>
+		<AssemblyVersion>0.3.0.0</AssemblyVersion>
 
 		<!-- Основная иконка -->
 		<ApplicationIcon>Assets\Thermiqra.ico</ApplicationIcon>
