@@ -1,18 +1,18 @@
 # Thermiqra
 
-Thermiqra — настольное приложение для мониторинга оборудования ПК под Windows 10/11.
+Thermiqra is a Windows 10/11 desktop application for real-time PC hardware monitoring.
 
-## Возможности
+## Features
 
-- мониторинг CPU, GPU, RAM, накопителей и логических дисков;
-- температурные предупреждения и критические уведомления;
-- работа в системном трее;
-- автозапуск через Планировщик заданий Windows с повышенными правами;
-- сохранение настроек, размера и положения окна;
-- несколько цветовых тем интерфейса;
-- установщик Inno Setup с установкой PawnIO.
+- CPU, GPU, RAM, storage and logical drive monitoring
+- temperature warnings and critical alerts
+- system tray operation
+- elevated autostart through Windows Task Scheduler
+- persistent settings, window size and position
+- multiple interface color themes
+- Inno Setup installer with PawnIO installation
 
-## Технологии
+## Technology
 
 - C# / WPF
 - .NET 10
@@ -20,22 +20,28 @@ Thermiqra — настольное приложение для монитори�
 - PawnIO
 - Inno Setup
 
-## Сборка
+## Build
 
-Основной проект: `PCHardwareMonitor/PCHardwareMonitor.csproj`.
+Main project:
 
-Для Release используется `win-x64` и self-contained публикация.
+`PCHardwareMonitor/PCHardwareMonitor.csproj`
+
+The Release build uses `win-x64` and self-contained publishing:
 
 ```powershell
 dotnet publish .\PCHardwareMonitor\PCHardwareMonitor.csproj -c Release -r win-x64 --self-contained true -o .\PCHardwareMonitor\bin\Release\net10.0-windows\win-x64\publish
 ```
 
-## Установщик
+## Installer
 
-Скрипт Inno Setup: `Installer/Thermiqra.iss`.
+Inno Setup script:
 
-Файл `PawnIO_setup.exe` намеренно не хранится в репозитории. Для локальной сборки установщика он должен находиться по пути `Installer/Dependencies/PawnIO_setup.exe`.
+`Installer/Thermiqra.iss`
 
-## Примечание
+`PawnIO_setup.exe` is intentionally not stored in the repository. For a local installer build, place it at:
 
-Внутреннее имя проекта и namespace пока остаются `PCHardwareMonitor`.
+`Installer/Dependencies/PawnIO_setup.exe`
+
+## Note
+
+The internal project name and namespace currently remain `PCHardwareMonitor`.
