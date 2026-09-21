@@ -1,0 +1,1472 @@
+﻿<Window x:Class="PCHardwareMonitor.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:primitives="clr-namespace:System.Windows.Controls.Primitives;assembly=PresentationFramework"
+        Title="Настройки — Thermiqra"
+        Width="760"
+        Height="880"
+        MinWidth="650"
+        MinHeight="700"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="CanResize"
+        Background="{DynamicResource WindowBackgroundBrush}">
+
+    <Window.Resources>
+
+        <!-- ===================================================== -->
+        <!-- ОБЩИЙ ТЕКСТ                                           -->
+        <!-- ===================================================== -->
+
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground"
+                    Value="{DynamicResource PrimaryTextBrush}"/>
+        </Style>
+
+        <Style x:Key="TechLabelStyle"
+               TargetType="TextBlock">
+            <Setter Property="Foreground"
+                    Value="{DynamicResource SecondaryTextBrush}"/>
+            <Setter Property="FontSize"
+                    Value="9"/>
+            <Setter Property="FontWeight"
+                    Value="SemiBold"/>
+        </Style>
+
+        <Style x:Key="SectionTitleStyle"
+               TargetType="TextBlock">
+            <Setter Property="Foreground"
+                    Value="{DynamicResource PrimaryTextBrush}"/>
+            <Setter Property="FontSize"
+                    Value="16"/>
+            <Setter Property="FontWeight"
+                    Value="Bold"/>
+        </Style>
+
+
+        <!-- ===================================================== -->
+        <!-- TEXTBOX                                               -->
+        <!-- ===================================================== -->
+
+        <Style TargetType="TextBox">
+
+            <Setter Property="Height"
+                    Value="36"/>
+
+            <Setter Property="Background"
+                    Value="{DynamicResource InputBackgroundBrush}"/>
+
+            <Setter Property="Foreground"
+                    Value="{DynamicResource PrimaryTextBrush}"/>
+
+            <Setter Property="BorderBrush"
+                    Value="{DynamicResource BorderBrush}"/>
+
+            <Setter Property="BorderThickness"
+                    Value="1"/>
+
+            <Setter Property="Padding"
+                    Value="10,6"/>
+
+            <Setter Property="Margin"
+                    Value="0,5,0,8"/>
+
+            <Setter Property="VerticalContentAlignment"
+                    Value="Center"/>
+
+            <Setter Property="CaretBrush"
+                    Value="{DynamicResource AccentBrush}"/>
+
+            <Setter Property="SelectionBrush"
+                    Value="{DynamicResource AccentBrush}"/>
+
+            <Style.Triggers>
+
+                <Trigger Property="IsKeyboardFocused"
+                         Value="True">
+
+                    <Setter Property="BorderBrush"
+                            Value="{DynamicResource AccentBrush}"/>
+
+                </Trigger>
+
+            </Style.Triggers>
+
+        </Style>
+
+
+        <!-- ===================================================== -->
+        <!-- CHECKBOX CYBER                                        -->
+        <!-- ===================================================== -->
+
+        <Style TargetType="CheckBox">
+
+            <Setter Property="Foreground"
+                    Value="{DynamicResource PrimaryTextBrush}"/>
+
+            <Setter Property="Margin"
+                    Value="0,6,0,6"/>
+
+            <Setter Property="Cursor"
+                    Value="Hand"/>
+
+            <Setter Property="Template">
+
+                <Setter.Value>
+
+                    <ControlTemplate TargetType="CheckBox">
+
+                        <Grid>
+
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="25"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Border x:Name="CheckBorder"
+                                    Width="16"
+                                    Height="16"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Center"
+                                    Background="{DynamicResource InputBackgroundBrush}"
+                                    BorderBrush="{DynamicResource BorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="2">
+
+                                <Path x:Name="CheckMark"
+                                      Data="M 3 7 L 6 10 L 13 3"
+                                      Stroke="White"
+                                      StrokeThickness="2"
+                                      StrokeStartLineCap="Square"
+                                      StrokeEndLineCap="Square"
+                                      Visibility="Collapsed"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"/>
+
+                            </Border>
+
+                            <ContentPresenter Grid.Column="1"
+                                              VerticalAlignment="Center"
+                                              RecognizesAccessKey="True"/>
+
+                        </Grid>
+
+                        <ControlTemplate.Triggers>
+
+                            <Trigger Property="IsMouseOver"
+                                     Value="True">
+
+                                <Setter TargetName="CheckBorder"
+                                        Property="BorderBrush"
+                                        Value="{DynamicResource AccentBrush}"/>
+
+                            </Trigger>
+
+                            <Trigger Property="IsChecked"
+                                     Value="True">
+
+                                <Setter TargetName="CheckBorder"
+                                        Property="Background"
+                                        Value="{DynamicResource AccentBrush}"/>
+
+                                <Setter TargetName="CheckBorder"
+                                        Property="BorderBrush"
+                                        Value="{DynamicResource AccentBrush}"/>
+
+                                <Setter TargetName="CheckMark"
+                                        Property="Visibility"
+                                        Value="Visible"/>
+
+                            </Trigger>
+
+                            <Trigger Property="IsEnabled"
+                                     Value="False">
+
+                                <Setter Property="Opacity"
+                                        Value="0.45"/>
+
+                            </Trigger>
+
+                        </ControlTemplate.Triggers>
+
+                    </ControlTemplate>
+
+                </Setter.Value>
+
+            </Setter>
+
+        </Style>
+
+
+        <!-- ===================================================== -->
+        <!-- SCROLLBAR                                             -->
+        <!-- ===================================================== -->
+
+        <Style x:Key="CyberScrollThumbStyle"
+               TargetType="{x:Type primitives:Thumb}">
+
+            <Setter Property="Background"
+                    Value="{DynamicResource BorderBrush}"/>
+
+            <Setter Property="Template">
+
+                <Setter.Value>
+
+                    <ControlTemplate TargetType="{x:Type primitives:Thumb}">
+
+                        <Border x:Name="ThumbBorder"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="2"
+                                Margin="2,0"/>
+
+                        <ControlTemplate.Triggers>
+
+                            <Trigger Property="IsMouseOver"
+                                     Value="True">
+
+                                <Setter TargetName="ThumbBorder"
+                                        Property="Background"
+                                        Value="{DynamicResource AccentBrush}"/>
+
+                            </Trigger>
+
+                            <Trigger Property="IsDragging"
+                                     Value="True">
+
+                                <Setter TargetName="ThumbBorder"
+                                        Property="Background"
+                                        Value="{DynamicResource AccentBrush}"/>
+
+                            </Trigger>
+
+                        </ControlTemplate.Triggers>
+
+                    </ControlTemplate>
+
+                </Setter.Value>
+
+            </Setter>
+
+        </Style>
+
+
+        <Style x:Key="InvisibleScrollButtonStyle"
+               TargetType="{x:Type RepeatButton}">
+
+            <Setter Property="Focusable"
+                    Value="False"/>
+
+            <Setter Property="IsTabStop"
+                    Value="False"/>
+
+            <Setter Property="Opacity"
+                    Value="0"/>
+
+            <Setter Property="Template">
+
+                <Setter.Value>
+
+                    <ControlTemplate TargetType="{x:Type RepeatButton}">
+                        <Border Background="Transparent"/>
+                    </ControlTemplate>
+
+                </Setter.Value>
+
+            </Setter>
+
+        </Style>
+
+
+        <Style TargetType="{x:Type ScrollBar}">
+
+            <Setter Property="Width"
+                    Value="11"/>
+
+            <Setter Property="Background"
+                    Value="Transparent"/>
+
+            <Setter Property="Template">
+
+                <Setter.Value>
+
+                    <ControlTemplate TargetType="{x:Type ScrollBar}">
+
+                        <Grid Background="Transparent">
+
+                            <primitives:Track x:Name="PART_Track"
+                                              IsDirectionReversed="True">
+
+                                <primitives:Track.DecreaseRepeatButton>
+
+                                    <RepeatButton Style="{StaticResource InvisibleScrollButtonStyle}"
+                                                  Command="ScrollBar.PageUpCommand"/>
+
+                                </primitives:Track.DecreaseRepeatButton>
+
+                                <primitives:Track.Thumb>
+
+                                    <primitives:Thumb Style="{StaticResource CyberScrollThumbStyle}"
+                                                      MinHeight="34"/>
+
+                                </primitives:Track.Thumb>
+
+                                <primitives:Track.IncreaseRepeatButton>
+
+                                    <RepeatButton Style="{StaticResource InvisibleScrollButtonStyle}"
+                                                  Command="ScrollBar.PageDownCommand"/>
+
+                                </primitives:Track.IncreaseRepeatButton>
+
+                            </primitives:Track>
+
+                        </Grid>
+
+                    </ControlTemplate>
+
+                </Setter.Value>
+
+            </Setter>
+
+        </Style>
+
+
+        <!-- ===================================================== -->
+        <!-- BUTTON                                                -->
+        <!-- ===================================================== -->
+
+        <Style TargetType="Button">
+
+            <Setter Property="Foreground"
+                    Value="{DynamicResource PrimaryTextBrush}"/>
+
+            <Setter Property="Background"
+                    Value="{DynamicResource CardBackgroundBrush}"/>
+
+            <Setter Property="BorderBrush"
+                    Value="{DynamicResource BorderBrush}"/>
+
+            <Setter Property="BorderThickness"
+                    Value="1"/>
+
+            <Setter Property="Cursor"
+                    Value="Hand"/>
+
+            <Setter Property="Height"
+                    Value="38"/>
+
+            <Setter Property="Padding"
+                    Value="14,6"/>
+
+            <Setter Property="Template">
+
+                <Setter.Value>
+
+                    <ControlTemplate TargetType="Button">
+
+                        <Border x:Name="ButtonBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="3">
+
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+
+                            <Trigger Property="IsMouseOver"
+                                     Value="True">
+
+                                <Setter TargetName="ButtonBorder"
+                                        Property="BorderBrush"
+                                        Value="{DynamicResource AccentBrush}"/>
+
+                                <Setter Property="Foreground"
+                                        Value="{DynamicResource AccentBrush}"/>
+
+                            </Trigger>
+
+                            <Trigger Property="IsPressed"
+                                     Value="True">
+
+                                <Setter TargetName="ButtonBorder"
+                                        Property="Background"
+                                        Value="{DynamicResource InputBackgroundBrush}"/>
+
+                            </Trigger>
+
+                        </ControlTemplate.Triggers>
+
+                    </ControlTemplate>
+
+                </Setter.Value>
+
+            </Setter>
+
+        </Style>
+
+
+        <!-- ===================================================== -->
+        <!-- КАРТОЧКА СЕКЦИИ                                       -->
+        <!-- ===================================================== -->
+
+        <Style x:Key="TechCardStyle"
+               TargetType="Border">
+
+            <Setter Property="Background"
+                    Value="{DynamicResource CardBackgroundBrush}"/>
+
+            <Setter Property="BorderBrush"
+                    Value="{DynamicResource BorderBrush}"/>
+
+            <Setter Property="BorderThickness"
+                    Value="1"/>
+
+            <Setter Property="CornerRadius"
+                    Value="5"/>
+
+            <Setter Property="Margin"
+                    Value="0,0,0,14"/>
+
+        </Style>
+
+    </Window.Resources>
+
+
+    <Grid>
+
+        <!-- ===================================================== -->
+        <!-- СЛАБАЯ HUD-СЕТКА                                      -->
+        <!-- ===================================================== -->
+
+        <Rectangle IsHitTestVisible="False"
+                   Opacity="0.10">
+
+            <Rectangle.Fill>
+
+                <DrawingBrush TileMode="Tile"
+                              Viewport="0,0,32,32"
+                              ViewportUnits="Absolute"
+                              Viewbox="0,0,32,32"
+                              ViewboxUnits="Absolute">
+
+                    <DrawingBrush.Drawing>
+
+                        <GeometryDrawing>
+
+                            <GeometryDrawing.Pen>
+
+                                <Pen Brush="{DynamicResource BorderBrush}"
+                                     Thickness="0.55"/>
+
+                            </GeometryDrawing.Pen>
+
+                            <GeometryDrawing.Geometry>
+
+                                <GeometryGroup>
+                                    <LineGeometry StartPoint="0,0"
+                                                  EndPoint="32,0"/>
+                                    <LineGeometry StartPoint="0,0"
+                                                  EndPoint="0,32"/>
+                                </GeometryGroup>
+
+                            </GeometryDrawing.Geometry>
+
+                        </GeometryDrawing>
+
+                    </DrawingBrush.Drawing>
+
+                </DrawingBrush>
+
+            </Rectangle.Fill>
+
+        </Rectangle>
+
+
+        <Grid Margin="18">
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+
+            <!-- ================================================= -->
+            <!-- HEADER                                            -->
+            <!-- ================================================= -->
+
+            <Border Grid.Row="0"
+                    Background="{DynamicResource CardBackgroundBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="5"
+                    Margin="0,0,0,14">
+
+                <Grid>
+
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="3"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Border Width="170"
+                            Height="3"
+                            HorizontalAlignment="Left"
+                            Margin="18,0,0,0"
+                            Background="{DynamicResource AccentBrush}"/>
+
+                    <Grid Grid.Row="1"
+                          Margin="18,13,18,14">
+
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="16"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+
+                        <Grid Width="38"
+                              Height="38">
+
+                            <Border BorderBrush="{DynamicResource AccentBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="2"/>
+
+                            <Border Width="18"
+                                    Height="18"
+                                    BorderBrush="{DynamicResource AccentBrush}"
+                                    BorderThickness="1"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"/>
+
+                            <Border Width="5"
+                                    Height="5"
+                                    Background="{DynamicResource AccentBrush}"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"/>
+
+                        </Grid>
+
+
+                        <StackPanel Grid.Column="2"
+                                    VerticalAlignment="Center">
+
+                            <TextBlock Text="THERMIQRA"
+                                       FontSize="21"
+                                       FontWeight="Bold"/>
+
+                            <StackPanel Orientation="Horizontal"
+                                        Margin="1,2,0,0">
+
+                                <TextBlock Text="SYSTEM CONFIGURATION"
+                                           Style="{StaticResource TechLabelStyle}"/>
+
+                                <Border Width="30"
+                                        Height="1"
+                                        Background="{DynamicResource AccentBrush}"
+                                        Margin="9,0"
+                                        VerticalAlignment="Center"/>
+
+                                <TextBlock Text="CONTROL PANEL"
+                                           Style="{StaticResource TechLabelStyle}"/>
+
+                            </StackPanel>
+
+                        </StackPanel>
+
+
+                        <StackPanel Grid.Column="3"
+                                    VerticalAlignment="Center"
+                                    HorizontalAlignment="Right">
+
+                            <TextBlock Text="CONFIG"
+                                       Foreground="{DynamicResource AccentBrush}"
+                                       FontSize="10"
+                                       FontWeight="Bold"
+                                       HorizontalAlignment="Right"/>
+
+                            <TextBlock Text="LOCAL PROFILE"
+                                       Style="{StaticResource TechLabelStyle}"
+                                       Margin="0,2,0,0"
+                                       HorizontalAlignment="Right"/>
+
+                        </StackPanel>
+
+                    </Grid>
+
+                </Grid>
+
+            </Border>
+
+
+            <!-- ================================================= -->
+            <!-- ПРОКРУЧИВАЕМАЯ ОБЛАСТЬ                            -->
+            <!-- ================================================= -->
+
+            <ScrollViewer Grid.Row="1"
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled"
+                          Padding="0,0,6,0">
+
+                <StackPanel>
+
+
+                    <!-- ========================================= -->
+                    <!-- ТЕМЫ                                      -->
+                    <!-- ========================================= -->
+
+                    <Border Style="{StaticResource TechCardStyle}">
+
+                        <Grid>
+
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="3"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <Border Width="105"
+                                    Height="3"
+                                    HorizontalAlignment="Left"
+                                    Margin="18,0,0,0"
+                                    Background="{DynamicResource AccentBrush}"/>
+
+                            <StackPanel Grid.Row="1"
+                                        Margin="18,14,18,18">
+
+                                <Grid Margin="0,0,0,13">
+
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel>
+
+                                        <TextBlock Text="ВНЕШНИЙ ВИД"
+                                                   Style="{StaticResource SectionTitleStyle}"/>
+
+                                        <TextBlock Text="VISUAL INTERFACE / THEME PROFILE"
+                                                   Style="{StaticResource TechLabelStyle}"
+                                                   Margin="1,2,0,0"/>
+
+                                    </StackPanel>
+
+                                    <TextBlock Grid.Column="1"
+                                               Text="01"
+                                               Foreground="{DynamicResource AccentBrush}"
+                                               FontSize="18"
+                                               FontWeight="Bold"
+                                               Opacity="0.75"/>
+
+                                </Grid>
+
+
+                                <UniformGrid Columns="2"
+                                             Rows="2">
+
+
+                                    <Border x:Name="SteelBlueThemeCard"
+                                            Tag="SteelBlue"
+                                            Background="#0D1A21"
+                                            BorderBrush="#234754"
+                                            BorderThickness="2"
+                                            CornerRadius="4"
+                                            Padding="12"
+                                            Margin="0,0,6,6"
+                                            Cursor="Hand"
+                                            MouseEnter="ThemeCard_MouseEnter"
+                                            MouseLeave="ThemeCard_MouseLeave"
+                                            MouseLeftButtonDown="ThemeCard_MouseLeftButtonDown">
+
+                                        <Grid>
+
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+
+                                            <Grid>
+
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+
+                                                <TextBlock Text="STEEL BLUE"
+                                                           Foreground="#EAF8FF"
+                                                           FontSize="14"
+                                                           FontWeight="Bold"/>
+
+                                                <Border Grid.Column="1"
+                                                        Width="7"
+                                                        Height="7"
+                                                        Background="#2ED9FF"
+                                                        VerticalAlignment="Center"/>
+
+                                            </Grid>
+
+                                            <TextBlock Grid.Row="1"
+                                                       Text="CYBER CYAN"
+                                                       Foreground="#74909E"
+                                                       FontSize="9"
+                                                       FontWeight="SemiBold"
+                                                       Margin="0,3,0,0"/>
+
+                                            <Border Grid.Row="2"
+                                                    Height="3"
+                                                    Width="70"
+                                                    HorizontalAlignment="Left"
+                                                    Background="#2ED9FF"
+                                                    Margin="0,12,0,0"/>
+
+                                        </Grid>
+
+                                    </Border>
+
+
+                                    <Border x:Name="GraphiteGreenThemeCard"
+                                            Tag="GraphiteGreen"
+                                            Background="#0E1A17"
+                                            BorderBrush="#244C3E"
+                                            BorderThickness="2"
+                                            CornerRadius="4"
+                                            Padding="12"
+                                            Margin="6,0,0,6"
+                                            Cursor="Hand"
+                                            MouseEnter="ThemeCard_MouseEnter"
+                                            MouseLeave="ThemeCard_MouseLeave"
+                                            MouseLeftButtonDown="ThemeCard_MouseLeftButtonDown">
+
+                                        <Grid>
+
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+
+                                            <Grid>
+
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+
+                                                <TextBlock Text="GRAPHITE GREEN"
+                                                           Foreground="#EAF8F2"
+                                                           FontSize="14"
+                                                           FontWeight="Bold"/>
+
+                                                <Border Grid.Column="1"
+                                                        Width="7"
+                                                        Height="7"
+                                                        Background="#35E0A1"
+                                                        VerticalAlignment="Center"/>
+
+                                            </Grid>
+
+                                            <TextBlock Grid.Row="1"
+                                                       Text="TACTICAL GREEN"
+                                                       Foreground="#739487"
+                                                       FontSize="9"
+                                                       FontWeight="SemiBold"
+                                                       Margin="0,3,0,0"/>
+
+                                            <Border Grid.Row="2"
+                                                    Height="3"
+                                                    Width="70"
+                                                    HorizontalAlignment="Left"
+                                                    Background="#35E0A1"
+                                                    Margin="0,12,0,0"/>
+
+                                        </Grid>
+
+                                    </Border>
+
+
+                                    <Border x:Name="VioletNeonThemeCard"
+                                            Tag="VioletNeon"
+                                            Background="#181122"
+                                            BorderBrush="#4A3263"
+                                            BorderThickness="2"
+                                            CornerRadius="4"
+                                            Padding="12"
+                                            Margin="0,6,6,0"
+                                            Cursor="Hand"
+                                            MouseEnter="ThemeCard_MouseEnter"
+                                            MouseLeave="ThemeCard_MouseLeave"
+                                            MouseLeftButtonDown="ThemeCard_MouseLeftButtonDown">
+
+                                        <Grid>
+
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+
+                                            <Grid>
+
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+
+                                                <TextBlock Text="VIOLET NEON"
+                                                           Foreground="#F5F0FF"
+                                                           FontSize="14"
+                                                           FontWeight="Bold"/>
+
+                                                <Border Grid.Column="1"
+                                                        Width="7"
+                                                        Height="7"
+                                                        Background="#B56CFF"
+                                                        VerticalAlignment="Center"/>
+
+                                            </Grid>
+
+                                            <TextBlock Grid.Row="1"
+                                                       Text="VIOLET SYSTEM"
+                                                       Foreground="#9C87B6"
+                                                       FontSize="9"
+                                                       FontWeight="SemiBold"
+                                                       Margin="0,3,0,0"/>
+
+                                            <Border Grid.Row="2"
+                                                    Height="3"
+                                                    Width="70"
+                                                    HorizontalAlignment="Left"
+                                                    Background="#B56CFF"
+                                                    Margin="0,12,0,0"/>
+
+                                        </Grid>
+
+                                    </Border>
+
+
+                                    <Border x:Name="LightTechThemeCard"
+                                            Tag="LightTech"
+                                            Background="#F8FBFD"
+                                            BorderBrush="#B4CBD4"
+                                            BorderThickness="2"
+                                            CornerRadius="4"
+                                            Padding="12"
+                                            Margin="6,6,0,0"
+                                            Cursor="Hand"
+                                            MouseEnter="ThemeCard_MouseEnter"
+                                            MouseLeave="ThemeCard_MouseLeave"
+                                            MouseLeftButtonDown="ThemeCard_MouseLeftButtonDown">
+
+                                        <Grid>
+
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+
+                                            <Grid>
+
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+
+                                                <TextBlock Text="LIGHT TECH"
+                                                           Foreground="#15242C"
+                                                           FontSize="14"
+                                                           FontWeight="Bold"/>
+
+                                                <Border Grid.Column="1"
+                                                        Width="7"
+                                                        Height="7"
+                                                        Background="#087FA8"
+                                                        VerticalAlignment="Center"/>
+
+                                            </Grid>
+
+                                            <TextBlock Grid.Row="1"
+                                                       Text="LIGHT TERMINAL"
+                                                       Foreground="#607781"
+                                                       FontSize="9"
+                                                       FontWeight="SemiBold"
+                                                       Margin="0,3,0,0"/>
+
+                                            <Border Grid.Row="2"
+                                                    Height="3"
+                                                    Width="70"
+                                                    HorizontalAlignment="Left"
+                                                    Background="#087FA8"
+                                                    Margin="0,12,0,0"/>
+
+                                        </Grid>
+
+                                    </Border>
+
+                                </UniformGrid>
+
+
+                                <TextBlock Text="Наведи курсор для предпросмотра. Щёлкни по карточке, чтобы выбрать тему."
+                                           Foreground="{DynamicResource SecondaryTextBrush}"
+                                           FontSize="11"
+                                           Margin="0,12,0,0"
+                                           TextWrapping="Wrap"/>
+
+                            </StackPanel>
+
+                        </Grid>
+
+                    </Border>
+
+
+                    <!-- ========================================= -->
+                    <!-- ЗАПУСК И ТРЕЙ                              -->
+                    <!-- ========================================= -->
+
+                    <Border Style="{StaticResource TechCardStyle}">
+
+                        <Grid>
+
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="3"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <Border Width="105"
+                                    Height="3"
+                                    HorizontalAlignment="Left"
+                                    Margin="18,0,0,0"
+                                    Background="{DynamicResource AccentBrush}"/>
+
+                            <StackPanel Grid.Row="1"
+                                        Margin="18,14,18,18">
+
+                                <Grid Margin="0,0,0,9">
+
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel>
+
+                                        <TextBlock Text="ЗАПУСК И ТРЕЙ"
+                                                   Style="{StaticResource SectionTitleStyle}"/>
+
+                                        <TextBlock Text="STARTUP BEHAVIOUR / BACKGROUND MODE"
+                                                   Style="{StaticResource TechLabelStyle}"
+                                                   Margin="1,2,0,0"/>
+
+                                    </StackPanel>
+
+                                    <TextBlock Grid.Column="1"
+                                               Text="02"
+                                               Foreground="{DynamicResource AccentBrush}"
+                                               FontSize="18"
+                                               FontWeight="Bold"
+                                               Opacity="0.75"/>
+
+                                </Grid>
+
+
+                                <CheckBox x:Name="AutoStartCheck"
+                                          Content="Запускать вместе с Windows"/>
+
+                                <CheckBox x:Name="CloseToTrayCheck"
+                                          Content="При закрытии окна сворачивать в трей"/>
+
+                                <CheckBox x:Name="ShowWindowOnStartupCheck"
+                                          Content="Показывать главное окно при запуске"/>
+
+
+                                <Border Height="1"
+                                        Background="{DynamicResource BorderBrush}"
+                                        Margin="0,9,0,9"/>
+
+                                <TextBlock Text="После первого запуска Thermiqra по умолчанию работает скрыто в системном трее."
+                                           Foreground="{DynamicResource SecondaryTextBrush}"
+                                           FontSize="11"
+                                           TextWrapping="Wrap"/>
+
+                            </StackPanel>
+
+                        </Grid>
+
+                    </Border>
+
+
+                    <!-- ========================================= -->
+                    <!-- УВЕДОМЛЕНИЯ                                -->
+                    <!-- ========================================= -->
+
+                    <Border Style="{StaticResource TechCardStyle}">
+
+                        <Grid>
+
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="3"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <Border Width="105"
+                                    Height="3"
+                                    HorizontalAlignment="Left"
+                                    Margin="18,0,0,0"
+                                    Background="{DynamicResource AccentBrush}"/>
+
+                            <StackPanel Grid.Row="1"
+                                        Margin="18,14,18,18">
+
+                                <Grid Margin="0,0,0,9">
+
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel>
+
+                                        <TextBlock Text="УВЕДОМЛЕНИЯ"
+                                                   Style="{StaticResource SectionTitleStyle}"/>
+
+                                        <TextBlock Text="ALERT CONTROL / CRITICAL EVENTS"
+                                                   Style="{StaticResource TechLabelStyle}"
+                                                   Margin="1,2,0,0"/>
+
+                                    </StackPanel>
+
+                                    <TextBlock Grid.Column="1"
+                                               Text="03"
+                                               Foreground="{DynamicResource AccentBrush}"
+                                               FontSize="18"
+                                               FontWeight="Bold"
+                                               Opacity="0.75"/>
+
+                                </Grid>
+
+
+                                <CheckBox x:Name="NotificationsCheck"
+                                          Content="Показывать уведомления"/>
+
+
+                                <Grid Margin="0,6,0,0">
+
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="16"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0">
+
+                                        <TextBlock Text="Задержка первого предупреждения"
+                                                   Style="{StaticResource TechLabelStyle}"/>
+
+                                        <TextBlock Text="СЕКУНДЫ"
+                                                   Foreground="{DynamicResource SecondaryTextBrush}"
+                                                   FontSize="8"
+                                                   Margin="0,2,0,0"/>
+
+                                        <TextBox x:Name="AlertDelayText"/>
+
+                                    </StackPanel>
+
+
+                                    <StackPanel Grid.Column="2">
+
+                                        <TextBlock Text="Повтор критического предупреждения"
+                                                   Style="{StaticResource TechLabelStyle}"/>
+
+                                        <TextBlock Text="МИНУТЫ"
+                                                   Foreground="{DynamicResource SecondaryTextBrush}"
+                                                   FontSize="8"
+                                                   Margin="0,2,0,0"/>
+
+                                        <TextBox x:Name="CriticalRepeatMinutesText"/>
+
+                                    </StackPanel>
+
+                                </Grid>
+
+
+                                <CheckBox x:Name="RepeatCriticalAlertsCheck"
+                                          Content="Повторять критические температурные предупреждения"/>
+
+
+                                <TextBlock Text="Повтор применяется только к критической температуре CPU, GPU и накопителей. Предупреждения о заполнении диска не повторяются."
+                                           Foreground="{DynamicResource SecondaryTextBrush}"
+                                           FontSize="11"
+                                           TextWrapping="Wrap"
+                                           Margin="0,7,0,0"/>
+
+                            </StackPanel>
+
+                        </Grid>
+
+                    </Border>
+
+
+                    <!-- ========================================= -->
+                    <!-- CPU / GPU                                  -->
+                    <!-- ========================================= -->
+
+                    <Grid Margin="0,0,0,14">
+
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="7"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+
+                        <!-- CPU -->
+
+                        <Border Grid.Column="0"
+                                Style="{StaticResource TechCardStyle}"
+                                Margin="0">
+
+                            <Grid>
+
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="3"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <Border Width="82"
+                                        Height="3"
+                                        HorizontalAlignment="Left"
+                                        Margin="18,0,0,0"
+                                        Background="{DynamicResource AccentBrush}"/>
+
+                                <StackPanel Grid.Row="1"
+                                            Margin="18,14,18,18">
+
+                                    <Grid Margin="0,0,0,9">
+
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel>
+
+                                            <TextBlock Text="CPU"
+                                                       Style="{StaticResource SectionTitleStyle}"/>
+
+                                            <TextBlock Text="THERMAL LIMITS"
+                                                       Style="{StaticResource TechLabelStyle}"
+                                                       Margin="1,2,0,0"/>
+
+                                        </StackPanel>
+
+                                        <TextBlock Grid.Column="1"
+                                                   Text="04"
+                                                   Foreground="{DynamicResource AccentBrush}"
+                                                   FontSize="18"
+                                                   FontWeight="Bold"
+                                                   Opacity="0.75"/>
+
+                                    </Grid>
+
+
+                                    <CheckBox x:Name="CpuNotificationsCheck"
+                                              Content="Контроль температуры CPU"/>
+
+
+                                    <TextBlock Text="ПРЕДУПРЕЖДЕНИЕ, °C"
+                                               Style="{StaticResource TechLabelStyle}"
+                                               Margin="0,7,0,0"/>
+
+                                    <TextBox x:Name="CpuWarningText"/>
+
+
+                                    <TextBlock Text="КРИТИЧЕСКАЯ, °C"
+                                               Style="{StaticResource TechLabelStyle}"/>
+
+                                    <TextBox x:Name="CpuCriticalText"/>
+
+                                </StackPanel>
+
+                            </Grid>
+
+                        </Border>
+
+
+                        <!-- GPU -->
+
+                        <Border Grid.Column="2"
+                                Style="{StaticResource TechCardStyle}"
+                                Margin="0">
+
+                            <Grid>
+
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="3"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <Border Width="82"
+                                        Height="3"
+                                        HorizontalAlignment="Left"
+                                        Margin="18,0,0,0"
+                                        Background="{DynamicResource AccentBrush}"/>
+
+                                <StackPanel Grid.Row="1"
+                                            Margin="18,14,18,18">
+
+                                    <Grid Margin="0,0,0,9">
+
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel>
+
+                                            <TextBlock Text="GPU"
+                                                       Style="{StaticResource SectionTitleStyle}"/>
+
+                                            <TextBlock Text="THERMAL LIMITS"
+                                                       Style="{StaticResource TechLabelStyle}"
+                                                       Margin="1,2,0,0"/>
+
+                                        </StackPanel>
+
+                                        <TextBlock Grid.Column="1"
+                                                   Text="05"
+                                                   Foreground="{DynamicResource AccentBrush}"
+                                                   FontSize="18"
+                                                   FontWeight="Bold"
+                                                   Opacity="0.75"/>
+
+                                    </Grid>
+
+
+                                    <CheckBox x:Name="GpuNotificationsCheck"
+                                              Content="Контроль температуры GPU"/>
+
+
+                                    <TextBlock Text="ПРЕДУПРЕЖДЕНИЕ, °C"
+                                               Style="{StaticResource TechLabelStyle}"
+                                               Margin="0,7,0,0"/>
+
+                                    <TextBox x:Name="GpuWarningText"/>
+
+
+                                    <TextBlock Text="КРИТИЧЕСКАЯ, °C"
+                                               Style="{StaticResource TechLabelStyle}"/>
+
+                                    <TextBox x:Name="GpuCriticalText"/>
+
+                                </StackPanel>
+
+                            </Grid>
+
+                        </Border>
+
+                    </Grid>
+
+
+                    <!-- ========================================= -->
+                    <!-- НАКОПИТЕЛИ                                 -->
+                    <!-- ========================================= -->
+
+                    <Border Style="{StaticResource TechCardStyle}"
+                            Margin="0">
+
+                        <Grid>
+
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="3"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <Border Width="105"
+                                    Height="3"
+                                    HorizontalAlignment="Left"
+                                    Margin="18,0,0,0"
+                                    Background="{DynamicResource AccentBrush}"/>
+
+                            <StackPanel Grid.Row="1"
+                                        Margin="18,14,18,18">
+
+                                <Grid Margin="0,0,0,9">
+
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel>
+
+                                        <TextBlock Text="НАКОПИТЕЛИ"
+                                                   Style="{StaticResource SectionTitleStyle}"/>
+
+                                        <TextBlock Text="STORAGE THERMAL / CAPACITY LIMITS"
+                                                   Style="{StaticResource TechLabelStyle}"
+                                                   Margin="1,2,0,0"/>
+
+                                    </StackPanel>
+
+                                    <TextBlock Grid.Column="1"
+                                               Text="06"
+                                               Foreground="{DynamicResource AccentBrush}"
+                                               FontSize="18"
+                                               FontWeight="Bold"
+                                               Opacity="0.75"/>
+
+                                </Grid>
+
+
+                                <CheckBox x:Name="StorageTemperatureNotificationsCheck"
+                                          Content="Контроль температуры накопителей"/>
+
+
+                                <Grid Margin="0,6,0,5">
+
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="16"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0">
+
+                                        <TextBlock Text="ПРЕДУПРЕЖДЕНИЕ, °C"
+                                                   Style="{StaticResource TechLabelStyle}"/>
+
+                                        <TextBox x:Name="StorageWarningText"/>
+
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="2">
+
+                                        <TextBlock Text="КРИТИЧЕСКАЯ, °C"
+                                                   Style="{StaticResource TechLabelStyle}"/>
+
+                                        <TextBox x:Name="StorageCriticalText"/>
+
+                                    </StackPanel>
+
+                                </Grid>
+
+
+                                <Border Height="1"
+                                        Background="{DynamicResource BorderBrush}"
+                                        Margin="0,6,0,10"/>
+
+
+                                <CheckBox x:Name="DiskSpaceNotificationsCheck"
+                                          Content="Контроль свободного места на дисках"/>
+
+
+                                <Grid Margin="0,6,0,0">
+
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="16"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0">
+
+                                        <TextBlock Text="ПРЕДУПРЕЖДЕНИЕ, %"
+                                                   Style="{StaticResource TechLabelStyle}"/>
+
+                                        <TextBox x:Name="DiskWarningText"/>
+
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="2">
+
+                                        <TextBlock Text="КРИТИЧЕСКОЕ, %"
+                                                   Style="{StaticResource TechLabelStyle}"/>
+
+                                        <TextBox x:Name="DiskCriticalText"/>
+
+                                    </StackPanel>
+
+                                </Grid>
+
+                            </StackPanel>
+
+                        </Grid>
+
+                    </Border>
+
+                </StackPanel>
+
+            </ScrollViewer>
+
+
+            <!-- ================================================= -->
+            <!-- НИЖНЯЯ ПАНЕЛЬ                                     -->
+            <!-- ================================================= -->
+
+            <Border Grid.Row="2"
+                    Background="{DynamicResource CardBackgroundBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="5"
+                    Margin="0,14,0,0">
+
+                <Grid Margin="14,10">
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="10"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+
+                    <StackPanel VerticalAlignment="Center">
+
+                        <TextBlock Text="THERMIQRA // CONFIGURATION"
+                                   Style="{StaticResource TechLabelStyle}"/>
+
+                        <StackPanel Orientation="Horizontal"
+                                    Margin="0,3,0,0">
+
+                            <Border Width="26"
+                                    Height="2"
+                                    Background="{DynamicResource AccentBrush}"
+                                    Margin="0,0,8,0"
+                                    VerticalAlignment="Center"/>
+
+                            <TextBlock Text="LOCAL SETTINGS"
+                                       Foreground="{DynamicResource SecondaryTextBrush}"
+                                       FontSize="8"
+                                       FontWeight="SemiBold"/>
+
+                        </StackPanel>
+
+                    </StackPanel>
+
+
+                    <Button Grid.Column="1"
+                            Content="ОТМЕНА"
+                            Width="108"
+                            Click="Cancel_Click"/>
+
+
+                    <Button Grid.Column="3"
+                            Content="СОХРАНИТЬ"
+                            Width="126"
+                            BorderBrush="{DynamicResource AccentBrush}"
+                            Foreground="{DynamicResource AccentBrush}"
+                            Click="Save_Click"/>
+
+                </Grid>
+
+            </Border>
+
+        </Grid>
+
+    </Grid>
+
+</Window>
