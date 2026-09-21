@@ -1,0 +1,23 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+
+# .NET build output
+**/bin/
+**/obj/
+
+# Publish output
+**/publish/
+
+# Inno Setup output
+Installer/Output/
+
+# Local dependency binary
+Installer/Dependencies/PawnIO_setup.exe
+
+# OS/editor files
+Thumbs.db
+Desktop.ini
+*.tmp
+*.log
