@@ -1,4 +1,3 @@
 <Solution>
-  <Project Path="../HardwareMonitorTest/HardwareMonitorTest/HardwareMonitorTest.csproj" />
   <Project Path="PCHardwareMonitor/PCHardwareMonitor.csproj" />
 </Solution>
