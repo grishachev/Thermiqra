@@ -2,6 +2,14 @@
 
 Thermiqra is a Windows 10/11 desktop application for real-time PC hardware monitoring with local history, statistics, alerts and system information.
 
+<p align="center">
+  <img src="thermiqra-main.png" alt="Thermiqra main monitoring window" width="820">
+</p>
+
+<p align="center">
+  <a href="https://github.com/grishachev/Thermiqra/releases/latest"><strong>Download the latest release</strong></a>
+</p>
+
 ## Features
 
 - real-time CPU, GPU, RAM, storage and logical drive monitoring
@@ -20,6 +28,23 @@ Thermiqra is a Windows 10/11 desktop application for real-time PC hardware monit
 - GitHub release update checks
 - Inno Setup installer with PawnIO installation
 - clean uninstall with optional removal of Thermiqra settings and history
+
+## Screenshots
+
+### System information and statistics
+
+<p align="center">
+  <img src="thermiqra-system-info.png" alt="Thermiqra system information" width="49%">
+  <img src="thermiqra-statistics.png" alt="Thermiqra statistics" width="49%">
+</p>
+
+### Themes
+
+Thermiqra includes four complete interface skins. The screenshot below shows the SteamPunk skin.
+
+<p align="center">
+  <img src="thermiqra-steampunk.png" alt="Thermiqra SteamPunk theme" width="820">
+</p>
 
 ## Version 0.5.0
 
