@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Media;
@@ -275,6 +275,125 @@ public static class ThemeManager
                     : militaryOps
                         ? Brush("#151A10")
                         : Brush(theme.InputBackground);
+
+        // ========================================================
+        // ВКЛАДКИ ОКНА "ИНФОРМАЦИЯ О СИСТЕМЕ"
+        // ========================================================
+
+        resources["SystemInfoTabBackgroundBrush"] =
+            steamPunk
+                ? Brush("#24170D")
+                : frostCore
+                    ? Brush("#0D1A21")
+                    : militaryOps
+                        ? Brush("#202815")
+                        : Brush(theme.InputBackground);
+
+        resources["SystemInfoTabSelectedBackgroundBrush"] =
+            steamPunk
+                ? SteamPanelBrush()
+                : frostCore
+                    ? FrostPanelBrush()
+                    : militaryOps
+                        ? MilitaryPanelBrush()
+                        : Brush(theme.CardBackground);
+
+        resources["SystemInfoTabHoverBackgroundBrush"] =
+            steamPunk
+                ? Brush("#342116")
+                : frostCore
+                    ? Brush("#132830")
+                    : militaryOps
+                        ? Brush("#2A351C")
+                        : Brush(theme.CardBackground);
+
+        resources["SystemInfoTabBorderBrush"] =
+            steamPunk
+                ? Brush("#6E5035")
+                : frostCore
+                    ? Brush("#35515B")
+                    : militaryOps
+                        ? Brush("#4C5C38")
+                        : Brush(theme.Border);
+
+        resources["SystemInfoTabSelectedBorderBrush"] =
+            steamPunk
+                ? SteamMetalBrush()
+                : frostCore
+                    ? Brush("#BFF6FF")
+                    : militaryOps
+                        ? Brush("#B6AD79")
+                        : Brush(theme.Accent);
+
+        resources["SystemInfoTabForegroundBrush"] =
+            steamPunk
+                ? Brush("#B99C79")
+                : frostCore
+                    ? Brush("#7FA7B1")
+                    : militaryOps
+                        ? Brush("#A39C73")
+                        : Brush(theme.SecondaryText);
+
+        resources["SystemInfoTabSelectedForegroundBrush"] =
+            steamPunk
+                ? Brush("#E7B969")
+                : frostCore
+                    ? Brush("#BFF6FF")
+                    : militaryOps
+                        ? Brush("#D7CF92")
+                        : Brush(theme.Accent);
+
+        resources["SystemInfoTabCornerRadius"] =
+            steamPunk
+                ? new CornerRadius(8, 8, 2, 2)
+                : frostCore
+                    ? new CornerRadius(10, 10, 3, 3)
+                    : militaryOps
+                        ? new CornerRadius(1)
+                        : new CornerRadius(4, 4, 1, 1);
+
+        resources["SystemInfoTabAccentThickness"] =
+            steamPunk
+                ? new Thickness(0, 0, 0, 3)
+                : frostCore
+                    ? new Thickness(0, 0, 0, 3)
+                    : militaryOps
+                        ? new Thickness(3, 0, 0, 0)
+                        : new Thickness(0, 3, 0, 0);
+
+        resources["SystemInfoTabPadding"] =
+            steamPunk
+                ? new Thickness(15, 10, 15, 10)
+                : frostCore
+                    ? new Thickness(16, 9, 16, 9)
+                    : militaryOps
+                        ? new Thickness(14, 9, 14, 9)
+                        : new Thickness(15, 9, 15, 9);
+
+        resources["SystemInfoTabFontFamily"] =
+            steamPunk
+                ? new FontFamily("Segoe UI")
+                : militaryOps
+                    ? new FontFamily("Bahnschrift")
+                    : new FontFamily("Segoe UI");
+
+        resources["SystemInfoTabFontSize"] =
+            steamPunk
+                ? 10.0
+                : frostCore
+                    ? 10.5
+                    : militaryOps
+                        ? 10.0
+                        : 10.5;
+
+        resources["SystemInfoTabFontWeight"] =
+            steamPunk
+                ? FontWeights.Bold
+                : frostCore
+                    ? FontWeights.SemiBold
+                    : militaryOps
+                        ? FontWeights.Bold
+                        : FontWeights.SemiBold;
     }
 
 

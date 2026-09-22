@@ -1,5 +1,5 @@
-#define MyAppName "Thermiqra"
-#define MyAppVersion "0.3.0"
+﻿#define MyAppName "Thermiqra"
+#define MyAppVersion "0.4.0"
 #define MyAppPublisher "Thermiqra"
 #define MyAppExeName "Thermiqra.exe"
 
@@ -18,7 +18,7 @@ DisableProgramGroupPage=yes
 PrivilegesRequired=admin
 
 OutputDir=Output
-OutputBaseFilename=Thermiqra_Setup_0.3.0
+OutputBaseFilename=Thermiqra_Setup_0.4.0
 
 SetupIconFile=..\PCHardwareMonitor\Assets\Thermiqra.ico
 

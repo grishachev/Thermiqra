@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text.Json;
@@ -169,6 +169,19 @@ public partial class MainWindow : Window
         RoutedEventArgs e)
     {
         OpenSettings(false);
+    }
+
+    private void SystemInfoButton_Click(
+        object sender,
+        RoutedEventArgs e)
+    {
+        SystemInfoWindow window =
+            new()
+            {
+                Owner = this
+            };
+
+        window.ShowDialog();
     }
 
     private void Timer_Tick(

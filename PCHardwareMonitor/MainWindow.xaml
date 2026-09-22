@@ -1,4 +1,4 @@
-<Window x:Class="PCHardwareMonitor.MainWindow"
+﻿<Window x:Class="PCHardwareMonitor.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Thermiqra"
@@ -371,6 +371,10 @@
                                            HorizontalAlignment="Right"
                                            Margin="0,3,0,0"/>
                             </StackPanel>
+                            <Button Content="Система"
+                                    MinWidth="108"
+                                    Margin="0,0,8,0"
+                                    Click="SystemInfoButton_Click"/>
                             <Button Content="⚙  Настройки"
                                     MinWidth="126"
                                     Click="SettingsButton_Click"/>
@@ -491,12 +495,21 @@
                             </Grid>
                         </Border>
 
-                        <Button Grid.Column="3"
-                                Content="⚙  НАСТРОЙКИ"
-                                MinWidth="132"
-                                BorderBrush="{DynamicResource SteamMetalBrush}"
-                                Background="{DynamicResource SteamGlassBrush}"
-                                Click="SettingsButton_Click"/>
+                        <StackPanel Grid.Column="3"
+                                    Orientation="Horizontal"
+                                    VerticalAlignment="Center">
+                            <Button Content="СИСТЕМА"
+                                    MinWidth="108"
+                                    Margin="0,0,8,0"
+                                    BorderBrush="{DynamicResource SteamMetalBrush}"
+                                    Background="{DynamicResource SteamGlassBrush}"
+                                    Click="SystemInfoButton_Click"/>
+                            <Button Content="⚙  НАСТРОЙКИ"
+                                    MinWidth="132"
+                                    BorderBrush="{DynamicResource SteamMetalBrush}"
+                                    Background="{DynamicResource SteamGlassBrush}"
+                                    Click="SettingsButton_Click"/>
+                        </StackPanel>
                     </Grid>
 
                     <Ellipse Width="8" Height="8" Margin="8"
@@ -659,12 +672,21 @@
                             </Grid>
                         </Border>
 
-                        <Button Grid.Column="3"
-                                Content="⚙  НАСТРОЙКИ"
-                                MinWidth="132"
-                                BorderBrush="{DynamicResource FrostSteelBrush}"
-                                Background="{DynamicResource FrostGlassBrush}"
-                                Click="SettingsButton_Click"/>
+                        <StackPanel Grid.Column="3"
+                                    Orientation="Horizontal"
+                                    VerticalAlignment="Center">
+                            <Button Content="СИСТЕМА"
+                                    MinWidth="108"
+                                    Margin="0,0,8,0"
+                                    BorderBrush="{DynamicResource FrostSteelBrush}"
+                                    Background="{DynamicResource FrostGlassBrush}"
+                                    Click="SystemInfoButton_Click"/>
+                            <Button Content="⚙  НАСТРОЙКИ"
+                                    MinWidth="132"
+                                    BorderBrush="{DynamicResource FrostSteelBrush}"
+                                    Background="{DynamicResource FrostGlassBrush}"
+                                    Click="SettingsButton_Click"/>
+                        </StackPanel>
                     </Grid>
                 </Grid>
             </Border>
@@ -817,12 +839,21 @@
                             </Grid>
                         </Border>
 
-                        <Button Grid.Column="3"
-                                Content="⚙  НАСТРОЙКИ"
-                                MinWidth="132"
-                                BorderBrush="{DynamicResource MilitaryKhakiBrush}"
-                                Background="{DynamicResource MilitaryPanelBrush}"
-                                Click="SettingsButton_Click"/>
+                        <StackPanel Grid.Column="3"
+                                    Orientation="Horizontal"
+                                    VerticalAlignment="Center">
+                            <Button Content="СИСТЕМА"
+                                    MinWidth="108"
+                                    Margin="0,0,8,0"
+                                    BorderBrush="{DynamicResource MilitaryKhakiBrush}"
+                                    Background="{DynamicResource MilitaryPanelBrush}"
+                                    Click="SystemInfoButton_Click"/>
+                            <Button Content="⚙  НАСТРОЙКИ"
+                                    MinWidth="132"
+                                    BorderBrush="{DynamicResource MilitaryKhakiBrush}"
+                                    Background="{DynamicResource MilitaryPanelBrush}"
+                                    Click="SettingsButton_Click"/>
+                        </StackPanel>
                     </Grid>
                 </Grid>
             </Border>
