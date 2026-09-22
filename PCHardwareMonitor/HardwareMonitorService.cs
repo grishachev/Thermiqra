@@ -88,6 +88,7 @@ public sealed class HardwareMonitorService : IDisposable
 
         GpuInfo gpu = new()
         {
+            Id = hardware.Identifier.ToString(),
             Name = hardware.Name,
 
             Temperature = FindSensor(
@@ -193,6 +194,7 @@ public sealed class HardwareMonitorService : IDisposable
         snapshot.StorageDevices.Add(
             new StorageDeviceInfo
             {
+                Id = hardware.Identifier.ToString(),
                 Name = hardware.Name,
                 Temperature = temperature
             }
@@ -290,6 +292,8 @@ public sealed class CpuInfo
 
 public sealed class GpuInfo
 {
+    public string Id { get; set; } = "";
+
     public string Name { get; set; } = "GPU";
 
     public float? Temperature { get; set; }
@@ -327,6 +331,8 @@ public sealed class MemoryInfo
 
 public sealed class StorageDeviceInfo
 {
+    public string Id { get; set; } = "";
+
     public string Name { get; set; } = "";
 
     public float? Temperature { get; set; }

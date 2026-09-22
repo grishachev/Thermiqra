@@ -7,7 +7,17 @@ namespace PCHardwareMonitor;
 
 public partial class App : Application
 {
+    private const string SingleInstanceMutexName =
+        @"Local\PCHardwareMonitor_SingleInstance";
+
+    private const string ShutdownEventName =
+        @"Local\Thermiqra_Shutdown_Request";
+
     private Mutex? _singleInstanceMutex;
+
+    private EventWaitHandle? _shutdownEvent;
+
+    private RegisteredWaitHandle? _shutdownRegistration;
 
     private MainWindow? _mainWindow;
 
@@ -16,10 +26,27 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
+        bool shutdownArgument =
+            e.Args.Any(
+                argument =>
+                    string.Equals(
+                        argument,
+                        "--shutdown",
+                        StringComparison.OrdinalIgnoreCase));
+
+        if (shutdownArgument)
+        {
+            TrySignalShutdown();
+
+            Shutdown();
+
+            return;
+        }
+
         _singleInstanceMutex =
             new Mutex(
                 true,
-                @"Local\PCHardwareMonitor_SingleInstance",
+                SingleInstanceMutexName,
                 out bool createdNew);
 
         if (!createdNew)
@@ -32,8 +59,41 @@ public partial class App : Application
                 MessageBoxImage.Information);
 
             Shutdown();
+
             return;
         }
+
+        _shutdownEvent =
+            new EventWaitHandle(
+                false,
+                EventResetMode.AutoReset,
+                ShutdownEventName);
+
+        _shutdownRegistration =
+            ThreadPool.RegisterWaitForSingleObject(
+                _shutdownEvent,
+                (_, timedOut) =>
+                {
+                    if (timedOut)
+                        return;
+
+                    Dispatcher.BeginInvoke(
+                        new Action(
+                            () =>
+                            {
+                                if (_mainWindow != null)
+                                {
+                                    _mainWindow.ExitApplication();
+                                }
+                                else
+                                {
+                                    Shutdown();
+                                }
+                            }));
+                },
+                null,
+                Timeout.Infinite,
+                false);
 
         SettingsService.Load();
 
@@ -85,9 +145,39 @@ public partial class App : Application
         // Программа уже работает в трее.
     }
 
+    private static void TrySignalShutdown()
+    {
+        try
+        {
+            using EventWaitHandle shutdownEvent =
+                EventWaitHandle.OpenExisting(
+                    ShutdownEventName);
+
+            shutdownEvent.Set();
+        }
+        catch (WaitHandleCannotBeOpenedException)
+        {
+        }
+        catch (UnauthorizedAccessException)
+        {
+        }
+    }
+
     protected override void OnExit(
         ExitEventArgs e)
     {
+        _shutdownRegistration?
+            .Unregister(null);
+
+        _shutdownRegistration =
+            null;
+
+        _shutdownEvent?
+            .Dispose();
+
+        _shutdownEvent =
+            null;
+
         try
         {
             _singleInstanceMutex?

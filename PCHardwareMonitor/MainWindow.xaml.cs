@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text.Json;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -15,9 +16,13 @@ public partial class MainWindow : Window
 
     private readonly DispatcherTimer _timer;
 
+    private readonly DispatcherTimer _updateCheckTimer;
+
     private readonly TrayService _tray;
 
     private readonly AlertService _alerts;
+
+    private readonly StatisticsService? _statistics;
 
     private readonly RingGauge _cpuGauge;
 
@@ -33,6 +38,12 @@ public partial class MainWindow : Window
     private bool _servicesDisposed;
 
     private bool _livePulseBright = true;
+
+    private bool _isUpdateCheckRunning;
+
+    private UpdateInfo? _pendingUpdate;
+
+    private string? _notifiedUpdateVersion;
 
     private static readonly string SettingsDirectory =
         System.IO.Path.Combine(
@@ -53,6 +64,19 @@ public partial class MainWindow : Window
 
         _monitor =
             new HardwareMonitorService();
+
+        try
+        {
+            _statistics =
+                new StatisticsService();
+        }
+        catch (Exception ex)
+        {
+            _statistics = null;
+
+            System.Diagnostics.Debug.WriteLine(
+                $"Не удалось запустить статистику: {ex}");
+        }
 
         _tray =
             new TrayService(
@@ -90,6 +114,16 @@ public partial class MainWindow : Window
         _timer.Tick +=
             Timer_Tick;
 
+        _updateCheckTimer =
+            new DispatcherTimer
+            {
+                Interval =
+                    TimeSpan.FromHours(12)
+            };
+
+        _updateCheckTimer.Tick +=
+            UpdateCheckTimer_Tick;
+
         SizeChanged +=
             MainWindow_SizeChanged;
 
@@ -105,6 +139,10 @@ public partial class MainWindow : Window
         UpdateMonitor();
 
         _timer.Start();
+
+        _updateCheckTimer.Start();
+
+        _ = CheckForUpdatesAsync();
     }
 
     public void ShowMainWindow()
@@ -138,6 +176,8 @@ public partial class MainWindow : Window
                         _lastSnapshot);
                 });
         }
+
+        TryShowPendingUpdate();
     }
 
     public void OpenSettings(
@@ -152,6 +192,8 @@ public partial class MainWindow : Window
             };
 
         window.ShowDialog();
+
+        TryShowPendingUpdate();
 
         if (window.Saved &&
             _lastSnapshot != null)
@@ -169,6 +211,33 @@ public partial class MainWindow : Window
         RoutedEventArgs e)
     {
         OpenSettings(false);
+    }
+
+    private void StatisticsButton_Click(
+        object sender,
+        RoutedEventArgs e)
+    {
+        if (_statistics == null)
+        {
+            MessageBox.Show(
+                this,
+                "Сервис статистики сейчас недоступен.",
+                "Thermiqra — Статистика",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
+
+            return;
+        }
+
+        StatisticsWindow window =
+            new(
+                _statistics,
+                _lastSnapshot)
+            {
+                Owner = this
+            };
+
+        window.ShowDialog();
     }
 
     private void SystemInfoButton_Click(
@@ -189,6 +258,136 @@ public partial class MainWindow : Window
         EventArgs e)
     {
         UpdateMonitor();
+    }
+
+    private async void UpdateCheckTimer_Tick(
+        object? sender,
+        EventArgs e)
+    {
+        await CheckForUpdatesAsync();
+    }
+
+    private async Task CheckForUpdatesAsync()
+    {
+        if (_isUpdateCheckRunning ||
+            _isExiting)
+        {
+            return;
+        }
+
+        _isUpdateCheckRunning = true;
+
+        try
+        {
+            UpdateInfo? update =
+                await UpdateService
+                    .CheckForUpdateAsync();
+
+            if (update == null)
+                return;
+
+            if (string.Equals(
+                    _notifiedUpdateVersion,
+                    update.VersionText,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            _notifiedUpdateVersion =
+                update.VersionText;
+
+            _pendingUpdate =
+                update;
+
+            if (IsVisible &&
+                IsActive &&
+                WindowState != WindowState.Minimized)
+            {
+                TryShowPendingUpdate();
+            }
+            else
+            {
+                _tray.ShowNotification(
+                    "Доступно обновление Thermiqra",
+                    $"Версия {update.VersionText} готова к установке. Откройте Thermiqra, чтобы посмотреть подробности.",
+                    false);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"Не удалось проверить обновления Thermiqra: {ex}");
+        }
+        finally
+        {
+            _isUpdateCheckRunning = false;
+        }
+    }
+
+    private void TryShowPendingUpdate()
+    {
+        if (_pendingUpdate == null ||
+            !IsVisible ||
+            !IsActive ||
+            WindowState == WindowState.Minimized)
+        {
+            return;
+        }
+
+        UpdateInfo update =
+            _pendingUpdate;
+
+        _pendingUpdate = null;
+
+        string description =
+            string.IsNullOrWhiteSpace(
+                update.Summary)
+
+                ? "Откройте страницу релиза, чтобы посмотреть изменения."
+                : update.Summary;
+
+        MessageBoxResult result =
+            MessageBox.Show(
+                this,
+                $"Доступна новая версия Thermiqra {update.VersionText}.\n\n" +
+                $"Текущая версия: {update.CurrentVersionText}.\n\n" +
+                $"{description}\n\n" +
+                "Открыть страницу релиза GitHub?",
+                "Thermiqra — Обновление",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Information);
+
+        if (result !=
+            MessageBoxResult.Yes)
+        {
+            return;
+        }
+
+        try
+        {
+            System.Diagnostics.Process.Start(
+                new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName =
+                        update.ReleaseUrl,
+
+                    UseShellExecute =
+                        true
+                });
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"Не удалось открыть страницу релиза: {ex}");
+
+            MessageBox.Show(
+                this,
+                "Не удалось открыть страницу релиза в браузере.",
+                "Thermiqra — Обновление",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
+        }
     }
 
     private void MainWindow_StateChanged(
@@ -250,7 +449,7 @@ public partial class MainWindow : Window
         Application.Current.Shutdown();
     }
 
-    private void ExitApplication()
+    public void ExitApplication()
     {
         if (_isExiting)
             return;
@@ -277,6 +476,8 @@ public partial class MainWindow : Window
 
         _timer.Stop();
 
+        _updateCheckTimer.Stop();
+
         _tray.Dispose();
 
         _monitor.Dispose();
@@ -295,6 +496,17 @@ public partial class MainWindow : Window
 
             _lastSnapshot =
                 snapshot;
+
+            try
+            {
+                _statistics?.SaveSnapshot(
+                    snapshot);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"Не удалось сохранить статистику: {ex}");
+            }
 
             UpdateCpu(snapshot);
 

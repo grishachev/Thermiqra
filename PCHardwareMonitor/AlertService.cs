@@ -8,6 +8,8 @@ public sealed class AlertService
 {
     private readonly TrayService _tray;
 
+    private readonly StatisticsService? _statistics;
+
     private readonly Dictionary<string, AlertState>
         _states = new();
 
@@ -15,6 +17,19 @@ public sealed class AlertService
         TrayService tray)
     {
         _tray = tray;
+
+        try
+        {
+            _statistics =
+                new StatisticsService();
+        }
+        catch (Exception ex)
+        {
+            _statistics = null;
+
+            System.Diagnostics.Debug.WriteLine(
+                $"Не удалось подключить журнал событий статистики: {ex}");
+        }
     }
 
     public void Evaluate(
@@ -303,6 +318,14 @@ public sealed class AlertService
                 subject,
                 targetLevel);
 
+            SaveStatisticsEvent(
+                key,
+                name,
+                value.Value,
+                unit,
+                subject,
+                targetLevel);
+
             state.LastNotificationUtc =
                 DateTime.UtcNow;
 
@@ -386,6 +409,39 @@ public sealed class AlertService
             title,
             message,
             critical);
+    }
+
+    private void SaveStatisticsEvent(
+        string key,
+        string name,
+        double value,
+        string unit,
+        string subject,
+        AlertLevel level)
+    {
+        if (_statistics == null)
+            return;
+
+        try
+        {
+            StatisticsAlertLevel statisticsLevel =
+                level == AlertLevel.Critical
+                    ? StatisticsAlertLevel.Critical
+                    : StatisticsAlertLevel.Warning;
+
+            _statistics.SaveAlertEvent(
+                key,
+                statisticsLevel,
+                name,
+                subject,
+                value,
+                unit);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"Не удалось сохранить событие предупреждения: {ex}");
+        }
     }
 
     // ============================================================

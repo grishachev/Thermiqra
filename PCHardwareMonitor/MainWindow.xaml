@@ -371,6 +371,10 @@
                                            HorizontalAlignment="Right"
                                            Margin="0,3,0,0"/>
                             </StackPanel>
+                            <Button Content="Статистика"
+                                    MinWidth="112"
+                                    Margin="0,0,8,0"
+                                    Click="StatisticsButton_Click"/>
                             <Button Content="Система"
                                     MinWidth="108"
                                     Margin="0,0,8,0"
@@ -498,6 +502,12 @@
                         <StackPanel Grid.Column="3"
                                     Orientation="Horizontal"
                                     VerticalAlignment="Center">
+                            <Button Content="СТАТИСТИКА"
+                                    MinWidth="118"
+                                    Margin="0,0,8,0"
+                                    BorderBrush="{DynamicResource SteamMetalBrush}"
+                                    Background="{DynamicResource SteamGlassBrush}"
+                                    Click="StatisticsButton_Click"/>
                             <Button Content="СИСТЕМА"
                                     MinWidth="108"
                                     Margin="0,0,8,0"
@@ -675,6 +685,12 @@
                         <StackPanel Grid.Column="3"
                                     Orientation="Horizontal"
                                     VerticalAlignment="Center">
+                            <Button Content="СТАТИСТИКА"
+                                    MinWidth="118"
+                                    Margin="0,0,8,0"
+                                    BorderBrush="{DynamicResource FrostSteelBrush}"
+                                    Background="{DynamicResource FrostGlassBrush}"
+                                    Click="StatisticsButton_Click"/>
                             <Button Content="СИСТЕМА"
                                     MinWidth="108"
                                     Margin="0,0,8,0"
@@ -842,6 +858,12 @@
                         <StackPanel Grid.Column="3"
                                     Orientation="Horizontal"
                                     VerticalAlignment="Center">
+                            <Button Content="СТАТИСТИКА"
+                                    MinWidth="118"
+                                    Margin="0,0,8,0"
+                                    BorderBrush="{DynamicResource MilitaryKhakiBrush}"
+                                    Background="{DynamicResource MilitaryPanelBrush}"
+                                    Click="StatisticsButton_Click"/>
                             <Button Content="СИСТЕМА"
                                     MinWidth="108"
                                     Margin="0,0,8,0"

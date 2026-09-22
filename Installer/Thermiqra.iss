@@ -1,5 +1,5 @@
-﻿#define MyAppName "Thermiqra"
-#define MyAppVersion "0.4.0"
+#define MyAppName "Thermiqra"
+#define MyAppVersion "0.5.0"
 #define MyAppPublisher "Thermiqra"
 #define MyAppExeName "Thermiqra.exe"
 
@@ -13,12 +13,13 @@ DefaultDirName={autopf}\Thermiqra
 DefaultGroupName=Thermiqra
 
 DisableProgramGroupPage=yes
+DisableWelcomePage=no
 
 ; Установщик всегда получает права администратора
 PrivilegesRequired=admin
 
 OutputDir=Output
-OutputBaseFilename=Thermiqra_Setup_0.4.0
+OutputBaseFilename=Thermiqra_Setup_0.5.0
 
 SetupIconFile=..\PCHardwareMonitor\Assets\Thermiqra.ico
 
@@ -90,10 +91,6 @@ Filename: "{tmp}\PawnIO_setup.exe"; \
 
 ; ============================================================
 ; ЗАПУСК THERMIQRA ПОСЛЕ УСТАНОВКИ
-;
-; ВАЖНО:
-; runascurrentuser оставляет повышенные права установщика.
-; Иначе postinstall запускается без повышения.
 ; ============================================================
 
 Filename: "{app}\Thermiqra.exe"; \
@@ -105,3 +102,135 @@ Filename: "{app}\Thermiqra.exe"; \
 
 Type: filesandordirs; \
     Name: "{app}"
+
+
+[Code]
+
+var
+  RemoveUserData: Boolean;
+
+
+function IsThermiqraRunning: Boolean;
+begin
+  Result :=
+    CheckForMutexes(
+      'Local\PCHardwareMonitor_SingleInstance');
+end;
+
+
+procedure CloseThermiqra;
+var
+  ResultCode: Integer;
+  AppExe: String;
+begin
+  if not IsThermiqraRunning then
+    Exit;
+
+  AppExe :=
+    ExpandConstant(
+      '{app}\{#MyAppExeName}');
+
+  { Сначала просим новую версию Thermiqra
+    завершиться штатно. }
+  if FileExists(AppExe) then
+  begin
+    Exec(
+      AppExe,
+      '--shutdown',
+      '',
+      SW_HIDE,
+      ewNoWait,
+      ResultCode);
+
+    Sleep(1500);
+  end;
+
+  { Для старых версий, которые ещё не понимают
+    --shutdown, оставляем резервное закрытие. }
+  if IsThermiqraRunning then
+  begin
+    Exec(
+      ExpandConstant('{sys}\taskkill.exe'),
+      '/F /T /IM "{#MyAppExeName}"',
+      '',
+      SW_HIDE,
+      ewWaitUntilTerminated,
+      ResultCode);
+
+    Sleep(500);
+  end;
+end;
+
+
+function PrepareToInstall(
+  var NeedsRestart: Boolean): String;
+begin
+  Result := '';
+
+  CloseThermiqra;
+
+  if IsThermiqraRunning then
+  begin
+    Result :=
+      'Не удалось закрыть Thermiqra.' + #13#10 +
+      'Закройте программу вручную и повторите установку.';
+  end;
+end;
+
+
+function InitializeUninstall: Boolean;
+begin
+  CloseThermiqra;
+
+  Result :=
+    not IsThermiqraRunning;
+
+  if not Result then
+  begin
+    MsgBox(
+      'Не удалось закрыть Thermiqra.' + #13#10 + #13#10 +
+      'Закройте программу вручную и снова запустите удаление.',
+      mbError,
+      MB_OK);
+  end;
+end;
+
+
+procedure CurUninstallStepChanged(
+  CurUninstallStep: TUninstallStep);
+begin
+  if CurUninstallStep = usUninstall then
+  begin
+    RemoveUserData := False;
+
+    if not UninstallSilent then
+    begin
+      RemoveUserData :=
+        MsgBox(
+          'Удалить также настройки и историю Thermiqra?' + #13#10 + #13#10 +
+          'Да — удалить все пользовательские данные Thermiqra.' + #13#10 +
+          'Нет — сохранить настройки и историю для повторной установки или обновления.',
+          mbConfirmation,
+          MB_YESNO
+        ) = IDYES;
+    end;
+  end
+  else if
+    (CurUninstallStep = usPostUninstall) and
+    RemoveUserData then
+  begin
+    DelTree(
+      ExpandConstant(
+        '{localappdata}\Thermiqra'),
+      True,
+      True,
+      True);
+
+    DelTree(
+      ExpandConstant(
+        '{localappdata}\PCHardwareMonitor'),
+      True,
+      True,
+      True);
+  end;
+end;
