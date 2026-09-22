@@ -29,4 +29,10 @@ A public Thermiqra binary release that redistributes PawnIO must also comply wit
 
 ## Thermiqra
 
-No license has yet been selected for Thermiqra's own source code. Until a license is explicitly added, no additional permission to copy, modify, or redistribute Thermiqra's own source code is granted beyond rights provided by applicable law.
+Thermiqra's original source code and other original project materials are proprietary.
+
+Copyright (c) 2026 Konstantin Grishachev. All rights reserved.
+
+No permission is granted to copy, modify, distribute, sublicense, sell, or otherwise reuse substantial portions of Thermiqra's original source code or other original project materials without prior written permission from the copyright holder, except as permitted by applicable law.
+
+See `LICENSE` for the full Thermiqra proprietary notice. This does not change the licenses or obligations that apply to the third-party components listed above.
