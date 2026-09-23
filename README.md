@@ -57,22 +57,22 @@ Thermiqra includes four complete interface skins. The screenshot below shows the
   <img src="thermiqra-steampunk.png" alt="Thermiqra SteamPunk theme" width="820">
 </p>
 
-## Current release — 0.6.2
+## Current release — 0.6.3
 
-Thermiqra 0.6.2 adds live per-thread CPU load monitoring directly from the main CPU monitor.
+Thermiqra 0.6.3 is an updater reliability hotfix and includes all functionality introduced in 0.6.2.
 
-### What's new in 0.6.2
+### What's included
 
-- new **Threads** control inside the CPU monitor card
-- dedicated live load window for logical processors
-- correct filtering of individual CPU thread sensors without summary sensors
+- live **Threads** control inside the CPU monitor card
+- dedicated live load window for individual logical processors
+- correct filtering of CPU thread sensors without summary sensors
 - support for CPUs with many logical processors through scrolling
-- full English/Russian localization for the new interface
-- the thread window follows the active Thermiqra theme
-- the existing one-second hardware snapshot is reused, so no second hardware polling loop is created
-- unsupported per-thread temperature display is intentionally omitted to avoid misleading data
+- full English/Russian localization for the CPU thread interface
+- themed CPU thread window matching the active Thermiqra skin
+- fixed automatic update installation failing after download because the temporary installer file remained locked during SHA-256 verification
+- SHA-256 verification remains enabled and now starts only after the downloaded file is closed correctly
 
-See the full release notes on the [Thermiqra 0.6.2 release page](https://github.com/grishachev/Thermiqra/releases/tag/v0.6.2).
+See the full release notes on the [Thermiqra 0.6.3 release page](https://github.com/grishachev/Thermiqra/releases/tag/v0.6.3).
 
 ## Memory diagnostics
 
@@ -104,11 +104,13 @@ Monitoring history is stored locally in SQLite. Thermiqra provides:
 
 ## Automatic updates
 
-Automatic in-app updating is available starting with Thermiqra 0.6.1.
+Thermiqra 0.6.3 contains the corrected in-app updater.
 
 When a newer GitHub Release is available, Thermiqra notifies the user and asks whether the update should be installed. If accepted, Thermiqra downloads the matching installer, shows download progress, verifies the SHA-256 digest when GitHub provides one, starts the installer in silent mode and launches Thermiqra again after the update.
 
-Users running Thermiqra 0.6.0 or earlier need to install a newer release manually once before using the in-app update flow.
+Thermiqra 0.6.1 and 0.6.2 contain an updater bug that can prevent automatic installation after the installer download completes. Users on those versions should install 0.6.3 manually once. After 0.6.3 is installed, future releases can use the corrected in-app update flow.
+
+Users running Thermiqra 0.6.0 or earlier also need to install a newer release manually before using the in-app update flow.
 
 ## Localization
 
