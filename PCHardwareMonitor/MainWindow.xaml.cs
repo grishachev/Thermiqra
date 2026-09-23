@@ -41,6 +41,8 @@ public partial class MainWindow : Window
 
     private bool _isUpdateCheckRunning;
 
+    private bool _isUpdateInstallRunning;
+
     private UpdateInfo? _pendingUpdate;
 
     private string? _notifiedUpdateVersion;
@@ -344,8 +346,8 @@ public partial class MainWindow : Window
                         "Доступно обновление Thermiqra",
                         "Thermiqra update available"),
                     SettingsService.L(
-                        $"Версия {update.VersionText} готова к установке. Откройте Thermiqra, чтобы посмотреть подробности.",
-                        $"Version {update.VersionText} is ready to install. Open Thermiqra to view the details."),
+                        $"Версия {update.VersionText} готова к установке. Нажмите на уведомление, чтобы открыть Thermiqra.",
+                        $"Version {update.VersionText} is ready to install. Click this notification to open Thermiqra."),
                     false);
             }
         }
@@ -360,12 +362,13 @@ public partial class MainWindow : Window
         }
     }
 
-    private void TryShowPendingUpdate()
+    private async void TryShowPendingUpdate()
     {
         if (_pendingUpdate == null ||
             !IsVisible ||
             !IsActive ||
-            WindowState == WindowState.Minimized)
+            WindowState == WindowState.Minimized ||
+            _isUpdateInstallRunning)
         {
             return;
         }
@@ -375,40 +378,504 @@ public partial class MainWindow : Window
 
         _pendingUpdate = null;
 
+        if (!update.HasInstaller)
+        {
+            MessageBoxResult fallbackResult =
+                MessageBox.Show(
+                    this,
+                    SettingsService.L(
+                        $"Доступна Thermiqra {update.VersionText}, но автоматический установщик этого релиза не найден.\n\nОткрыть страницу релиза GitHub?",
+                        $"Thermiqra {update.VersionText} is available, but the automatic installer for this release was not found.\n\nOpen the GitHub release page?"),
+                    SettingsService.L(
+                        "Thermiqra — Обновление",
+                        "Thermiqra — Update"),
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Warning);
+
+            if (fallbackResult ==
+                MessageBoxResult.Yes)
+            {
+                OpenReleasePage(
+                    update);
+            }
+
+            return;
+        }
+
+        if (!ShowUpdatePrompt(
+                update))
+        {
+            return;
+        }
+
+        await InstallUpdateAsync(
+            update);
+    }
+
+    private bool ShowUpdatePrompt(
+        UpdateInfo update)
+    {
         string description =
             string.IsNullOrWhiteSpace(
                 update.Summary)
 
                 ? SettingsService.L(
-                    "Откройте страницу релиза, чтобы посмотреть изменения.",
-                    "Open the release page to view the changes.")
+                    "Доступна новая версия Thermiqra.",
+                    "A new Thermiqra version is available.")
                 : update.Summary;
 
-        MessageBoxResult result =
+        Window dialog =
+            new()
+            {
+                Owner = this,
+                Title =
+                    SettingsService.L(
+                        "Thermiqra — Обновление",
+                        "Thermiqra — Update"),
+                Width = 560,
+                SizeToContent =
+                    SizeToContent.Height,
+                WindowStartupLocation =
+                    WindowStartupLocation.CenterOwner,
+                ResizeMode =
+                    ResizeMode.NoResize,
+                ShowInTaskbar = false
+            };
+
+        dialog.SetResourceReference(
+            Window.BackgroundProperty,
+            "WindowBackgroundBrush");
+
+        Grid root =
+            new()
+            {
+                Margin =
+                    new Thickness(
+                        22)
+            };
+
+        root.RowDefinitions.Add(
+            new RowDefinition
+            {
+                Height =
+                    GridLength.Auto
+            });
+
+        root.RowDefinitions.Add(
+            new RowDefinition
+            {
+                Height =
+                    GridLength.Auto
+            });
+
+        root.RowDefinitions.Add(
+            new RowDefinition
+            {
+                Height =
+                    GridLength.Auto
+            });
+
+        root.RowDefinitions.Add(
+            new RowDefinition
+            {
+                Height =
+                    GridLength.Auto
+            });
+
+        TextBlock title =
+            new()
+            {
+                Text =
+                    SettingsService.L(
+                        $"Доступна Thermiqra {update.VersionText}",
+                        $"Thermiqra {update.VersionText} is available"),
+                FontSize = 20,
+                FontWeight =
+                    FontWeights.Bold,
+                TextWrapping =
+                    TextWrapping.Wrap
+            };
+
+        title.SetResourceReference(
+            TextBlock.ForegroundProperty,
+            "PrimaryTextBrush");
+
+        Grid.SetRow(
+            title,
+            0);
+
+        root.Children.Add(
+            title);
+
+        TextBlock version =
+            new()
+            {
+                Text =
+                    SettingsService.L(
+                        $"Текущая версия: {update.CurrentVersionText}",
+                        $"Current version: {update.CurrentVersionText}"),
+                Margin =
+                    new Thickness(
+                        0,
+                        7,
+                        0,
+                        0),
+                FontSize = 12
+            };
+
+        version.SetResourceReference(
+            TextBlock.ForegroundProperty,
+            "SecondaryTextBrush");
+
+        Grid.SetRow(
+            version,
+            1);
+
+        root.Children.Add(
+            version);
+
+        TextBlock details =
+            new()
+            {
+                Text =
+                    description +
+                    Environment.NewLine +
+                    Environment.NewLine +
+                    SettingsService.L(
+                        "Нажмите «Обновить» — Thermiqra сама скачает и установит новую версию.",
+                        "Click “Update” and Thermiqra will download and install the new version automatically."),
+                Margin =
+                    new Thickness(
+                        0,
+                        18,
+                        0,
+                        20),
+                TextWrapping =
+                    TextWrapping.Wrap,
+                LineHeight = 19
+            };
+
+        details.SetResourceReference(
+            TextBlock.ForegroundProperty,
+            "PrimaryTextBrush");
+
+        Grid.SetRow(
+            details,
+            2);
+
+        root.Children.Add(
+            details);
+
+        StackPanel buttons =
+            new()
+            {
+                Orientation =
+                    Orientation.Horizontal,
+                HorizontalAlignment =
+                    HorizontalAlignment.Right
+            };
+
+        Button laterButton =
+            new()
+            {
+                Content =
+                    SettingsService.L(
+                        "Позже",
+                        "Later"),
+                MinWidth = 100,
+                Padding =
+                    new Thickness(
+                        16,
+                        8,
+                        16,
+                        8),
+                Margin =
+                    new Thickness(
+                        0,
+                        0,
+                        10,
+                        0),
+                IsCancel = true
+            };
+
+        laterButton.SetResourceReference(
+            Control.BackgroundProperty,
+            "InputBackgroundBrush");
+
+        laterButton.SetResourceReference(
+            Control.ForegroundProperty,
+            "PrimaryTextBrush");
+
+        laterButton.SetResourceReference(
+            Control.BorderBrushProperty,
+            "BorderBrush");
+
+        Button updateButton =
+            new()
+            {
+                Content =
+                    SettingsService.L(
+                        "Обновить",
+                        "Update"),
+                MinWidth = 110,
+                Padding =
+                    new Thickness(
+                        16,
+                        8,
+                        16,
+                        8),
+                IsDefault = true
+            };
+
+        updateButton.SetResourceReference(
+            Control.BackgroundProperty,
+            "InputBackgroundBrush");
+
+        updateButton.SetResourceReference(
+            Control.ForegroundProperty,
+            "PrimaryTextBrush");
+
+        updateButton.SetResourceReference(
+            Control.BorderBrushProperty,
+            "AccentBrush");
+
+        laterButton.Click +=
+            (_, _) =>
+            {
+                dialog.DialogResult =
+                    false;
+            };
+
+        updateButton.Click +=
+            (_, _) =>
+            {
+                dialog.DialogResult =
+                    true;
+            };
+
+        buttons.Children.Add(
+            laterButton);
+
+        buttons.Children.Add(
+            updateButton);
+
+        Grid.SetRow(
+            buttons,
+            3);
+
+        root.Children.Add(
+            buttons);
+
+        dialog.Content =
+            root;
+
+        return dialog.ShowDialog() ==
+               true;
+    }
+
+    private async Task InstallUpdateAsync(
+        UpdateInfo update)
+    {
+        if (_isUpdateInstallRunning)
+            return;
+
+        _isUpdateInstallRunning =
+            true;
+
+        Window? progressWindow =
+            null;
+
+        bool installerStarted =
+            false;
+
+        try
+        {
+            progressWindow =
+                CreateUpdateProgressWindow(
+                    out ProgressBar progressBar,
+                    out TextBlock statusText);
+
+            progressWindow.Show();
+            progressWindow.Activate();
+
+            IsEnabled =
+                false;
+
+            Progress<int> progress =
+                new(
+                    percent =>
+                    {
+                        progressBar.Value =
+                            percent;
+
+                        statusText.Text =
+                            SettingsService.L(
+                                $"Скачивание обновления… {percent}%",
+                                $"Downloading update… {percent}%");
+                    });
+
+            string installerPath =
+                await UpdateService
+                    .DownloadInstallerAsync(
+                        update,
+                        progress);
+
+            statusText.Text =
+                SettingsService.L(
+                    "Запуск установки…",
+                    "Starting installation…");
+
+            progressBar.Value =
+                100;
+
+            await Task.Delay(
+                250);
+
+            UpdateService.StartInstaller(
+                installerPath);
+
+            installerStarted =
+                true;
+
+            progressWindow.Close();
+            progressWindow = null;
+
+            IsEnabled =
+                true;
+
+            ExitApplication();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"Не удалось установить обновление Thermiqra: {ex}");
+
+            if (progressWindow != null)
+            {
+                progressWindow.Close();
+                progressWindow = null;
+            }
+
+            IsEnabled =
+                true;
+
             MessageBox.Show(
                 this,
                 SettingsService.L(
-                    $"Доступна новая версия Thermiqra {update.VersionText}.\n\n",
-                    $"A new Thermiqra version {update.VersionText} is available.\n\n") +
-                SettingsService.L(
-                    $"Текущая версия: {update.CurrentVersionText}.\n\n",
-                    $"Current version: {update.CurrentVersionText}.\n\n") +
-                $"{description}\n\n" +
-                SettingsService.L(
-                    "Открыть страницу релиза GitHub?",
-                    "Open the GitHub release page?"),
+                    $"Не удалось автоматически установить обновление.\n\n{ex.Message}",
+                    $"The update could not be installed automatically.\n\n{ex.Message}"),
                 SettingsService.L(
                     "Thermiqra — Обновление",
                     "Thermiqra — Update"),
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Information);
-
-        if (result !=
-            MessageBoxResult.Yes)
-        {
-            return;
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
         }
+        finally
+        {
+            if (!installerStarted &&
+                IsVisible)
+            {
+                IsEnabled =
+                    true;
+            }
 
+            if (progressWindow != null)
+            {
+                progressWindow.Close();
+            }
+
+            _isUpdateInstallRunning =
+                false;
+        }
+    }
+
+    private Window CreateUpdateProgressWindow(
+        out ProgressBar progressBar,
+        out TextBlock statusText)
+    {
+        Window window =
+            new()
+            {
+                Owner = this,
+                Title =
+                    SettingsService.L(
+                        "Thermiqra — Обновление",
+                        "Thermiqra — Update"),
+                Width = 460,
+                Height = 155,
+                WindowStartupLocation =
+                    WindowStartupLocation.CenterOwner,
+                ResizeMode =
+                    ResizeMode.NoResize,
+                ShowInTaskbar = false
+            };
+
+        window.SetResourceReference(
+            Window.BackgroundProperty,
+            "WindowBackgroundBrush");
+
+        StackPanel panel =
+            new()
+            {
+                Margin =
+                    new Thickness(
+                        22)
+            };
+
+        statusText =
+            new TextBlock
+            {
+                Text =
+                    SettingsService.L(
+                        "Подготовка к скачиванию…",
+                        "Preparing download…"),
+                FontSize = 14,
+                FontWeight =
+                    FontWeights.SemiBold,
+                Margin =
+                    new Thickness(
+                        0,
+                        0,
+                        0,
+                        14)
+            };
+
+        statusText.SetResourceReference(
+            TextBlock.ForegroundProperty,
+            "PrimaryTextBrush");
+
+        progressBar =
+            new ProgressBar
+            {
+                Minimum = 0,
+                Maximum = 100,
+                Value = 0,
+                Height = 18
+            };
+
+        progressBar.SetResourceReference(
+            Control.BackgroundProperty,
+            "InputBackgroundBrush");
+
+        progressBar.SetResourceReference(
+            Control.ForegroundProperty,
+            "AccentBrush");
+
+        panel.Children.Add(
+            statusText);
+
+        panel.Children.Add(
+            progressBar);
+
+        window.Content =
+            panel;
+
+        return window;
+    }
+
+    private void OpenReleasePage(
+        UpdateInfo update)
+    {
         try
         {
             System.Diagnostics.Process.Start(
@@ -437,9 +904,7 @@ public partial class MainWindow : Window
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
         }
-    }
-
-    private void MainWindow_StateChanged(
+    }    private void MainWindow_StateChanged(
         object? sender,
         EventArgs e)
     {

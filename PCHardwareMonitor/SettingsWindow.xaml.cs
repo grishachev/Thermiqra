@@ -56,6 +56,8 @@ public partial class SettingsWindow : Window
 
         LoadSettings();
 
+        UpdateVersionText();
+
         UpdateSkinCards();
     }
 
@@ -155,6 +157,78 @@ public partial class SettingsWindow : Window
     // ============================================================
     // ЯЗЫК
     // ============================================================
+
+    private void UpdateVersionText()
+    {
+        Version? version =
+            typeof(SettingsWindow)
+                .Assembly
+                .GetName()
+                .Version;
+
+        string versionText =
+            version == null
+                ? "—"
+                : version.Revision > 0
+                    ? $"{version.Major}.{version.Minor}.{version.Build}.{version.Revision}"
+                    : $"{version.Major}.{version.Minor}.{version.Build}";
+
+        VersionText.Text =
+            SettingsService.L(
+                $"Версия {versionText}",
+                $"Version {versionText}");
+    }
+
+
+    private void LanguageComboBox_PreviewMouseWheel(
+        object sender,
+        MouseWheelEventArgs e)
+    {
+        if (LanguageComboBox.IsDropDownOpen)
+        {
+            return;
+        }
+
+        e.Handled =
+            true;
+
+        DependencyObject? current =
+            LanguageComboBox;
+
+        while (current != null)
+        {
+            current =
+                VisualTreeHelper.GetParent(
+                    current);
+
+            if (current is not ScrollViewer scrollViewer)
+            {
+                continue;
+            }
+
+            int steps =
+                Math.Max(
+                    1,
+                    Math.Abs(e.Delta) / 120);
+
+            for (int i = 0;
+                 i < steps;
+                 i++)
+            {
+                if (e.Delta > 0)
+                {
+                    scrollViewer.LineUp();
+                }
+                else
+                {
+                    scrollViewer.LineDown();
+                }
+            }
+
+            break;
+        }
+    }
+
 
     private void LanguageComboBox_SelectionChanged(
         object sender,

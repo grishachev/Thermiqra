@@ -118,8 +118,15 @@ public sealed class TrayService : IDisposable
             };
 
 
-        // Двойной щелчок открывает главное окно
+        // Двойной щелчок по значку открывает главное окно
         _notifyIcon.DoubleClick +=
+            (_, _) =>
+                _openAction();
+
+        // Щелчок по всплывающему уведомлению тоже открывает Thermiqra.
+        // Для уведомления об обновлении ShowMainWindow() сразу покажет
+        // уже найденное предложение установить новую версию.
+        _notifyIcon.BalloonTipClicked +=
             (_, _) =>
                 _openAction();
     }

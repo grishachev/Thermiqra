@@ -1,8 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Net.Http;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace PCHardwareMonitor;
@@ -15,7 +19,10 @@ public sealed class UpdateInfo
         string versionText,
         string currentVersionText,
         string releaseUrl,
-        string summary)
+        string summary,
+        string? installerDownloadUrl,
+        string? installerFileName,
+        string? installerSha256)
     {
         Version = version;
         CurrentVersion = currentVersion;
@@ -23,6 +30,9 @@ public sealed class UpdateInfo
         CurrentVersionText = currentVersionText;
         ReleaseUrl = releaseUrl;
         Summary = summary;
+        InstallerDownloadUrl = installerDownloadUrl;
+        InstallerFileName = installerFileName;
+        InstallerSha256 = installerSha256;
     }
 
     public Version Version { get; }
@@ -36,6 +46,18 @@ public sealed class UpdateInfo
     public string ReleaseUrl { get; }
 
     public string Summary { get; }
+
+    public string? InstallerDownloadUrl { get; }
+
+    public string? InstallerFileName { get; }
+
+    public string? InstallerSha256 { get; }
+
+    public bool HasInstaller =>
+        !string.IsNullOrWhiteSpace(
+            InstallerDownloadUrl) &&
+        !string.IsNullOrWhiteSpace(
+            InstallerFileName);
 }
 
 public static class UpdateService
@@ -43,21 +65,30 @@ public static class UpdateService
     private const string LatestReleaseApiUrl =
         "https://api.github.com/repos/grishachev/Thermiqra/releases/latest";
 
+    private const string InstallerFilePrefix =
+        "Thermiqra_Setup_";
+
     private static readonly HttpClient Client =
         CreateClient();
 
-    public static async Task<UpdateInfo?> CheckForUpdateAsync()
+    public static async Task<UpdateInfo?> CheckForUpdateAsync(
+        CancellationToken cancellationToken = default)
     {
+        CleanupInstallerCache();
+
         using HttpResponseMessage response =
             await Client
-                .GetAsync(LatestReleaseApiUrl)
+                .GetAsync(
+                    LatestReleaseApiUrl,
+                    cancellationToken)
                 .ConfigureAwait(false);
 
         response.EnsureSuccessStatusCode();
 
         string json =
             await response.Content
-                .ReadAsStringAsync()
+                .ReadAsStringAsync(
+                    cancellationToken)
                 .ConfigureAwait(false);
 
         using JsonDocument document =
@@ -104,6 +135,74 @@ public static class UpdateService
                 root,
                 "body");
 
+        string expectedInstallerName =
+            $"{InstallerFilePrefix}" +
+            $"{FormatVersion(latestVersion)}.exe";
+
+        string? installerDownloadUrl = null;
+        string? installerFileName = null;
+        string? installerSha256 = null;
+
+        if (root.TryGetProperty(
+                "assets",
+                out JsonElement assets) &&
+            assets.ValueKind ==
+                JsonValueKind.Array)
+        {
+            foreach (JsonElement asset
+                     in assets.EnumerateArray())
+            {
+                string? assetName =
+                    GetString(
+                        asset,
+                        "name");
+
+                if (!string.Equals(
+                        assetName,
+                        expectedInstallerName,
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                string? assetUrl =
+                    GetString(
+                        asset,
+                        "browser_download_url");
+
+                if (string.IsNullOrWhiteSpace(
+                        assetUrl))
+                {
+                    continue;
+                }
+
+                installerDownloadUrl =
+                    assetUrl;
+
+                installerFileName =
+                    assetName;
+
+                string? digest =
+                    GetString(
+                        asset,
+                        "digest");
+
+                if (!string.IsNullOrWhiteSpace(
+                        digest) &&
+                    digest.StartsWith(
+                        "sha256:",
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    installerSha256 =
+                        digest.Substring(
+                            "sha256:".Length)
+                            .Trim();
+                }
+
+                break;
+            }
+        }
+
         return new UpdateInfo(
             latestVersion,
             currentVersion,
@@ -112,7 +211,214 @@ public static class UpdateService
             FormatVersion(
                 currentVersion),
             releaseUrl,
-            BuildSummary(body));
+            BuildSummary(body),
+            installerDownloadUrl,
+            installerFileName,
+            installerSha256);
+    }
+
+    public static async Task<string> DownloadInstallerAsync(
+        UpdateInfo update,
+        IProgress<int>? progress = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (!update.HasInstaller ||
+            string.IsNullOrWhiteSpace(
+                update.InstallerDownloadUrl) ||
+            string.IsNullOrWhiteSpace(
+                update.InstallerFileName))
+        {
+            throw new InvalidOperationException(
+                "The release does not contain a Thermiqra installer.");
+        }
+
+        string updateDirectory =
+            GetUpdateDirectory();
+
+        Directory.CreateDirectory(
+            updateDirectory);
+
+        string safeFileName =
+            Path.GetFileName(
+                update.InstallerFileName);
+
+        if (string.IsNullOrWhiteSpace(
+                safeFileName) ||
+            !safeFileName.EndsWith(
+                ".exe",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidDataException(
+                "The update installer file name is invalid.");
+        }
+
+        string installerPath =
+            Path.Combine(
+                updateDirectory,
+                safeFileName);
+
+        string partialPath =
+            installerPath +
+            ".download";
+
+        TryDeleteFile(
+            partialPath);
+
+        TryDeleteFile(
+            installerPath);
+
+        try
+        {
+            using HttpResponseMessage response =
+                await Client
+                    .GetAsync(
+                        update.InstallerDownloadUrl,
+                        HttpCompletionOption.ResponseHeadersRead,
+                        cancellationToken)
+                    .ConfigureAwait(false);
+
+            response.EnsureSuccessStatusCode();
+
+            long? totalLength =
+                response.Content
+                    .Headers
+                    .ContentLength;
+
+            await using Stream input =
+                await response.Content
+                    .ReadAsStreamAsync(
+                        cancellationToken)
+                    .ConfigureAwait(false);
+
+            await using FileStream output =
+                new(
+                    partialPath,
+                    FileMode.Create,
+                    FileAccess.Write,
+                    FileShare.None,
+                    81920,
+                    useAsync: true);
+
+            byte[] buffer =
+                new byte[81920];
+
+            long received = 0;
+            int lastPercent = -1;
+
+            while (true)
+            {
+                int read =
+                    await input.ReadAsync(
+                            buffer.AsMemory(
+                                0,
+                                buffer.Length),
+                            cancellationToken)
+                        .ConfigureAwait(false);
+
+                if (read <= 0)
+                    break;
+
+                await output.WriteAsync(
+                        buffer.AsMemory(
+                            0,
+                            read),
+                        cancellationToken)
+                    .ConfigureAwait(false);
+
+                received +=
+                    read;
+
+                if (totalLength.HasValue &&
+                    totalLength.Value > 0)
+                {
+                    int percent =
+                        (int)Math.Clamp(
+                            received * 100 /
+                            totalLength.Value,
+                            0,
+                            99);
+
+                    if (percent !=
+                        lastPercent)
+                    {
+                        lastPercent =
+                            percent;
+
+                        progress?.Report(
+                            percent);
+                    }
+                }
+            }
+
+            await output
+                .FlushAsync(
+                    cancellationToken)
+                .ConfigureAwait(false);
+
+            await VerifySha256Async(
+                    partialPath,
+                    update.InstallerSha256,
+                    cancellationToken)
+                .ConfigureAwait(false);
+
+            File.Move(
+                partialPath,
+                installerPath,
+                true);
+
+            progress?.Report(100);
+
+            return installerPath;
+        }
+        catch
+        {
+            TryDeleteFile(
+                partialPath);
+
+            throw;
+        }
+    }
+
+    public static void StartInstaller(
+        string installerPath)
+    {
+        if (string.IsNullOrWhiteSpace(
+                installerPath) ||
+            !File.Exists(
+                installerPath))
+        {
+            throw new FileNotFoundException(
+                "The Thermiqra update installer was not found.",
+                installerPath);
+        }
+
+        ProcessStartInfo startInfo =
+            new()
+            {
+                FileName =
+                    installerPath,
+
+                Arguments =
+                    "/SP- /VERYSILENT /SUPPRESSMSGBOXES /NORESTART",
+
+                WorkingDirectory =
+                    Path.GetDirectoryName(
+                        installerPath)
+                    ?? Environment.CurrentDirectory,
+
+                UseShellExecute =
+                    true
+            };
+
+        Process? process =
+            Process.Start(
+                startInfo);
+
+        if (process == null)
+        {
+            throw new InvalidOperationException(
+                "The Thermiqra update installer could not be started.");
+        }
     }
 
     private static HttpClient CreateClient()
@@ -121,13 +427,13 @@ public static class UpdateService
             new()
             {
                 Timeout =
-                    TimeSpan.FromSeconds(10)
+                    TimeSpan.FromMinutes(10)
             };
 
         client.DefaultRequestHeaders
             .UserAgent
             .ParseAdd(
-                "Thermiqra-UpdateChecker/1.0");
+                "Thermiqra-UpdateChecker/1.1");
 
         client.DefaultRequestHeaders
             .Accept
@@ -140,6 +446,102 @@ public static class UpdateService
                 "2026-03-10");
 
         return client;
+    }
+
+    private static string GetUpdateDirectory()
+    {
+        return Path.Combine(
+            Path.GetTempPath(),
+            "Thermiqra",
+            "Updates");
+    }
+
+    private static void CleanupInstallerCache()
+    {
+        try
+        {
+            string updateDirectory =
+                GetUpdateDirectory();
+
+            if (!Directory.Exists(
+                    updateDirectory))
+            {
+                return;
+            }
+
+            foreach (string file
+                     in Directory.EnumerateFiles(
+                         updateDirectory,
+                         $"{InstallerFilePrefix}*.exe"))
+            {
+                TryDeleteFile(file);
+            }
+
+            foreach (string file
+                     in Directory.EnumerateFiles(
+                         updateDirectory,
+                         "*.download"))
+            {
+                TryDeleteFile(file);
+            }
+        }
+        catch
+        {
+            // Кэш обновлений не должен мешать запуску Thermiqra.
+        }
+    }
+
+    private static void TryDeleteFile(
+        string path)
+    {
+        try
+        {
+            if (File.Exists(path))
+                File.Delete(path);
+        }
+        catch
+        {
+            // Файл может быть занят установщиком.
+            // Следующий запуск попробует удалить его ещё раз.
+        }
+    }
+
+    private static async Task VerifySha256Async(
+        string filePath,
+        string? expectedSha256,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(
+                expectedSha256))
+        {
+            return;
+        }
+
+        await using FileStream stream =
+            File.OpenRead(
+                filePath);
+
+        using SHA256 sha256 =
+            SHA256.Create();
+
+        byte[] hash =
+            await sha256
+                .ComputeHashAsync(
+                    stream,
+                    cancellationToken)
+                .ConfigureAwait(false);
+
+        string actual =
+            Convert.ToHexString(hash);
+
+        if (!string.Equals(
+                actual,
+                expectedSha256,
+                StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidDataException(
+                "The downloaded Thermiqra installer failed the SHA-256 integrity check.");
+        }
     }
 
     private static string? GetString(

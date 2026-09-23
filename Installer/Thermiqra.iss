@@ -1,5 +1,5 @@
 ﻿#define MyAppName "Thermiqra"
-#define MyAppVersion "0.6.0"
+#define MyAppVersion "0.6.1"
 #define MyAppPublisher "Thermiqra"
 #define MyAppExeName "Thermiqra.exe"
 
@@ -19,7 +19,7 @@ DisableWelcomePage=no
 PrivilegesRequired=admin
 
 OutputDir=Output
-OutputBaseFilename=Thermiqra_Setup_0.6.0
+OutputBaseFilename=Thermiqra_Setup_0.6.1
 
 SetupIconFile=..\PCHardwareMonitor\Assets\Thermiqra.ico
 
@@ -118,6 +118,11 @@ Filename: "{tmp}\PawnIO_setup.exe"; \
 Filename: "{app}\Thermiqra.exe"; \
     Description: "{cm:RunThermiqra}"; \
     Flags: nowait postinstall skipifsilent runascurrentuser
+
+; При автоматическом обновлении установщик работает в silent/very silent.
+; Эта отдельная строка запускает новую Thermiqra после успешного обновления.
+Filename: "{app}\Thermiqra.exe"; \
+    Flags: nowait skipifnotsilent
 
 
 [UninstallDelete]

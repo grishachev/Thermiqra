@@ -1570,6 +1570,7 @@
                                               Height="34"
                                               HorizontalAlignment="Left"
                                               Style="{StaticResource ThemedComboBoxStyle}"
+                                              PreviewMouseWheel="LanguageComboBox_PreviewMouseWheel"
                                               SelectionChanged="LanguageComboBox_SelectionChanged">
                                         <ComboBoxItem Tag="System"
                                                       Content="Системный (Windows)"/>
@@ -2488,6 +2489,12 @@
                                        FontWeight="SemiBold"/>
 
                         </StackPanel>
+
+                        <TextBlock x:Name="VersionText"
+                                   Foreground="{DynamicResource SecondaryTextBrush}"
+                                   FontSize="9"
+                                   FontWeight="SemiBold"
+                                   Margin="0,4,0,0"/>
 
                     </StackPanel>
 
