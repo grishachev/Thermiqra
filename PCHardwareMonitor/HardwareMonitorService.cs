@@ -86,6 +86,94 @@ public sealed class HardwareMonitorService : IDisposable
             SensorType.Load,
             "CPU Total"
         );
+
+        SortedDictionary<int, float>
+            logicalProcessorLoads =
+                new();
+
+        foreach (ISensor sensor
+                 in hardware.Sensors)
+        {
+            if (sensor.SensorType !=
+                SensorType.Load)
+            {
+                continue;
+            }
+
+            if (!sensor.Value.HasValue)
+                continue;
+
+            if (!TryGetCpuThreadNumber(
+                    sensor.Name,
+                    out int threadNumber))
+            {
+                continue;
+            }
+
+            logicalProcessorLoads[
+                threadNumber] =
+                    sensor.Value.Value;
+        }
+
+        foreach (KeyValuePair<int, float> thread
+                 in logicalProcessorLoads)
+        {
+            snapshot.Cpu.Threads.Add(
+                new CpuThreadInfo
+                {
+                    Index =
+                        thread.Key,
+
+                    Load =
+                        thread.Value
+                });
+        }
+    }
+
+
+    private static bool TryGetCpuThreadNumber(
+        string sensorName,
+        out int threadNumber)
+    {
+        const string prefix =
+            "CPU Core #";
+
+        threadNumber =
+            0;
+
+        if (string.IsNullOrWhiteSpace(
+                sensorName))
+        {
+            return false;
+        }
+
+        if (!sensorName.StartsWith(
+                prefix,
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        ReadOnlySpan<char> numberPart =
+            sensorName
+                .AsSpan(
+                    prefix.Length)
+                .Trim();
+
+        if (!int.TryParse(
+                numberPart,
+                out int parsed))
+        {
+            return false;
+        }
+
+        if (parsed <= 0)
+            return false;
+
+        threadNumber =
+            parsed;
+
+        return true;
     }
 
     private static void ReadGpu(
@@ -689,6 +777,16 @@ public sealed class CpuInfo
     public string Name { get; set; } = "CPU";
 
     public float? Temperature { get; set; }
+
+    public float? Load { get; set; }
+
+    public List<CpuThreadInfo> Threads { get; } = new();
+}
+
+
+public sealed class CpuThreadInfo
+{
+    public int Index { get; set; }
 
     public float? Load { get; set; }
 }

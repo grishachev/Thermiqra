@@ -26,6 +26,8 @@ public partial class MainWindow : Window
 
     private readonly RingGauge _cpuGauge;
 
+    private CpuDetailsWindow? _cpuDetailsWindow;
+
     private readonly List<RingGauge>
         _gpuGauges =
             new();
@@ -108,6 +110,9 @@ public partial class MainWindow : Window
             .Children
             .Add(
                 _cpuGauge);
+
+        _cpuGauge.CpuThreadsRequested +=
+            CpuGauge_CpuThreadsRequested;
 
         SettingsService.ApplyLanguageToElement(
             _cpuGauge);
@@ -195,6 +200,9 @@ public partial class MainWindow : Window
 
         _tray.RefreshLanguage();
 
+        _cpuDetailsWindow?
+            .RefreshLanguage();
+
         if (_lastSnapshot != null)
         {
             UpdateMemory(
@@ -271,6 +279,67 @@ public partial class MainWindow : Window
             };
 
         window.ShowDialog();
+    }
+
+    private void CpuGauge_CpuThreadsRequested(
+        object? sender,
+        EventArgs e)
+    {
+        if (_cpuDetailsWindow != null)
+        {
+            if (!_cpuDetailsWindow.IsVisible)
+            {
+                _cpuDetailsWindow.Show();
+            }
+
+            if (_cpuDetailsWindow.WindowState ==
+                WindowState.Minimized)
+            {
+                _cpuDetailsWindow.WindowState =
+                    WindowState.Normal;
+            }
+
+            _cpuDetailsWindow.Activate();
+
+            _cpuDetailsWindow.Topmost =
+                true;
+
+            _cpuDetailsWindow.Topmost =
+                false;
+
+            return;
+        }
+
+        CpuDetailsWindow window =
+            new()
+            {
+                Owner =
+                    this
+            };
+
+        _cpuDetailsWindow =
+            window;
+
+        window.Closed +=
+            (_, _) =>
+            {
+                if (ReferenceEquals(
+                        _cpuDetailsWindow,
+                        window))
+                {
+                    _cpuDetailsWindow =
+                        null;
+                }
+            };
+
+        if (_lastSnapshot != null)
+        {
+            window.UpdateSnapshot(
+                _lastSnapshot);
+        }
+
+        window.Show();
+        window.Activate();
     }
 
     private void SystemInfoButton_Click(
@@ -1010,6 +1079,10 @@ public partial class MainWindow : Window
 
             _lastSnapshot =
                 snapshot;
+
+            _cpuDetailsWindow?
+                .UpdateSnapshot(
+                    snapshot);
 
             try
             {

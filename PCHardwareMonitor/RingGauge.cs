@@ -59,6 +59,8 @@ public sealed class RingGauge : Border
 
     private readonly TemperatureType _temperatureType;
 
+    public event EventHandler? CpuThreadsRequested;
+
     private string _appliedLanguageCode =
         string.Empty;
 
@@ -105,6 +107,7 @@ public sealed class RingGauge : Border
                 ["ТЕМПЕРАТУРА"] = "TEMPERATURE",
                 ["ТЕМПЕРАТУРА VRAM"] = "VRAM TEMPERATURE",
                 ["Телеметрия в реальном времени"] = "Real-time telemetry",
+                ["ПОТОКИ"] = "THREADS",
                 ["УРОВЕНЬ НАГРУЗКИ"] = "LOAD LEVEL"
             };
 
@@ -956,6 +959,22 @@ public sealed class RingGauge : Border
         card.Margin =
             new Thickness(0, 7, 0, 0);
 
+        Grid content = new();
+
+        content.ColumnDefinitions.Add(
+            new ColumnDefinition
+            {
+                Width = new GridLength(
+                    1,
+                    GridUnitType.Star)
+            });
+
+        content.ColumnDefinitions.Add(
+            new ColumnDefinition
+            {
+                Width = GridLength.Auto
+            });
+
         StackPanel stack = new();
 
         TextBlock realTime =
@@ -973,7 +992,26 @@ public sealed class RingGauge : Border
 
         stack.Children.Add(realTime);
         stack.Children.Add(sensorBus);
-        card.Child = stack;
+
+        Border threadsButton =
+            CreateCpuThreadsButton(
+                "InputBackgroundBrush",
+                "AccentBrush",
+                "AccentBrush",
+                new CornerRadius(3));
+
+        Grid.SetColumn(
+            stack,
+            0);
+
+        Grid.SetColumn(
+            threadsButton,
+            1);
+
+        content.Children.Add(stack);
+        content.Children.Add(threadsButton);
+
+        card.Child = content;
 
         Grid.SetRow(
             card,
@@ -2125,6 +2163,12 @@ public sealed class RingGauge : Border
                     GridUnitType.Star)
             });
 
+        grid.ColumnDefinitions.Add(
+            new ColumnDefinition
+            {
+                Width = GridLength.Auto
+            });
+
         Grid valve = new()
         {
             Width = 27,
@@ -2214,8 +2258,20 @@ public sealed class RingGauge : Border
             text,
             1);
 
+        Border threadsButton =
+            CreateCpuThreadsButton(
+                "SteamGlassBrush",
+                "SteamMetalBrush",
+                "AccentBrush",
+                new CornerRadius(5));
+
+        Grid.SetColumn(
+            threadsButton,
+            2);
+
         grid.Children.Add(valve);
         grid.Children.Add(text);
+        grid.Children.Add(threadsButton);
         plate.Child = grid;
 
         return plate;
@@ -3285,6 +3341,12 @@ public sealed class RingGauge : Border
                     GridUnitType.Star)
             });
 
+        grid.ColumnDefinitions.Add(
+            new ColumnDefinition
+            {
+                Width = GridLength.Auto
+            });
+
         Grid snow = new()
         {
             Width = 29,
@@ -3348,8 +3410,20 @@ public sealed class RingGauge : Border
         Grid.SetColumn(snow, 0);
         Grid.SetColumn(text, 1);
 
+        Border threadsButton =
+            CreateCpuThreadsButton(
+                "FrostGlassBrush",
+                "FrostSteelBrush",
+                "AccentBrush",
+                new CornerRadius(8));
+
+        Grid.SetColumn(
+            threadsButton,
+            2);
+
         grid.Children.Add(snow);
         grid.Children.Add(text);
+        grid.Children.Add(threadsButton);
         plate.Child = grid;
 
         return plate;
@@ -4456,6 +4530,12 @@ public sealed class RingGauge : Border
                     GridUnitType.Star)
             });
 
+        grid.ColumnDefinitions.Add(
+            new ColumnDefinition
+            {
+                Width = GridLength.Auto
+            });
+
         Grid target = new()
         {
             Width = 28,
@@ -4535,8 +4615,20 @@ public sealed class RingGauge : Border
         Grid.SetColumn(target, 0);
         Grid.SetColumn(text, 1);
 
+        Border threadsButton =
+            CreateCpuThreadsButton(
+                "MilitaryPanelBrush",
+                "MilitaryKhakiBrush",
+                "AccentBrush",
+                new CornerRadius(1));
+
+        Grid.SetColumn(
+            threadsButton,
+            2);
+
         grid.Children.Add(target);
         grid.Children.Add(text);
+        grid.Children.Add(threadsButton);
         plate.Child = grid;
 
         return plate;
@@ -5251,6 +5343,78 @@ public sealed class RingGauge : Border
                 out string? english)
             ? english
             : russian;
+    }
+
+
+    private Border CreateCpuThreadsButton(
+        string backgroundResource,
+        string borderResource,
+        string foregroundResource,
+        CornerRadius cornerRadius)
+    {
+        Border button = new()
+        {
+            Padding =
+                new Thickness(
+                    10,
+                    6,
+                    10,
+                    6),
+            Margin =
+                new Thickness(
+                    10,
+                    0,
+                    0,
+                    0),
+            BorderThickness =
+                new Thickness(1),
+            CornerRadius =
+                cornerRadius,
+            VerticalAlignment =
+                VerticalAlignment.Center,
+            Cursor =
+                System.Windows.Input.Cursors.Hand
+        };
+
+        button.SetResourceReference(
+            Border.BackgroundProperty,
+            backgroundResource);
+
+        button.SetResourceReference(
+            Border.BorderBrushProperty,
+            borderResource);
+
+        TextBlock text = new()
+        {
+            Text = "ПОТОКИ",
+            FontSize = 9,
+            FontWeight =
+                FontWeights.Bold,
+            HorizontalAlignment =
+                HorizontalAlignment.Center,
+            VerticalAlignment =
+                VerticalAlignment.Center
+        };
+
+        text.SetResourceReference(
+            TextBlock.ForegroundProperty,
+            foregroundResource);
+
+        button.Child =
+            text;
+
+        button.MouseLeftButtonDown +=
+            (_, e) =>
+            {
+                e.Handled =
+                    true;
+
+                CpuThreadsRequested?.Invoke(
+                    this,
+                    EventArgs.Empty);
+            };
+
+        return button;
     }
 
 
