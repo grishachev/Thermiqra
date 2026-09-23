@@ -60,6 +60,9 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
+        SettingsService.ApplyLanguageToWindow(
+            this);
+
         RestoreWindowPlacement();
 
         _monitor =
@@ -103,6 +106,9 @@ public partial class MainWindow : Window
             .Children
             .Add(
                 _cpuGauge);
+
+        SettingsService.ApplyLanguageToElement(
+            _cpuGauge);
 
         _timer =
             new DispatcherTimer
@@ -180,6 +186,27 @@ public partial class MainWindow : Window
         TryShowPendingUpdate();
     }
 
+    public void RefreshLanguage()
+    {
+        SettingsService.ApplyLanguageToWindow(
+            this);
+
+        _tray.RefreshLanguage();
+
+        if (_lastSnapshot != null)
+        {
+            UpdateMemory(
+                _lastSnapshot);
+
+            UpdateDrives(
+                _lastSnapshot);
+
+            UpdateStorageTemperatures(
+                _lastSnapshot);
+        }
+    }
+
+
     public void OpenSettings(
         bool firstRun)
     {
@@ -221,8 +248,12 @@ public partial class MainWindow : Window
         {
             MessageBox.Show(
                 this,
-                "Сервис статистики сейчас недоступен.",
-                "Thermiqra — Статистика",
+                SettingsService.L(
+                    "Сервис статистики сейчас недоступен.",
+                    "Statistics service is currently unavailable."),
+                SettingsService.L(
+                    "Thermiqra — Статистика",
+                    "Thermiqra — Statistics"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
 
@@ -309,8 +340,12 @@ public partial class MainWindow : Window
             else
             {
                 _tray.ShowNotification(
-                    "Доступно обновление Thermiqra",
-                    $"Версия {update.VersionText} готова к установке. Откройте Thermiqra, чтобы посмотреть подробности.",
+                    SettingsService.L(
+                        "Доступно обновление Thermiqra",
+                        "Thermiqra update available"),
+                    SettingsService.L(
+                        $"Версия {update.VersionText} готова к установке. Откройте Thermiqra, чтобы посмотреть подробности.",
+                        $"Version {update.VersionText} is ready to install. Open Thermiqra to view the details."),
                     false);
             }
         }
@@ -344,17 +379,27 @@ public partial class MainWindow : Window
             string.IsNullOrWhiteSpace(
                 update.Summary)
 
-                ? "Откройте страницу релиза, чтобы посмотреть изменения."
+                ? SettingsService.L(
+                    "Откройте страницу релиза, чтобы посмотреть изменения.",
+                    "Open the release page to view the changes.")
                 : update.Summary;
 
         MessageBoxResult result =
             MessageBox.Show(
                 this,
-                $"Доступна новая версия Thermiqra {update.VersionText}.\n\n" +
-                $"Текущая версия: {update.CurrentVersionText}.\n\n" +
+                SettingsService.L(
+                    $"Доступна новая версия Thermiqra {update.VersionText}.\n\n",
+                    $"A new Thermiqra version {update.VersionText} is available.\n\n") +
+                SettingsService.L(
+                    $"Текущая версия: {update.CurrentVersionText}.\n\n",
+                    $"Current version: {update.CurrentVersionText}.\n\n") +
                 $"{description}\n\n" +
-                "Открыть страницу релиза GitHub?",
-                "Thermiqra — Обновление",
+                SettingsService.L(
+                    "Открыть страницу релиза GitHub?",
+                    "Open the GitHub release page?"),
+                SettingsService.L(
+                    "Thermiqra — Обновление",
+                    "Thermiqra — Update"),
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Information);
 
@@ -383,8 +428,12 @@ public partial class MainWindow : Window
 
             MessageBox.Show(
                 this,
-                "Не удалось открыть страницу релиза в браузере.",
-                "Thermiqra — Обновление",
+                SettingsService.L(
+                    "Не удалось открыть страницу релиза в браузере.",
+                    "Failed to open the release page in the browser."),
+                SettingsService.L(
+                    "Thermiqra — Обновление",
+                    "Thermiqra — Update"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
         }
@@ -523,7 +572,9 @@ public partial class MainWindow : Window
                 snapshot);
 
             string statusText =
-                $"Обновлено: " +
+                SettingsService.L(
+                    "Обновлено: ",
+                    "Updated: ") +
                 $"{DateTime.Now:HH:mm:ss}";
 
             StatusText.Text =
@@ -561,7 +612,9 @@ public partial class MainWindow : Window
         catch (Exception ex)
         {
             string errorText =
-                $"Ошибка: {ex.Message}";
+                SettingsService.L(
+                    $"Ошибка: {ex.Message}",
+                    $"Error: {ex.Message}");
 
             StatusText.Text =
                 errorText;
@@ -635,6 +688,9 @@ public partial class MainWindow : Window
                 .Children
                 .Add(
                     gauge);
+
+            SettingsService.ApplyLanguageToElement(
+                gauge);
         }
 
         while (_gpuGauges.Count >
@@ -698,13 +754,19 @@ public partial class MainWindow : Window
             total.HasValue)
         {
             memoryText =
-                $"{used.Value:F1} ГБ " +
-                $"из {total.Value:F1} ГБ";
+                SettingsService.L(
+                    $"{used.Value:F1} ГБ ",
+                    $"{used.Value:F1} GB ") +
+                SettingsService.L(
+                    $"из {total.Value:F1} ГБ",
+                    $"of {total.Value:F1} GB");
         }
         else
         {
             memoryText =
-                "Нет данных";
+                SettingsService.L(
+                    "Нет данных",
+                    "No data");
         }
 
         RamText.Text =
@@ -813,7 +875,9 @@ public partial class MainWindow : Window
         }
 
         RamPercentText.Text =
-            $"Использовано: " +
+            SettingsService.L(
+                "Использовано: ",
+                "Used: ") +
             $"{FormatPercent(snapshot.Memory.Load)}";
 
         SteamRamPercentText.Text =
@@ -1211,9 +1275,13 @@ public partial class MainWindow : Window
             new()
             {
                 Text =
-                    $"Свободно: " +
+                    SettingsService.L(
+                    "Свободно: ",
+                    "Free: ") +
                     $"{FormatSize(freeGb)} " +
+                    SettingsService.L(
                     $"из {FormatSize(totalGb)}",
+                    $"of {FormatSize(totalGb)}"),
 
                 FontSize = 12,
 
@@ -1294,7 +1362,9 @@ public partial class MainWindow : Window
         TextBlock usageLabel =
             new()
             {
-                Text = "ЗАНЯТО",
+                Text = SettingsService.L(
+                "ЗАНЯТО",
+                "USED"),
 
                 FontSize = 8,
 
@@ -1496,9 +1566,13 @@ public partial class MainWindow : Window
         TextBlock free = new()
         {
             Text =
-                $"Свободно: " +
+                SettingsService.L(
+                    "Свободно: ",
+                    "Free: ") +
                 $"{FormatSize(freeGb)} " +
-                $"из {FormatSize(totalGb)}",
+                SettingsService.L(
+                    $"из {FormatSize(totalGb)}",
+                    $"of {FormatSize(totalGb)}"),
 
             FontSize = 10,
 
@@ -1554,7 +1628,9 @@ public partial class MainWindow : Window
         TextBlock fillText = new()
         {
             Text =
+                SettingsService.L(
                 $"Занято {usedPercent:F0} %",
+                $"Used {usedPercent:F0} %"),
             Foreground =
                 statusBrush,
             FontSize = 10,
@@ -1777,7 +1853,9 @@ public partial class MainWindow : Window
         TextBlock meterLabel =
             new()
             {
-                Text = "ЗАНЯТО",
+                Text = SettingsService.L(
+                "ЗАНЯТО",
+                "USED"),
                 FontSize = 7,
                 FontWeight =
                     FontWeights.Bold,
@@ -2008,7 +2086,9 @@ public partial class MainWindow : Window
 
         TextBlock caption = new()
         {
-            Text = "КРИОМОДУЛЬ ХРАНЕНИЯ",
+            Text = SettingsService.L(
+                "КРИОМОДУЛЬ ХРАНЕНИЯ",
+                "CRYO STORAGE MODULE"),
             FontSize = 8,
             FontWeight = FontWeights.Bold
         };
@@ -2034,9 +2114,13 @@ public partial class MainWindow : Window
         TextBlock free = new()
         {
             Text =
-                $"Свободно: " +
+                SettingsService.L(
+                    "Свободно: ",
+                    "Free: ") +
                 $"{FormatSize(freeGb)} " +
-                $"из {FormatSize(totalGb)}",
+                SettingsService.L(
+                    $"из {FormatSize(totalGb)}",
+                    $"of {FormatSize(totalGb)}"),
             FontSize = 10,
             Margin = new Thickness(0, 0, 0, 7)
         };
@@ -2091,7 +2175,9 @@ public partial class MainWindow : Window
 
         TextBlock meterLabel = new()
         {
-            Text = "ЗАНЯТО",
+            Text = SettingsService.L(
+                "ЗАНЯТО",
+                "USED"),
             FontSize = 7,
             FontWeight = FontWeights.Bold,
             HorizontalAlignment =
@@ -2115,7 +2201,9 @@ public partial class MainWindow : Window
 
         TextBlock levelLabel = new()
         {
-            Text = "КРИОУРОВЕНЬ",
+            Text = SettingsService.L(
+                "КРИОУРОВЕНЬ",
+                "CRYO LEVEL"),
             FontSize = 7,
             HorizontalAlignment =
                 HorizontalAlignment.Center
@@ -2367,7 +2455,9 @@ public partial class MainWindow : Window
 
         TextBlock caption = new()
         {
-            Text = "КОНТЕЙНЕР ДАННЫХ / СЕКТОР",
+            Text = SettingsService.L(
+                "КОНТЕЙНЕР ДАННЫХ / СЕКТОР",
+                "DATA CONTAINER / SECTOR"),
             FontSize = 8,
             FontWeight = FontWeights.Bold
         };
@@ -2393,9 +2483,13 @@ public partial class MainWindow : Window
         TextBlock free = new()
         {
             Text =
-                $"Свободно: " +
+                SettingsService.L(
+                    "Свободно: ",
+                    "Free: ") +
                 $"{FormatSize(freeGb)} " +
-                $"из {FormatSize(totalGb)}",
+                SettingsService.L(
+                    $"из {FormatSize(totalGb)}",
+                    $"of {FormatSize(totalGb)}"),
             FontSize = 9,
             Margin = new Thickness(0, 0, 0, 6)
         };
@@ -2488,7 +2582,9 @@ public partial class MainWindow : Window
 
         TextBlock meterLabel = new()
         {
-            Text = "ЗАНЯТО",
+            Text = SettingsService.L(
+                "ЗАНЯТО",
+                "USED"),
             FontSize = 7,
             FontWeight = FontWeights.Bold,
             HorizontalAlignment =
@@ -2512,7 +2608,9 @@ public partial class MainWindow : Window
 
         TextBlock sector = new()
         {
-            Text = "СЕКТОР STG",
+            Text = SettingsService.L(
+                "СЕКТОР STG",
+                "STG SECTOR"),
             FontSize = 7,
             HorizontalAlignment =
                 HorizontalAlignment.Center
@@ -3229,7 +3327,9 @@ public partial class MainWindow : Window
             new()
             {
                 Text =
+                    SettingsService.L(
                     "ТЕМПЕРАТУРА НАКОПИТЕЛЯ",
+                    "STORAGE TEMPERATURE"),
 
                 FontSize = 8,
 
@@ -3298,8 +3398,12 @@ public partial class MainWindow : Window
             {
                 Text =
                     storage.Temperature.HasValue
-                        ? "Датчик активен"
-                        : "Нет данных",
+                        ? SettingsService.L(
+                        "Датчик активен",
+                        "Sensor active")
+                        : SettingsService.L(
+                    "Нет данных",
+                    "No data"),
 
                 FontSize = 9,
 
@@ -3496,7 +3600,9 @@ public partial class MainWindow : Window
         TextBlock tempLabel =
             new()
             {
-                Text = "ТЕМП.",
+                Text = SettingsService.L(
+                "ТЕМП.",
+                "TEMP."),
                 FontSize = 7,
                 FontWeight =
                     FontWeights.Bold,
@@ -3699,7 +3805,9 @@ public partial class MainWindow : Window
 
         TextBlock caption = new()
         {
-            Text = "КРИОТЕРМОДАТЧИК НАКОПИТЕЛЯ",
+            Text = SettingsService.L(
+                "КРИОТЕРМОДАТЧИК НАКОПИТЕЛЯ",
+                "STORAGE CRYO SENSOR"),
             FontSize = 8,
             FontWeight = FontWeights.Bold
         };
@@ -3744,8 +3852,12 @@ public partial class MainWindow : Window
         TextBlock status = new()
         {
             Text = storage.Temperature.HasValue
-                ? "Контур датчика активен"
-                : "Нет данных",
+                ? SettingsService.L(
+                    "Контур датчика активен",
+                    "Sensor circuit active")
+                : SettingsService.L(
+                    "Нет данных",
+                    "No data"),
             FontSize = 9,
             FontWeight = FontWeights.SemiBold
         };
@@ -3782,7 +3894,9 @@ public partial class MainWindow : Window
 
         TextBlock tempLabel = new()
         {
-            Text = "ТЕМП.",
+            Text = SettingsService.L(
+                "ТЕМП.",
+                "TEMP."),
             FontSize = 7,
             FontWeight = FontWeights.Bold,
             HorizontalAlignment =
@@ -3807,7 +3921,9 @@ public partial class MainWindow : Window
 
         TextBlock state = new()
         {
-            Text = "КРИОКОНТРОЛЬ",
+            Text = SettingsService.L(
+                "КРИОКОНТРОЛЬ",
+                "CRYO CONTROL"),
             FontSize = 7,
             HorizontalAlignment =
                 HorizontalAlignment.Center
@@ -4011,7 +4127,9 @@ public partial class MainWindow : Window
 
         TextBlock caption = new()
         {
-            Text = "ПОЛЕВОЙ ТЕРМОДАТЧИК",
+            Text = SettingsService.L(
+                "ПОЛЕВОЙ ТЕРМОДАТЧИК",
+                "FIELD THERMAL SENSOR"),
             FontSize = 8,
             FontWeight = FontWeights.Bold
         };
@@ -4118,8 +4236,12 @@ public partial class MainWindow : Window
         TextBlock meterLabel = new()
         {
             Text = storage.Temperature.HasValue
-                ? "ТЕМПЕРАТУРА"
-                : "НЕТ ДАННЫХ",
+                ? SettingsService.L(
+                    "ТЕМПЕРАТУРА",
+                    "TEMPERATURE")
+                : SettingsService.L(
+                    "НЕТ ДАННЫХ",
+                    "NO DATA"),
             FontSize = 7,
             FontWeight = FontWeights.Bold,
             HorizontalAlignment =
@@ -4144,7 +4266,9 @@ public partial class MainWindow : Window
 
         TextBlock sector = new()
         {
-            Text = "СЕКТОР THM",
+            Text = SettingsService.L(
+                "СЕКТОР THM",
+                "THM SECTOR"),
             FontSize = 7,
             HorizontalAlignment =
                 HorizontalAlignment.Center
@@ -4620,7 +4744,9 @@ public partial class MainWindow : Window
     {
         return value.HasValue
             ? $"{value.Value:F1} °C"
-            : "Нет данных";
+            : SettingsService.L(
+                    "Нет данных",
+                    "No data");
     }
 
     private static string FormatPercent(
@@ -4628,7 +4754,9 @@ public partial class MainWindow : Window
     {
         return value.HasValue
             ? $"{value.Value:F1} %"
-            : "Нет данных";
+            : SettingsService.L(
+                    "Нет данных",
+                    "No data");
     }
 
     private static double ClampPercent(
@@ -4658,11 +4786,15 @@ public partial class MainWindow : Window
         if (gigabytes >= 1024)
         {
             return
-                $"{gigabytes / 1024:F2} ТБ";
+                SettingsService.L(
+                $"{gigabytes / 1024:F2} ТБ",
+                $"{gigabytes / 1024:F2} TB");
         }
 
         return
-            $"{gigabytes:F0} ГБ";
+            SettingsService.L(
+            $"{gigabytes:F0} ГБ",
+            $"{gigabytes:F0} GB");
     }
 }
 

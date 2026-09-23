@@ -19,6 +19,12 @@ public sealed class TrayService : IDisposable
 
     private readonly Action _exitAction;
 
+    private readonly Forms.ToolStripMenuItem _openItem;
+
+    private readonly Forms.ToolStripMenuItem _settingsItem;
+
+    private readonly Forms.ToolStripMenuItem _exitItem;
+
 
     public TrayService(
         Action openAction,
@@ -50,43 +56,45 @@ public sealed class TrayService : IDisposable
         Forms.ContextMenuStrip menu =
             new();
 
-        Forms.ToolStripMenuItem openItem =
-            new("Открыть");
+        _openItem =
+            new();
 
-        Forms.ToolStripMenuItem settingsItem =
-            new("Настройки");
+        _settingsItem =
+            new();
 
         Forms.ToolStripSeparator separator =
             new();
 
-        Forms.ToolStripMenuItem exitItem =
-            new("Выход");
+        _exitItem =
+            new();
+
+        RefreshLanguage();
 
 
-        openItem.Click +=
+        _openItem.Click +=
             (_, _) =>
                 _openAction();
 
-        settingsItem.Click +=
+        _settingsItem.Click +=
             (_, _) =>
                 _settingsAction();
 
-        exitItem.Click +=
+        _exitItem.Click +=
             (_, _) =>
                 _exitAction();
 
 
         menu.Items.Add(
-            openItem);
+            _openItem);
 
         menu.Items.Add(
-            settingsItem);
+            _settingsItem);
 
         menu.Items.Add(
             separator);
 
         menu.Items.Add(
-            exitItem);
+            _exitItem);
 
 
         // ========================================================
@@ -114,6 +122,25 @@ public sealed class TrayService : IDisposable
         _notifyIcon.DoubleClick +=
             (_, _) =>
                 _openAction();
+    }
+
+
+    public void RefreshLanguage()
+    {
+        _openItem.Text =
+            SettingsService.L(
+                "Открыть",
+                "Open");
+
+        _settingsItem.Text =
+            SettingsService.L(
+                "Настройки",
+                "Settings");
+
+        _exitItem.Text =
+            SettingsService.L(
+                "Выход",
+                "Exit");
     }
 
 

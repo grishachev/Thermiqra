@@ -41,6 +41,9 @@ public partial class StatisticsWindow : Window
     {
         InitializeComponent();
 
+        SettingsService.ApplyLanguageToWindow(
+            this);
+
         _statistics =
             statistics ??
             throw new ArgumentNullException(
@@ -73,7 +76,9 @@ public partial class StatisticsWindow : Window
         CpuHardwareNameText.Text =
             string.IsNullOrWhiteSpace(
                 cpuName)
-                ? "Модель процессора: нет данных"
+                ? SettingsService.L(
+                    "Модель процессора: нет данных",
+                    "Processor model: no data")
                 : cpuName;
 
         float? totalRam =
@@ -81,8 +86,12 @@ public partial class StatisticsWindow : Window
 
         RamHardwareInfoText.Text =
             totalRam.HasValue
-                ? $"Установлено: {totalRam.Value:F1} ГБ"
-                : "Общий объём памяти: нет данных";
+                ? SettingsService.L(
+                    $"Установлено: {totalRam.Value:F1} ГБ",
+                    $"Installed: {totalRam.Value:F1} GB")
+                : SettingsService.L(
+                    "Общий объём памяти: нет данных",
+                    "Total memory: no data");
     }
 
 
@@ -195,13 +204,19 @@ public partial class StatisticsWindow : Window
 
             StatusText.Text =
                 summary.SampleCount > 0
-                    ? "История загружена. Точки сохраняются примерно раз в минуту."
-                    : "За выбранный период сохранённых точек пока нет.";
+                    ? SettingsService.L(
+                        "История загружена. Точки сохраняются примерно раз в минуту.",
+                        "History loaded. Samples are saved approximately once per minute.")
+                    : SettingsService.L(
+                        "За выбранный период сохранённых точек пока нет.",
+                        "No saved samples are available for the selected period yet.");
         }
         catch (Exception ex)
         {
             StatusText.Text =
-                $"Не удалось прочитать статистику: {ex.Message}";
+                SettingsService.L(
+                    $"Не удалось прочитать статистику: {ex.Message}",
+                    $"Failed to read statistics: {ex.Message}");
         }
     }
 
@@ -294,7 +309,9 @@ public partial class StatisticsWindow : Window
 
         string ramDisplayName =
             totalRam.HasValue
-                ? $"RAM — {totalRam.Value:F1} ГБ"
+                ? SettingsService.L(
+                    $"RAM — {totalRam.Value:F1} ГБ",
+                    $"RAM — {totalRam.Value:F1} GB")
                 : "RAM";
 
         ChartSourceComboBox.Items.Add(
@@ -329,7 +346,9 @@ public partial class StatisticsWindow : Window
                     $"storage:{storage.DeviceId}",
                     ChartSourceKind.Storage,
                     storage.DeviceId,
-                    $"Накопитель — {storage.DeviceName}"));
+                    SettingsService.L(
+                        $"Накопитель — {storage.DeviceName}",
+                        $"Storage — {storage.DeviceName}")));
         }
 
         ChartSourceOption? selected =
@@ -405,11 +424,15 @@ public partial class StatisticsWindow : Window
                 {
                     new ChartMetricOption(
                         StatisticsChartMetric.CpuTemperature,
-                        "Температура",
+                        SettingsService.L(
+                            "Температура",
+                            "Temperature"),
                         "°C"),
                     new ChartMetricOption(
                         StatisticsChartMetric.CpuLoad,
-                        "Загрузка",
+                        SettingsService.L(
+                            "Загрузка",
+                            "Load"),
                         "%")
                 },
 
@@ -418,7 +441,9 @@ public partial class StatisticsWindow : Window
                 {
                     new ChartMetricOption(
                         StatisticsChartMetric.RamLoad,
-                        "Загрузка",
+                        SettingsService.L(
+                            "Загрузка",
+                            "Load"),
                         "%")
                 },
 
@@ -427,11 +452,15 @@ public partial class StatisticsWindow : Window
                 {
                     new ChartMetricOption(
                         StatisticsChartMetric.GpuTemperature,
-                        "Температура",
+                        SettingsService.L(
+                            "Температура",
+                            "Temperature"),
                         "°C"),
                     new ChartMetricOption(
                         StatisticsChartMetric.GpuLoad,
-                        "Загрузка",
+                        SettingsService.L(
+                            "Загрузка",
+                            "Load"),
                         "%"),
                     new ChartMetricOption(
                         StatisticsChartMetric.GpuHotSpotTemperature,
@@ -439,7 +468,9 @@ public partial class StatisticsWindow : Window
                         "°C"),
                     new ChartMetricOption(
                         StatisticsChartMetric.GpuMemoryTemperature,
-                        "Температура VRAM",
+                        SettingsService.L(
+                            "Температура VRAM",
+                            "VRAM temperature"),
                         "°C")
                 },
 
@@ -448,7 +479,9 @@ public partial class StatisticsWindow : Window
                 {
                     new ChartMetricOption(
                         StatisticsChartMetric.StorageTemperature,
-                        "Температура",
+                        SettingsService.L(
+                            "Температура",
+                            "Temperature"),
                         "°C")
                 },
 
@@ -514,7 +547,9 @@ public partial class StatisticsWindow : Window
         {
             _currentChartSeries = null;
             ChartEmptyText.Text =
-                $"Не удалось построить график: {ex.Message}";
+                SettingsService.L(
+                    $"Не удалось построить график: {ex.Message}",
+                    $"Failed to build chart: {ex.Message}");
             ChartEmptyText.Visibility =
                 Visibility.Visible;
             ChartCanvas.Children.Clear();
@@ -599,7 +634,9 @@ public partial class StatisticsWindow : Window
             ChartCanvas.ActualHeight < 100)
         {
             ChartEmptyText.Text =
-                "За выбранный период данных для графика пока нет.";
+                SettingsService.L(
+                    "За выбранный период данных для графика пока нет.",
+                    "No chart data is available for the selected period yet.");
             ChartEmptyText.Visibility =
                 Visibility.Visible;
             return;
@@ -930,13 +967,13 @@ public partial class StatisticsWindow : Window
                 StatisticsPeriod.Today =>
                     localTime.ToString("HH:mm:ss"),
                 StatisticsPeriod.Last24Hours =>
-                    localTime.ToString("dd.MM.yyyy HH:mm:ss"),
+                    localTime.ToString(SettingsService.IsRussian ? "dd.MM.yyyy HH:mm:ss" : "yyyy-MM-dd HH:mm:ss"),
                 StatisticsPeriod.Last7Days =>
-                    localTime.ToString("dd.MM.yyyy HH:mm"),
+                    localTime.ToString(SettingsService.IsRussian ? "dd.MM.yyyy HH:mm" : "yyyy-MM-dd HH:mm"),
                 StatisticsPeriod.Last30Days =>
-                    localTime.ToString("dd.MM.yyyy HH:mm"),
+                    localTime.ToString(SettingsService.IsRussian ? "dd.MM.yyyy HH:mm" : "yyyy-MM-dd HH:mm"),
                 _ =>
-                    localTime.ToString("dd.MM.yyyy HH:mm")
+                    localTime.ToString(SettingsService.IsRussian ? "dd.MM.yyyy HH:mm" : "yyyy-MM-dd HH:mm")
             };
 
         Border content =
@@ -1044,11 +1081,11 @@ public partial class StatisticsWindow : Window
             StatisticsPeriod.Last24Hours =>
                 localTime.ToString("HH:mm"),
             StatisticsPeriod.Last7Days =>
-                localTime.ToString("dd.MM"),
+                localTime.ToString(SettingsService.IsRussian ? "dd.MM" : "MM-dd"),
             StatisticsPeriod.Last30Days =>
-                localTime.ToString("dd.MM"),
+                localTime.ToString(SettingsService.IsRussian ? "dd.MM" : "MM-dd"),
             _ =>
-                localTime.ToString("dd.MM")
+                localTime.ToString(SettingsService.IsRussian ? "dd.MM" : "MM-dd")
         };
     }
 
@@ -1077,8 +1114,11 @@ public partial class StatisticsWindow : Window
             summary.EndUtc.ToLocalTime();
 
         PeriodRangeText.Text =
-            $"{localStart:dd.MM.yyyy HH:mm} — " +
-            $"{localEnd:dd.MM.yyyy HH:mm}";
+            SettingsService.IsRussian
+                ? $"{localStart:dd.MM.yyyy HH:mm} — " +
+                  $"{localEnd:dd.MM.yyyy HH:mm}"
+                : $"{localStart:yyyy-MM-dd HH:mm} — " +
+                  $"{localEnd:yyyy-MM-dd HH:mm}";
 
         CpuMaxTemperatureText.Text =
             FormatTemperature(
@@ -1142,7 +1182,9 @@ public partial class StatisticsWindow : Window
         if (hottestGpu == null)
         {
             GpuMaxTemperatureText.Text = "—";
-            GpuMaxTemperatureDeviceText.Text = "Нет данных";
+            GpuMaxTemperatureDeviceText.Text = SettingsService.L(
+                "Нет данных",
+                "No data");
             return;
         }
 
@@ -1171,7 +1213,9 @@ public partial class StatisticsWindow : Window
         if (hottestStorage == null)
         {
             StorageMaxTemperatureText.Text = "—";
-            StorageMaxTemperatureDeviceText.Text = "Нет данных";
+            StorageMaxTemperatureDeviceText.Text = SettingsService.L(
+                "Нет данных",
+                "No data");
             return;
         }
 
@@ -1195,7 +1239,9 @@ public partial class StatisticsWindow : Window
         {
             Border emptyCard =
                 CreateEmptyMessage(
-                    "За выбранный период данных GPU нет.");
+                    SettingsService.L(
+                    "За выбранный период данных GPU нет.",
+                    "No GPU data is available for the selected period."));
 
             Grid.SetColumnSpan(
                 emptyCard,
@@ -1231,7 +1277,9 @@ public partial class StatisticsWindow : Window
                 values,
                 0,
                 0,
-                "Температура / средняя",
+                SettingsService.L(
+                    "Температура / средняя",
+                    "Temperature / average"),
                 FormatTemperature(
                     gpu.Temperature.Average));
 
@@ -1239,7 +1287,9 @@ public partial class StatisticsWindow : Window
                 values,
                 0,
                 1,
-                "Температура / максимум",
+                SettingsService.L(
+                    "Температура / максимум",
+                    "Temperature / maximum"),
                 FormatTemperature(
                     gpu.Temperature.Maximum));
 
@@ -1247,7 +1297,9 @@ public partial class StatisticsWindow : Window
                 values,
                 1,
                 0,
-                "Загрузка / средняя",
+                SettingsService.L(
+                    "Загрузка / средняя",
+                    "Load / average"),
                 FormatPercent(
                     gpu.Load.Average));
 
@@ -1255,7 +1307,9 @@ public partial class StatisticsWindow : Window
                 values,
                 1,
                 1,
-                "Загрузка / максимум",
+                SettingsService.L(
+                    "Загрузка / максимум",
+                    "Load / maximum"),
                 FormatPercent(
                     gpu.Load.Maximum));
 
@@ -1263,7 +1317,9 @@ public partial class StatisticsWindow : Window
                 values,
                 2,
                 0,
-                "Hot Spot / максимум",
+                SettingsService.L(
+                    "Hot Spot / максимум",
+                    "Hot Spot / maximum"),
                 FormatTemperature(
                     gpu.HotSpotTemperature.Maximum));
 
@@ -1271,7 +1327,9 @@ public partial class StatisticsWindow : Window
                 values,
                 2,
                 1,
-                "VRAM / максимум",
+                SettingsService.L(
+                    "VRAM / максимум",
+                    "VRAM / maximum"),
                 FormatTemperature(
                     gpu.MemoryTemperature.Maximum));
 
@@ -1297,7 +1355,9 @@ public partial class StatisticsWindow : Window
         {
             Border emptyCard =
                 CreateEmptyMessage(
-                    "За выбранный период данных накопителей нет.");
+                    SettingsService.L(
+                    "За выбранный период данных накопителей нет.",
+                    "No storage data is available for the selected period."));
 
             Grid.SetColumnSpan(
                 emptyCard,
@@ -1349,7 +1409,9 @@ public partial class StatisticsWindow : Window
                 new()
                 {
                     Text =
-                        $"Максимум зафиксирован: " +
+                        SettingsService.L(
+                        "Максимум зафиксирован: ",
+                        "Maximum recorded: ") +
                         $"{FormatMaximumTime(storage.Temperature.MaximumAtUtc)}",
                     FontSize = 10,
                     Margin =
@@ -1377,13 +1439,17 @@ public partial class StatisticsWindow : Window
 
             values.Children.Add(
                 CreateCompactMetric(
+                    SettingsService.L(
                     "СРЕДНЯЯ",
+                    "AVERAGE"),
                     FormatTemperature(
                         storage.Temperature.Average)));
 
             values.Children.Add(
                 CreateCompactMetric(
+                    SettingsService.L(
                     "МАКСИМУМ",
+                    "MAXIMUM"),
                     FormatTemperature(
                         storage.Temperature.Maximum),
                     new Thickness(
@@ -1748,7 +1814,9 @@ public partial class StatisticsWindow : Window
 
         TextBlock recordsTitle =
             CreateDynamicSectionTitle(
-                "РЕКОРДЫ ЗА ВСЁ ВРЕМЯ");
+                SettingsService.L(
+                "РЕКОРДЫ ЗА ВСЁ ВРЕМЯ",
+                "ALL-TIME RECORDS"));
 
         root.Children.Add(
             recordsTitle);
@@ -1766,7 +1834,9 @@ public partial class StatisticsWindow : Window
 
         TextBlock eventsTitle =
             CreateDynamicSectionTitle(
-                "СОБЫТИЯ WARNING / CRITICAL");
+                SettingsService.L(
+                "СОБЫТИЯ WARNING / CRITICAL",
+                "WARNING / CRITICAL EVENTS"));
 
         root.Children.Add(
             eventsTitle);
@@ -1802,7 +1872,9 @@ public partial class StatisticsWindow : Window
             new()
             {
                 Text =
+                    SettingsService.L(
                     "Последние события за выбранный период",
+                    "Latest events for the selected period"),
                 FontSize = 10,
                 Margin =
                     new Thickness(
@@ -1864,7 +1936,9 @@ public partial class StatisticsWindow : Window
             new()
             {
                 Text =
+                    SettingsService.L(
                     "ОЧИСТКА СТАТИСТИКИ",
+                    "CLEAR STATISTICS"),
                 FontSize = 12,
                 FontWeight =
                     FontWeights.Bold
@@ -1878,7 +1952,9 @@ public partial class StatisticsWindow : Window
             new()
             {
                 Text =
+                    SettingsService.L(
                     "Удаляет историю датчиков, журнал событий и рекорды. Настройки Thermiqra не затрагиваются.",
+                    "Deletes sensor history, the event log, and records. Thermiqra settings are not affected."),
                 FontSize = 10,
                 TextWrapping =
                     TextWrapping.Wrap,
@@ -1901,7 +1977,9 @@ public partial class StatisticsWindow : Window
             new()
             {
                 Content =
+                    SettingsService.L(
                     "Очистить статистику",
+                    "Clear statistics"),
                 MinWidth = 150,
                 VerticalAlignment =
                     VerticalAlignment.Center
@@ -1988,7 +2066,9 @@ public partial class StatisticsWindow : Window
         {
             Border emptyCard =
                 CreateEmptyMessage(
-                    "Рекордов пока нет.");
+                    SettingsService.L(
+                    "Рекордов пока нет.",
+                    "No records yet."));
 
             Grid.SetColumnSpan(
                 emptyCard,
@@ -2041,8 +2121,11 @@ public partial class StatisticsWindow : Window
                 new()
                 {
                     Text =
-                        $"Зафиксирован: " +
-                        $"{record.TimestampUtc.ToLocalTime():dd.MM.yyyy HH:mm}",
+                        SettingsService.L(
+                        "Зафиксирован: ",
+                        "Recorded: ") +
+                        FormatLocalDateTime(
+                            record.TimestampUtc),
                     FontSize = 10
                 };
 
@@ -2126,7 +2209,9 @@ public partial class StatisticsWindow : Window
                 new()
                 {
                     Text =
+                        SettingsService.L(
                         "За выбранный период событий не зафиксировано.",
+                        "No events were recorded for the selected period."),
                     FontSize = 11
                 };
 
@@ -2188,10 +2273,8 @@ public partial class StatisticsWindow : Window
                 new()
                 {
                     Text =
-                        alertEvent.TimestampUtc
-                            .ToLocalTime()
-                            .ToString(
-                                "dd.MM.yyyy HH:mm"),
+                        FormatLocalDateTime(
+                            alertEvent.TimestampUtc),
                     FontSize = 10,
                     VerticalAlignment =
                         VerticalAlignment.Center
@@ -2226,7 +2309,7 @@ public partial class StatisticsWindow : Window
                 {
                     Text =
                         $"{alertEvent.DeviceName} • " +
-                        $"{alertEvent.Subject}: " +
+                        $"{SettingsService.TranslateKnown(alertEvent.Subject)}: " +
                         $"{alertEvent.Value:F0} {alertEvent.Unit}",
                     FontSize = 11,
                     TextWrapping =
@@ -2275,8 +2358,12 @@ public partial class StatisticsWindow : Window
         MessageBoxResult result =
             MessageBox.Show(
                 this,
-                "Удалить всю накопленную статистику, журнал событий и рекорды?\n\nНастройки Thermiqra останутся без изменений.",
-                "Thermiqra — Очистка статистики",
+                SettingsService.L(
+                    "Удалить всю накопленную статистику, журнал событий и рекорды?\n\nНастройки Thermiqra останутся без изменений.",
+                    "Delete all accumulated statistics, the event log, and records?\n\nThermiqra settings will remain unchanged."),
+                SettingsService.L(
+                    "Thermiqra — Очистка статистики",
+                    "Thermiqra — Clear Statistics"),
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Warning,
                 MessageBoxResult.No);
@@ -2295,14 +2382,20 @@ public partial class StatisticsWindow : Window
                 _currentPeriod);
 
             StatusText.Text =
-                "Статистика очищена. Новые точки начнут накапливаться автоматически.";
+                SettingsService.L(
+                    "Статистика очищена. Новые точки начнут накапливаться автоматически.",
+                    "Statistics cleared. New samples will start accumulating automatically.");
         }
         catch (Exception ex)
         {
             MessageBox.Show(
                 this,
-                $"Не удалось очистить статистику: {ex.Message}",
-                "Thermiqra — Ошибка",
+                SettingsService.L(
+                    $"Не удалось очистить статистику: {ex.Message}",
+                    $"Failed to clear statistics: {ex.Message}"),
+                SettingsService.L(
+                    "Thermiqra — Ошибка",
+                    "Thermiqra — Error"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }
@@ -2314,13 +2407,19 @@ public partial class StatisticsWindow : Window
         return record.Category switch
         {
             "CPU" =>
-                "CPU / МАКС. ТЕМПЕРАТУРА",
+                SettingsService.L(
+                    "CPU / МАКС. ТЕМПЕРАТУРА",
+                    "CPU / MAX TEMPERATURE"),
             "GPU" =>
                 $"GPU / {record.DeviceName}",
             "RAM" =>
-                "RAM / МАКС. ЗАГРУЗКА",
+                SettingsService.L(
+                    "RAM / МАКС. ЗАГРУЗКА",
+                    "RAM / MAX LOAD"),
             "STORAGE" =>
-                $"НАКОПИТЕЛЬ / {record.DeviceName}",
+                SettingsService.L(
+                    $"НАКОПИТЕЛЬ / {record.DeviceName}",
+                    $"STORAGE / {record.DeviceName}"),
             _ =>
                 record.DeviceName
         };
@@ -2410,14 +2509,27 @@ public partial class StatisticsWindow : Window
             : "—";
     }
 
+    private static string FormatLocalDateTime(
+        DateTimeOffset valueUtc)
+    {
+        DateTimeOffset local =
+            valueUtc.ToLocalTime();
+
+        return local.ToString(
+            SettingsService.IsRussian
+                ? "dd.MM.yyyy HH:mm"
+                : "yyyy-MM-dd HH:mm");
+    }
+
+
     private static string FormatMaximumTime(
         DateTimeOffset? valueUtc)
     {
         return valueUtc.HasValue
-            ? valueUtc.Value
-                .ToLocalTime()
-                .ToString(
-                    "dd.MM.yyyy HH:mm")
-            : "Нет данных";
+            ? FormatLocalDateTime(
+                valueUtc.Value)
+            : SettingsService.L(
+                "Нет данных",
+                "No data");
     }
 }

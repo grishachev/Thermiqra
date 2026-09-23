@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
@@ -17,6 +17,8 @@ public partial class SettingsWindow : Window
 
     private readonly string _originalTheme;
 
+    private string _selectedLanguage;
+
     private bool _saved;
 
     public bool Saved =>
@@ -26,6 +28,9 @@ public partial class SettingsWindow : Window
         bool firstRun)
     {
         InitializeComponent();
+
+        SettingsService.ApplyLanguageToWindow(
+            this);
 
         _firstRun =
             firstRun;
@@ -43,6 +48,12 @@ public partial class SettingsWindow : Window
                 .Current
                 .ThemeName;
 
+        _selectedLanguage =
+            SettingsService
+                .Current
+                .LanguageName
+            ?? "System";
+
         LoadSettings();
 
         UpdateSkinCards();
@@ -56,6 +67,9 @@ public partial class SettingsWindow : Window
     {
         AppSettings settings =
             SettingsService.Current;
+
+        SelectLanguageItem(
+            settings.LanguageName);
 
         // Запуск и трей
         AutoStartCheck.IsChecked =
@@ -137,6 +151,68 @@ public partial class SettingsWindow : Window
                 .ToString(
                     CultureInfo.CurrentCulture);
     }
+
+    // ============================================================
+    // ЯЗЫК
+    // ============================================================
+
+    private void LanguageComboBox_SelectionChanged(
+        object sender,
+        SelectionChangedEventArgs e)
+    {
+        if (LanguageComboBox.SelectedItem
+            is not ComboBoxItem item ||
+            item.Tag is not string languageName)
+        {
+            return;
+        }
+
+        _selectedLanguage =
+            languageName;
+    }
+
+
+    private void SelectLanguageItem(
+        string? languageName)
+    {
+        string target =
+            languageName switch
+            {
+                "English" => "English",
+                "Russian" => "Russian",
+                _ => "System"
+            };
+
+        foreach (object itemObject
+                 in LanguageComboBox.Items)
+        {
+            if (itemObject is not ComboBoxItem item ||
+                item.Tag is not string tag)
+            {
+                continue;
+            }
+
+            if (!string.Equals(
+                    tag,
+                    target,
+                    StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            LanguageComboBox.SelectedItem =
+                item;
+
+            _selectedLanguage =
+                target;
+
+            return;
+        }
+
+        _selectedLanguage =
+            "System";
+    }
+
 
     // ============================================================
     // ВЫБОР СКИНА
@@ -241,7 +317,9 @@ public partial class SettingsWindow : Window
             alertDelay > 120)
         {
             ShowError(
-                "Задержка предупреждения должна быть от 1 до 120 секунд.");
+                SettingsService.L(
+                    "Задержка предупреждения должна быть от 1 до 120 секунд.",
+                    "The alert delay must be between 1 and 120 seconds."));
 
             return;
         }
@@ -257,7 +335,9 @@ public partial class SettingsWindow : Window
             criticalRepeatMinutes > 120)
         {
             ShowError(
-                "Интервал повтора критического предупреждения должен быть от 1 до 120 минут.");
+                SettingsService.L(
+                    "Интервал повтора критического предупреждения должен быть от 1 до 120 минут.",
+                    "The critical alert repeat interval must be between 1 and 120 minutes."));
 
             return;
         }
@@ -279,7 +359,9 @@ public partial class SettingsWindow : Window
             cpuWarning >= cpuCritical)
         {
             ShowError(
-                "Проверь температуры CPU. Предупреждение должно быть ниже критической температуры.");
+                SettingsService.L(
+                    "Проверь температуры CPU. Предупреждение должно быть ниже критической температуры.",
+                    "Check the CPU temperature thresholds. Warning must be lower than critical."));
 
             return;
         }
@@ -301,7 +383,9 @@ public partial class SettingsWindow : Window
             gpuWarning >= gpuCritical)
         {
             ShowError(
-                "Проверь температуры GPU. Предупреждение должно быть ниже критической температуры.");
+                SettingsService.L(
+                    "Проверь температуры GPU. Предупреждение должно быть ниже критической температуры.",
+                    "Check the GPU temperature thresholds. Warning must be lower than critical."));
 
             return;
         }
@@ -323,7 +407,9 @@ public partial class SettingsWindow : Window
             storageWarning >= storageCritical)
         {
             ShowError(
-                "Проверь температуры накопителей. Предупреждение должно быть ниже критической температуры.");
+                SettingsService.L(
+                    "Проверь температуры накопителей. Предупреждение должно быть ниже критической температуры.",
+                    "Check the storage temperature thresholds. Warning must be lower than critical."));
 
             return;
         }
@@ -345,7 +431,9 @@ public partial class SettingsWindow : Window
             diskWarning >= diskCritical)
         {
             ShowError(
-                "Проверь пороги заполнения дисков. Предупреждение должно быть ниже критического значения.");
+                SettingsService.L(
+                    "Проверь пороги заполнения дисков. Предупреждение должно быть ниже критического значения.",
+                    "Check the disk usage thresholds. Warning must be lower than critical."));
 
             return;
         }
@@ -363,8 +451,11 @@ public partial class SettingsWindow : Window
                 out string? startupError))
         {
             ShowError(
-                "Не удалось изменить автозапуск.\n\n" +
-                startupError);
+                SettingsService.L(
+                    "Не удалось изменить автозапуск.\n\n",
+                    "Failed to change startup settings.\n\n") +
+                SettingsService.TranslateText(
+                    startupError ?? string.Empty));
 
             return;
         }
@@ -378,6 +469,9 @@ public partial class SettingsWindow : Window
 
         settings.SkinName =
             _selectedSkin;
+
+        settings.LanguageName =
+            _selectedLanguage;
 
         // Запуск / трей
         settings.AutoStartWithWindows =
@@ -459,9 +553,16 @@ public partial class SettingsWindow : Window
 
         SettingsService.Save();
 
+        SettingsService.ApplyLanguagePreference();
+
         ThemeManager.ApplyAppearance(
             settings.SkinName,
             settings.ThemeName);
+
+        if (Owner is MainWindow mainWindow)
+        {
+            mainWindow.RefreshLanguage();
+        }
 
         _saved =
             true;

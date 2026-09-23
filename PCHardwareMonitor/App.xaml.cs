@@ -26,6 +26,10 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
+        SettingsService.Load();
+
+        SettingsService.ApplyLanguagePreference();
+
         bool shutdownArgument =
             e.Args.Any(
                 argument =>
@@ -52,8 +56,11 @@ public partial class App : Application
         if (!createdNew)
         {
             MessageBox.Show(
-                "Thermiqra уже запущен.\n" +
-                "Проверь значок программы в системном трее.",
+                SettingsService.L(
+                    "Thermiqra уже запущен.\n" +
+                    "Проверь значок программы в системном трее.",
+                    "Thermiqra is already running.\n" +
+                    "Check the Thermiqra icon in the system tray."),
                 "Thermiqra",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);
@@ -94,8 +101,6 @@ public partial class App : Application
                 null,
                 Timeout.Infinite,
                 false);
-
-        SettingsService.Load();
 
         ThemeManager.ApplyTheme(
             SettingsService

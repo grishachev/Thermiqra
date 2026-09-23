@@ -1,4 +1,5 @@
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -58,6 +59,56 @@ public sealed class RingGauge : Border
 
     private readonly TemperatureType _temperatureType;
 
+    private string _appliedLanguageCode =
+        string.Empty;
+
+    private static readonly Dictionary<string, string>
+        RussianToEnglishText =
+            new(StringComparer.Ordinal)
+            {
+                ["ГОРЯЧАЯ ТОЧКА"] = "HOT SPOT",
+                ["ДАТЧИК АКТИВЕН"] = "SENSOR ACTIVE",
+                ["ДАТЧИКИ В РЕАЛЬНОМ ВРЕМЕНИ"] = "REAL-TIME SENSORS",
+                ["КАНАЛ ДАТЧИКОВ"] = "SENSOR CHANNEL",
+                ["КАНАЛ ПОЛЕВОГО КОНТРОЛЯ"] = "FIELD MONITORING CHANNEL",
+                ["КОНТУР ОХЛАЖДЕНИЯ"] = "COOLING CIRCUIT",
+                ["КРИОГЕННЫЙ ГРАФИЧЕСКИЙ МОДУЛЬ"] = "CRYOGENIC GPU MODULE",
+                ["КРИОГЕННЫЙ ПРОЦЕССОРНЫЙ МОДУЛЬ"] = "CRYOGENIC CPU MODULE",
+                ["КРИОКОНТУР"] = "CRYO CIRCUIT",
+                ["КРИОЯДРО CPU"] = "CPU CRYO CORE",
+                ["КРИОЯДРО GPU"] = "GPU CRYO CORE",
+                ["МАНОМЕТР НАГРУЗКИ ГРАФИЧЕСКОГО ПРОЦЕССОРА"] = "GPU LOAD GAUGE",
+                ["МАНОМЕТР НАГРУЗКИ ПРОЦЕССОРА"] = "CPU LOAD GAUGE",
+                ["МЕХАНИЧЕСКИЙ ДАТЧИК"] = "MECHANICAL SENSOR",
+                ["МОДЕЛЬ"] = "MODEL",
+                ["МОДУЛЬ CPU"] = "CPU MODULE",
+                ["МОДУЛЬ GPU"] = "GPU MODULE",
+                ["Мониторинг в реальном времени"] = "Real-time monitoring",
+                ["Мониторинг криоядра в реальном времени"] = "Real-time cryo-core monitoring",
+                ["НАГРУЗКА СИСТЕМЫ"] = "SYSTEM LOAD",
+                ["НАГРУЗКА, %"] = "LOAD, %",
+                ["НЕТ ДАННЫХ"] = "NO DATA",
+                ["ОБОРУДОВАНИЕ"] = "HARDWARE",
+                ["ОХЛАЖДАЮЩИЙ КОНТУР АКТИВЕН"] = "COOLING CIRCUIT ACTIVE",
+                ["ПОЛЕВОЙ МОДУЛЬ CPU"] = "CPU FIELD MODULE",
+                ["ПОЛЕВОЙ МОДУЛЬ GPU"] = "GPU FIELD MODULE",
+                ["ПОЛЕВОЙ МОДУЛЬ ГРАФИЧЕСКОГО ПРОЦЕССОРА"] = "GPU FIELD MODULE",
+                ["ПОЛЕВОЙ МОДУЛЬ ПРОЦЕССОРА"] = "CPU FIELD MODULE",
+                ["СЕКТОР LOAD-01"] = "SECTOR LOAD-01",
+                ["СОСТОЯНИЕ ДАТЧИКА"] = "SENSOR STATUS",
+                ["СОСТОЯНИЕ КРИОКОНТУРА"] = "CRYO CIRCUIT STATUS",
+                ["СТАТУС"] = "STATUS",
+                ["СТАТУС ПОЛЕВОГО ДАТЧИКА"] = "FIELD SENSOR STATUS",
+                ["ТАКТИЧЕСКАЯ ТЕЛЕМЕТРИЯ АКТИВНА"] = "TACTICAL TELEMETRY ACTIVE",
+                ["ТАКТИЧЕСКИЙ ДАТЧИК"] = "TACTICAL SENSOR",
+                ["ТЕМП."] = "TEMP.",
+                ["ТЕМПЕРАТУРА"] = "TEMPERATURE",
+                ["ТЕМПЕРАТУРА VRAM"] = "VRAM TEMPERATURE",
+                ["Телеметрия в реальном времени"] = "Real-time telemetry",
+                ["УРОВЕНЬ НАГРУЗКИ"] = "LOAD LEVEL"
+            };
+
+
     public RingGauge(
         string title,
         TemperatureType temperatureType)
@@ -102,6 +153,9 @@ public sealed class RingGauge : Border
         Child = root;
 
         SetProgress(0);
+
+        RefreshLanguageIfNeeded(
+            force: true);
     }
 
     // ============================================================
@@ -4662,6 +4716,7 @@ public sealed class RingGauge : Border
         string hardwareName,
         string details)
     {
+        RefreshLanguageIfNeeded();
         double loadValue =
             load.HasValue
                 ? Math.Clamp(
@@ -4760,7 +4815,8 @@ public sealed class RingGauge : Border
         if (sensorAvailable)
         {
             _cyberStatusText.Text =
-                "ДАТЧИК АКТИВЕН";
+                LocalizeText(
+                    "ДАТЧИК АКТИВЕН");
 
             _cyberStatusText.SetResourceReference(
                 TextBlock.ForegroundProperty,
@@ -4771,7 +4827,8 @@ public sealed class RingGauge : Border
                 "AccentBrush");
 
             _steamStatusText.Text =
-                "ДАТЧИК АКТИВЕН";
+                LocalizeText(
+                    "ДАТЧИК АКТИВЕН");
 
             _steamStatusText.SetResourceReference(
                 TextBlock.ForegroundProperty,
@@ -4782,7 +4839,8 @@ public sealed class RingGauge : Border
                 "AccentBrush");
 
             _frostStatusText.Text =
-                "ДАТЧИК АКТИВЕН";
+                LocalizeText(
+                    "ДАТЧИК АКТИВЕН");
 
             _frostStatusText.SetResourceReference(
                 TextBlock.ForegroundProperty,
@@ -4793,7 +4851,8 @@ public sealed class RingGauge : Border
                 "FrostIceBrush");
 
             _militaryStatusText.Text =
-                "ДАТЧИК АКТИВЕН";
+                LocalizeText(
+                    "ДАТЧИК АКТИВЕН");
 
             _militaryStatusText.SetResourceReference(
                 TextBlock.ForegroundProperty,
@@ -4806,7 +4865,8 @@ public sealed class RingGauge : Border
         else
         {
             _cyberStatusText.Text =
-                "НЕТ ДАННЫХ";
+                LocalizeText(
+                    "НЕТ ДАННЫХ");
 
             _cyberStatusText.SetResourceReference(
                 TextBlock.ForegroundProperty,
@@ -4816,7 +4876,8 @@ public sealed class RingGauge : Border
                 Brushes.Gray;
 
             _steamStatusText.Text =
-                "НЕТ ДАННЫХ";
+                LocalizeText(
+                    "НЕТ ДАННЫХ");
 
             _steamStatusText.SetResourceReference(
                 TextBlock.ForegroundProperty,
@@ -4826,7 +4887,8 @@ public sealed class RingGauge : Border
                 Brushes.Gray;
 
             _frostStatusText.Text =
-                "НЕТ ДАННЫХ";
+                LocalizeText(
+                    "НЕТ ДАННЫХ");
 
             _frostStatusText.SetResourceReference(
                 TextBlock.ForegroundProperty,
@@ -4836,7 +4898,8 @@ public sealed class RingGauge : Border
                 Brushes.Gray;
 
             _militaryStatusText.Text =
-                "НЕТ ДАННЫХ";
+                LocalizeText(
+                    "НЕТ ДАННЫХ");
 
             _militaryStatusText.SetResourceReference(
                 TextBlock.ForegroundProperty,
@@ -5095,6 +5158,101 @@ public sealed class RingGauge : Border
             Math.Sin(
                 angleRadians));
     }
+
+    private void RefreshLanguageIfNeeded(
+        bool force = false)
+    {
+        string languageCode =
+            SettingsService.IsRussian
+                ? "ru"
+                : "en";
+
+        if (!force &&
+            string.Equals(
+                _appliedLanguageCode,
+                languageCode,
+                StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        ApplyLanguageToVisualTree(
+            this);
+
+        _appliedLanguageCode =
+            languageCode;
+    }
+
+
+    private static void ApplyLanguageToVisualTree(
+        DependencyObject root)
+    {
+        if (root is TextBlock textBlock &&
+            !string.IsNullOrEmpty(
+                textBlock.Text))
+        {
+            textBlock.Text =
+                LocalizeExistingText(
+                    textBlock.Text);
+        }
+
+        int childCount =
+            VisualTreeHelper.GetChildrenCount(
+                root);
+
+        for (int i = 0;
+             i < childCount;
+             i++)
+        {
+            ApplyLanguageToVisualTree(
+                VisualTreeHelper.GetChild(
+                    root,
+                    i));
+        }
+    }
+
+
+    private static string LocalizeExistingText(
+        string text)
+    {
+        if (SettingsService.IsRussian)
+        {
+            foreach (KeyValuePair<string, string> pair
+                     in RussianToEnglishText)
+            {
+                if (string.Equals(
+                        pair.Value,
+                        text,
+                        StringComparison.Ordinal))
+                {
+                    return pair.Key;
+                }
+            }
+
+            return text;
+        }
+
+        return RussianToEnglishText.TryGetValue(
+                text,
+                out string? english)
+            ? english
+            : text;
+    }
+
+
+    private static string LocalizeText(
+        string russian)
+    {
+        if (SettingsService.IsRussian)
+            return russian;
+
+        return RussianToEnglishText.TryGetValue(
+                russian,
+                out string? english)
+            ? english
+            : russian;
+    }
+
 
     private static TextBlock CreateTechLabel(
         string text)

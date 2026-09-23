@@ -68,7 +68,9 @@ public sealed class AlertService
                 unit: "°C",
 
                 subject:
-                    "Температура",
+                    SettingsService.L(
+                        "Температура",
+                        "Temperature"),
 
                 repeatCritical:
                     true);
@@ -116,7 +118,9 @@ public sealed class AlertService
                         "°C",
 
                     subject:
-                        "Температура",
+                        SettingsService.L(
+                            "Температура",
+                            "Temperature"),
 
                     repeatCritical:
                         true);
@@ -161,7 +165,9 @@ public sealed class AlertService
                         "°C",
 
                     subject:
-                        "Температура накопителя",
+                        SettingsService.L(
+                            "Температура накопителя",
+                            "Storage temperature"),
 
                     repeatCritical:
                         true);
@@ -213,7 +219,9 @@ public sealed class AlertService
                         "%",
 
                     subject:
-                        "Заполнение диска",
+                        SettingsService.L(
+                            "Заполнение диска",
+                            "Disk usage"),
 
                     // Диски не повторяем.
                     repeatCritical:
@@ -398,8 +406,12 @@ public sealed class AlertService
 
         string title =
             critical
-                ? $"Критическое состояние: {name}"
-                : $"Предупреждение: {name}";
+                ? SettingsService.L(
+                    $"Критическое состояние: {name}",
+                    $"Critical condition: {name}")
+                : SettingsService.L(
+                    $"Предупреждение: {name}",
+                    $"Warning: {name}");
 
         string message =
             $"{subject}: " +

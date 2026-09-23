@@ -121,6 +121,10 @@ public sealed class SystemInfoService
                     .ToString();
         }
 
+        architecture =
+            NormalizeOsArchitecture(
+                architecture);
+
         return new OperatingSystemDetails
         {
             Name = windowsName,
@@ -187,6 +191,12 @@ public sealed class SystemInfoService
         edition =
             edition.Replace(
                 "Microsoft ",
+                "",
+                StringComparison.OrdinalIgnoreCase);
+
+        edition =
+            edition.Replace(
+                "Майкрософт ",
                 "",
                 StringComparison.OrdinalIgnoreCase);
 
@@ -511,6 +521,9 @@ public sealed class SystemInfoService
         ulong? totalBytes =
             ReadTotalPhysicalMemory();
 
+        uint? physicalSlotCount =
+            ReadPhysicalMemorySlotCount();
+
         List<MemoryModuleDetails> modules =
             new();
 
@@ -526,7 +539,12 @@ public sealed class SystemInfoService
                     "PartNumber, " +
                     "SerialNumber, " +
                     "Speed, " +
-                    "ConfiguredClockSpeed " +
+                    "ConfiguredClockSpeed, " +
+                    "SMBIOSMemoryType, " +
+                    "ConfiguredVoltage, " +
+                    "FormFactor, " +
+                    "DataWidth, " +
+                    "TotalWidth " +
                     "FROM Win32_PhysicalMemory");
 
             using ManagementObjectCollection results =
@@ -584,7 +602,38 @@ public sealed class SystemInfoService
 
                         FrequencyMhz =
                             configuredSpeed ??
-                            reportedSpeed
+                            reportedSpeed,
+
+                        ReportedSpeedMhz =
+                            reportedSpeed,
+
+                        ConfiguredSpeedMhz =
+                            configuredSpeed,
+
+                        SmbiosMemoryType =
+                            ReadUInt16(
+                                item,
+                                "SMBIOSMemoryType"),
+
+                        ConfiguredVoltageMv =
+                            ReadPositiveUInt32(
+                                item,
+                                "ConfiguredVoltage"),
+
+                        FormFactor =
+                            ReadUInt16(
+                                item,
+                                "FormFactor"),
+
+                        DataWidthBits =
+                            ReadUInt16(
+                                item,
+                                "DataWidth"),
+
+                        TotalWidthBits =
+                            ReadUInt16(
+                                item,
+                                "TotalWidth")
                     });
             }
         }
@@ -615,8 +664,59 @@ public sealed class SystemInfoService
         return new MemoryDetails
         {
             TotalBytes = totalBytes,
+            PhysicalSlotCount = physicalSlotCount,
             Modules = modules
         };
+    }
+
+
+    private static uint? ReadPhysicalMemorySlotCount()
+    {
+        try
+        {
+            using ManagementObjectSearcher searcher =
+                new(
+                    "SELECT " +
+                    "MemoryDevices " +
+                    "FROM Win32_PhysicalMemoryArray");
+
+            using ManagementObjectCollection results =
+                searcher.Get();
+
+            uint totalSlots = 0;
+            bool found = false;
+
+            foreach (ManagementObject item in results)
+            {
+                uint? slots =
+                    ReadPositiveUInt32(
+                        item,
+                        "MemoryDevices");
+
+                if (!slots.HasValue)
+                    continue;
+
+                if (uint.MaxValue - totalSlots <
+                    slots.Value)
+                {
+                    return null;
+                }
+
+                totalSlots +=
+                    slots.Value;
+
+                found = true;
+            }
+
+            return found &&
+                   totalSlots > 0
+                ? totalSlots
+                : null;
+        }
+        catch
+        {
+            return null;
+        }
     }
 
 
@@ -778,9 +878,10 @@ public sealed class SystemInfoService
                         Model = model,
 
                         Manufacturer =
-                            ReadString(
-                                item,
-                                "Manufacturer"),
+                            NormalizeStorageManufacturer(
+                                ReadString(
+                                    item,
+                                    "Manufacturer")),
 
                         SerialNumber =
                             ReadString(
@@ -798,9 +899,10 @@ public sealed class SystemInfoService
                                 "InterfaceType"),
 
                         MediaType =
-                            ReadString(
-                                item,
-                                "MediaType"),
+                            NormalizeStorageMediaType(
+                                ReadString(
+                                    item,
+                                    "MediaType")),
 
                         CapacityBytes =
                             ReadUInt64(
@@ -816,6 +918,120 @@ public sealed class SystemInfoService
         }
 
         return devices;
+    }
+
+
+    private static string? NormalizeOsArchitecture(
+        string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return value;
+
+        string text =
+            value.Trim();
+
+        if (text.Contains(
+                "64",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return SettingsService.L(
+                "64-разрядная",
+                "64-bit");
+        }
+
+        if (text.Contains(
+                "32",
+                StringComparison.OrdinalIgnoreCase) ||
+            text.Contains(
+                "x86",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return SettingsService.L(
+                "32-разрядная",
+                "32-bit");
+        }
+
+        return text;
+    }
+
+
+    private static string? NormalizeStorageManufacturer(
+        string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return value;
+
+        string text =
+            value.Trim();
+
+        if (string.Equals(
+                text,
+                "(Стандартные дисковые накопители)",
+                StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(
+                text,
+                "Стандартные дисковые накопители",
+                StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(
+                text,
+                "(Standard disk drives)",
+                StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(
+                text,
+                "Standard disk drives",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return SettingsService.L(
+                "(Стандартные дисковые накопители)",
+                "(Standard disk drives)");
+        }
+
+        return text;
+    }
+
+
+    private static string? NormalizeStorageMediaType(
+        string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return value;
+
+        string text =
+            value.Trim();
+
+        if (string.Equals(
+                text,
+                "Fixed hard disk media",
+                StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(
+                text,
+                "Фиксированный жесткий диск",
+                StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(
+                text,
+                "Фиксированный носитель",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return SettingsService.L(
+                "Несъёмный жёсткий диск",
+                "Fixed hard disk media");
+        }
+
+        if (string.Equals(
+                text,
+                "Removable media",
+                StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(
+                text,
+                "Съёмный носитель",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return SettingsService.L(
+                "Съёмный носитель",
+                "Removable media");
+        }
+
+        return text;
     }
 
 
@@ -1123,6 +1339,8 @@ public sealed class MemoryDetails
 {
     public ulong? TotalBytes { get; init; }
 
+    public uint? PhysicalSlotCount { get; init; }
+
     public IReadOnlyList<MemoryModuleDetails> Modules { get; init; } =
         Array.Empty<MemoryModuleDetails>();
 }
@@ -1141,6 +1359,20 @@ public sealed class MemoryModuleDetails
     public string? SerialNumber { get; init; }
 
     public uint? FrequencyMhz { get; init; }
+
+    public uint? ReportedSpeedMhz { get; init; }
+
+    public uint? ConfiguredSpeedMhz { get; init; }
+
+    public ushort? SmbiosMemoryType { get; init; }
+
+    public uint? ConfiguredVoltageMv { get; init; }
+
+    public ushort? FormFactor { get; init; }
+
+    public ushort? DataWidthBits { get; init; }
+
+    public ushort? TotalWidthBits { get; init; }
 }
 
 

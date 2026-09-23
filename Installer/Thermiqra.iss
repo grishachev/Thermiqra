@@ -1,5 +1,5 @@
-#define MyAppName "Thermiqra"
-#define MyAppVersion "0.5.0"
+﻿#define MyAppName "Thermiqra"
+#define MyAppVersion "0.6.0"
 #define MyAppPublisher "Thermiqra"
 #define MyAppExeName "Thermiqra.exe"
 
@@ -19,7 +19,7 @@ DisableWelcomePage=no
 PrivilegesRequired=admin
 
 OutputDir=Output
-OutputBaseFilename=Thermiqra_Setup_0.5.0
+OutputBaseFilename=Thermiqra_Setup_0.6.0
 
 SetupIconFile=..\PCHardwareMonitor\Assets\Thermiqra.ico
 
@@ -38,11 +38,33 @@ ArchitecturesInstallIn64BitMode=x64compatible
 Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "russian"; MessagesFile: "compiler:Languages\Russian.isl"
 
+[CustomMessages]
+english.DesktopIcon=Create a desktop icon
+russian.DesktopIcon=Создать значок на рабочем столе
+english.AdditionalIcons=Additional icons:
+russian.AdditionalIcons=Дополнительные значки:
+english.InstallPawnIO=Installing the PawnIO system driver...
+russian.InstallPawnIO=Установка системного драйвера PawnIO...
+english.RunThermiqra=Run Thermiqra
+russian.RunThermiqra=Запустить Thermiqra
+english.CloseInstallFailed=Thermiqra could not be closed.
+russian.CloseInstallFailed=Не удалось закрыть Thermiqra.
+english.CloseInstallRetry=Close the application manually and retry the installation.
+russian.CloseInstallRetry=Закройте программу вручную и повторите установку.
+english.CloseUninstallRetry=Close the application manually and run the uninstaller again.
+russian.CloseUninstallRetry=Закройте программу вручную и снова запустите удаление.
+english.RemoveUserDataQuestion=Also remove Thermiqra settings and history?
+russian.RemoveUserDataQuestion=Удалить также настройки и историю Thermiqra?
+english.RemoveUserDataYes=Yes — remove all Thermiqra user data.
+russian.RemoveUserDataYes=Да — удалить все пользовательские данные Thermiqra.
+english.RemoveUserDataNo=No — keep settings and history for reinstalling or updating.
+russian.RemoveUserDataNo=Нет — сохранить настройки и историю для повторной установки или обновления.
+
 [Tasks]
 
 Name: "desktopicon"; \
-    Description: "Создать значок на рабочем столе"; \
-    GroupDescription: "Дополнительные значки:"; \
+    Description: "{cm:DesktopIcon}"; \
+    GroupDescription: "{cm:AdditionalIcons}"; \
     Flags: unchecked
 
 [Files]
@@ -85,7 +107,7 @@ Name: "{autodesktop}\Thermiqra"; \
 
 Filename: "{tmp}\PawnIO_setup.exe"; \
     Parameters: "-install -silent"; \
-    StatusMsg: "Установка системного драйвера PawnIO..."; \
+    StatusMsg: "{cm:InstallPawnIO}"; \
     Flags: waituntilterminated runhidden
 
 
@@ -94,7 +116,7 @@ Filename: "{tmp}\PawnIO_setup.exe"; \
 ; ============================================================
 
 Filename: "{app}\Thermiqra.exe"; \
-    Description: "Запустить Thermiqra"; \
+    Description: "{cm:RunThermiqra}"; \
     Flags: nowait postinstall skipifsilent runascurrentuser
 
 
@@ -172,8 +194,8 @@ begin
   if IsThermiqraRunning then
   begin
     Result :=
-      'Не удалось закрыть Thermiqra.' + #13#10 +
-      'Закройте программу вручную и повторите установку.';
+      ExpandConstant('{cm:CloseInstallFailed}') + #13#10 +
+      ExpandConstant('{cm:CloseInstallRetry}');
   end;
 end;
 
@@ -188,8 +210,8 @@ begin
   if not Result then
   begin
     MsgBox(
-      'Не удалось закрыть Thermiqra.' + #13#10 + #13#10 +
-      'Закройте программу вручную и снова запустите удаление.',
+      ExpandConstant('{cm:CloseInstallFailed}') + #13#10 + #13#10 +
+      ExpandConstant('{cm:CloseUninstallRetry}'),
       mbError,
       MB_OK);
   end;
@@ -207,9 +229,9 @@ begin
     begin
       RemoveUserData :=
         MsgBox(
-          'Удалить также настройки и историю Thermiqra?' + #13#10 + #13#10 +
-          'Да — удалить все пользовательские данные Thermiqra.' + #13#10 +
-          'Нет — сохранить настройки и историю для повторной установки или обновления.',
+          ExpandConstant('{cm:RemoveUserDataQuestion}') + #13#10 + #13#10 +
+          ExpandConstant('{cm:RemoveUserDataYes}') + #13#10 +
+          ExpandConstant('{cm:RemoveUserDataNo}'),
           mbConfirmation,
           MB_YESNO
         ) = IDYES;
