@@ -1,35 +1,46 @@
 # Thermiqra
 
-Thermiqra is a Windows 10/11 desktop application for real-time PC hardware monitoring with local history, statistics, alerts and system information.
+<p align="center">
+  <strong>Real-time PC hardware monitoring, diagnostics, statistics and alerts for Windows 10/11.</strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/grishachev/Thermiqra/releases/latest">
+    <img src="https://img.shields.io/github/v/release/grishachev/Thermiqra?label=release" alt="Latest release">
+  </a>
+  <img src="https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-blue" alt="Windows 10 and 11">
+  <img src="https://img.shields.io/badge/.NET-10-512BD4" alt=".NET 10">
+  <img src="https://img.shields.io/badge/languages-English%20%7C%20Русский-6f42c1" alt="English and Russian">
+</p>
 
 <p align="center">
   <img src="thermiqra-main.png" alt="Thermiqra main monitoring window" width="820">
 </p>
 
 <p align="center">
-  <a href="https://github.com/grishachev/Thermiqra/releases/latest"><strong>Download the latest release</strong></a>
+  <a href="https://github.com/grishachev/Thermiqra/releases/latest"><strong>Download the latest Thermiqra release</strong></a>
 </p>
 
-## Features
+Thermiqra is a native Windows desktop application for monitoring PC hardware in real time. It combines live CPU/GPU/RAM/storage data, detailed system information, memory diagnostics, local statistics, alerts, multiple visual themes and built-in updates in one application.
 
-- real-time CPU, GPU, RAM, storage and logical drive monitoring
-- detailed system information
-- local monitoring history stored in SQLite
-- statistics for Today, 24 hours, 7 days and 30 days
-- CPU, GPU, RAM and storage charts with exact values on hover
-- average and maximum values with timestamps
-- all-time hardware records
-- Warning/Critical event history
-- temperature warnings and critical alerts
-- system tray operation
-- elevated autostart through Windows Task Scheduler
-- persistent settings, statistics, window size and position
-- four interface skins: Cyber Tech, SteamPunk, Frost Core and Military Ops
-- GitHub release update checks
-- Inno Setup installer with PawnIO installation
-- clean uninstall with optional removal of Thermiqra settings and history
+## Highlights
+
+| Area | What Thermiqra provides |
+| --- | --- |
+| **Live monitoring** | CPU, GPU, RAM, physical storage and logical drive monitoring with one-second updates |
+| **CPU threads** | Live load view for individual logical processors directly from the CPU monitor |
+| **System information** | Detailed hardware and Windows information in a dedicated system view |
+| **Memory diagnostics** | RAM module information, SPD data, JEDEC information, XMP 2.0 profiles, timings and upgrade information |
+| **Statistics** | Local SQLite history for Today, 24 hours, 7 days and 30 days, with charts, averages, maxima and timestamps |
+| **Alerts** | Configurable temperature warnings, critical alerts and Warning/Critical event history |
+| **Themes** | Cyber Tech, SteamPunk, Frost Core and Military Ops |
+| **Localization** | Full English and Russian interface with automatic System language mode |
+| **Background operation** | System tray support and elevated autostart through Windows Task Scheduler |
+| **Updates** | In-app GitHub Release update checks, download progress, SHA-256 verification and automatic installation |
 
 ## Screenshots
+
+The screenshots are currently shown with the Russian interface. Thermiqra also includes a complete English localization.
 
 ### System information and statistics
 
@@ -46,25 +57,68 @@ Thermiqra includes four complete interface skins. The screenshot below shows the
   <img src="thermiqra-steampunk.png" alt="Thermiqra SteamPunk theme" width="820">
 </p>
 
-## Version 0.5.0
+## Current release — 0.6.2
 
-Thermiqra 0.5.0 focuses on monitoring history and statistics.
+Thermiqra 0.6.2 adds live per-thread CPU load monitoring directly from the main CPU monitor.
 
-Highlights:
+### What's new in 0.6.2
 
-- SQLite-based local statistics database
-- history retention for up to 30 days
+- new **Threads** control inside the CPU monitor card
+- dedicated live load window for logical processors
+- correct filtering of individual CPU thread sensors without summary sensors
+- support for CPUs with many logical processors through scrolling
+- full English/Russian localization for the new interface
+- the thread window follows the active Thermiqra theme
+- the existing one-second hardware snapshot is reused, so no second hardware polling loop is created
+- unsupported per-thread temperature display is intentionally omitted to avoid misleading data
+
+See the full release notes on the [Thermiqra 0.6.2 release page](https://github.com/grishachev/Thermiqra/releases/tag/v0.6.2).
+
+## Memory diagnostics
+
+Thermiqra's System Information view includes detailed RAM diagnostics where supported by the hardware and driver stack:
+
+- installed memory modules and slot information
+- SPD information
+- JEDEC information
+- XMP 2.0 profile detection
+- SPD/XMP timing information
+- occupied and available slot information for upgrades
+
+> Thermiqra reports XMP profiles stored in SPD data. It does not claim that a specific XMP profile is currently active unless that state can be determined reliably.
+
+## Statistics and history
+
+Monitoring history is stored locally in SQLite. Thermiqra provides:
+
 - Today / 24h / 7d / 30d periods
-- CPU temperature and load statistics
+- CPU temperature and load history
 - GPU temperature, load, Hot Spot and VRAM temperature when available
-- RAM usage statistics
+- RAM usage history
 - per-device storage temperature history
 - interactive historical charts
-- all-time records with date and time
+- average and maximum values with timestamps
+- all-time hardware records
 - Warning/Critical event history
 - manual statistics clearing
-- GitHub release update checking
-- improved installer and uninstall behavior, including closing a running Thermiqra before update or removal
+
+## Automatic updates
+
+Automatic in-app updating is available starting with Thermiqra 0.6.1.
+
+When a newer GitHub Release is available, Thermiqra notifies the user and asks whether the update should be installed. If accepted, Thermiqra downloads the matching installer, shows download progress, verifies the SHA-256 digest when GitHub provides one, starts the installer in silent mode and launches Thermiqra again after the update.
+
+Users running Thermiqra 0.6.0 or earlier need to install a newer release manually once before using the in-app update flow.
+
+## Localization
+
+Thermiqra supports:
+
+- **System** — Russian Windows uses Russian; other Windows UI languages use English
+- **English**
+- **Русский**
+
+The main monitor, Settings, Statistics, System Information, tray messages, notifications and update interface are localized.
 
 ## Technology
 
@@ -72,6 +126,7 @@ Highlights:
 - .NET 10
 - LibreHardwareMonitorLib 0.9.6
 - Microsoft.Data.Sqlite
+- System.Management
 - PawnIO
 - Inno Setup
 
@@ -79,7 +134,8 @@ Highlights:
 
 - Windows 10 or Windows 11
 - x64 system
-- administrator rights are required for hardware access and installation
+- administrator rights for installation and full hardware access
+- PawnIO for supported low-level hardware access
 
 ## Build
 
@@ -107,12 +163,12 @@ PawnIO is installed by the Thermiqra installer but is not automatically removed 
 
 ## User data
 
-Thermiqra stores user settings and statistics in:
+Thermiqra stores user settings and local statistics in:
 
 `%LocalAppData%\Thermiqra`
 
-During uninstall, the user can choose whether to keep or remove settings and history.
+During uninstall, the user can choose whether to keep or remove Thermiqra settings and history.
 
-## Note
+## Project note
 
-The internal project name and namespace currently remain `PCHardwareMonitor`.
+The public application name is **Thermiqra**. The internal project name and namespace currently remain `PCHardwareMonitor`.
