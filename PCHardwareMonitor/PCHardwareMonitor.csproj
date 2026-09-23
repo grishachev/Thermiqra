@@ -21,9 +21,9 @@
 		<Description>Hardware monitoring for Windows</Description>
 
 		<!-- Версия приложения -->
-		<Version>0.6.2</Version>
-		<FileVersion>0.6.2.0</FileVersion>
-		<AssemblyVersion>0.6.2.0</AssemblyVersion>
+		<Version>0.6.3</Version>
+		<FileVersion>0.6.3.0</FileVersion>
+		<AssemblyVersion>0.6.3.0</AssemblyVersion>
 
 		<!-- Основная иконка -->
 		<ApplicationIcon>Assets\Thermiqra.ico</ApplicationIcon>

@@ -290,71 +290,76 @@ public static class UpdateService
                         cancellationToken)
                     .ConfigureAwait(false);
 
-            await using FileStream output =
-                new(
-                    partialPath,
-                    FileMode.Create,
-                    FileAccess.Write,
-                    FileShare.None,
-                    81920,
-                    useAsync: true);
-
-            byte[] buffer =
-                new byte[81920];
-
-            long received = 0;
-            int lastPercent = -1;
-
-            while (true)
+            await using (
+                FileStream output =
+                    new(
+                        partialPath,
+                        FileMode.Create,
+                        FileAccess.Write,
+                        FileShare.None,
+                        81920,
+                        useAsync: true))
             {
-                int read =
-                    await input.ReadAsync(
+                byte[] buffer =
+                    new byte[81920];
+
+                long received = 0;
+                int lastPercent = -1;
+
+                while (true)
+                {
+                    int read =
+                        await input.ReadAsync(
+                                buffer.AsMemory(
+                                    0,
+                                    buffer.Length),
+                                cancellationToken)
+                            .ConfigureAwait(false);
+
+                    if (read <= 0)
+                        break;
+
+                    await output.WriteAsync(
                             buffer.AsMemory(
                                 0,
-                                buffer.Length),
+                                read),
                             cancellationToken)
                         .ConfigureAwait(false);
 
-                if (read <= 0)
-                    break;
+                    received +=
+                        read;
 
-                await output.WriteAsync(
-                        buffer.AsMemory(
-                            0,
-                            read),
-                        cancellationToken)
-                    .ConfigureAwait(false);
-
-                received +=
-                    read;
-
-                if (totalLength.HasValue &&
-                    totalLength.Value > 0)
-                {
-                    int percent =
-                        (int)Math.Clamp(
-                            received * 100 /
-                            totalLength.Value,
-                            0,
-                            99);
-
-                    if (percent !=
-                        lastPercent)
+                    if (totalLength.HasValue &&
+                        totalLength.Value > 0)
                     {
-                        lastPercent =
-                            percent;
+                        int percent =
+                            (int)Math.Clamp(
+                                received * 100 /
+                                totalLength.Value,
+                                0,
+                                99);
 
-                        progress?.Report(
-                            percent);
+                        if (percent !=
+                            lastPercent)
+                        {
+                            lastPercent =
+                                percent;
+
+                            progress?.Report(
+                                percent);
+                        }
                     }
                 }
+
+                await output
+                    .FlushAsync(
+                        cancellationToken)
+                    .ConfigureAwait(false);
             }
 
-            await output
-                .FlushAsync(
-                    cancellationToken)
-                .ConfigureAwait(false);
-
+            // Важно: поток записи уже закрыт до проверки SHA-256.
+            // Иначе Windows не даст VerifySha256Async открыть
+            // .download-файл из-за FileShare.None.
             await VerifySha256Async(
                     partialPath,
                     update.InstallerSha256,
