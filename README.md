@@ -32,7 +32,7 @@ Thermiqra is a native Windows desktop application for monitoring PC hardware in 
 | **System information** | Detailed hardware and Windows information in a dedicated system view |
 | **Memory diagnostics** | RAM module information, SPD data, JEDEC information, XMP 2.0 profiles, timings and upgrade information |
 | **Statistics** | Local SQLite history for Today, 24 hours, 7 days and 30 days, with charts, averages, maxima and timestamps |
-| **Alerts** | Configurable temperature warnings, critical alerts and Warning/Critical event history |
+| **Alerts** | Custom themed Warning/Critical/Info notifications, selectable sounds, configurable thresholds and Warning/Critical event history |
 | **Themes** | Cyber Tech, SteamPunk, Frost Core and Military Ops |
 | **Localization** | Full English and Russian interface with automatic System language mode |
 | **Background operation** | System tray support and elevated autostart through Windows Task Scheduler |
@@ -57,22 +57,23 @@ Thermiqra includes four complete interface skins. The screenshot below shows the
   <img src="thermiqra-steampunk.png" alt="Thermiqra SteamPunk theme" width="820">
 </p>
 
-## Current release — 0.6.3
+## Current release — 0.7.0
 
-Thermiqra 0.6.3 is an updater reliability hotfix and includes all functionality introduced in 0.6.2.
+Thermiqra 0.7.0 introduces a fully custom notification system integrated with all four interface skins and improves startup responsiveness.
 
 ### What's included
 
-- live **Threads** control inside the CPU monitor card
-- dedicated live load window for individual logical processors
-- correct filtering of CPU thread sensors without summary sensors
-- support for CPUs with many logical processors through scrolling
-- full English/Russian localization for the CPU thread interface
-- themed CPU thread window matching the active Thermiqra skin
-- fixed automatic update installation failing after download because the temporary installer file remained locked during SHA-256 verification
-- SHA-256 verification remains enabled and now starts only after the downloaded file is closed correctly
+- custom Thermiqra notification windows instead of standard Windows balloon notifications
+- separate notification designs for Cyber Tech, SteamPunk, Frost Core and Military Ops
+- Warning, Critical and Info notification types
+- three selectable sounds for each notification type
+- optional Critical notifications above other windows without stealing focus
+- localized notification settings and sound preview controls
+- notification state reset after settings changes so newly applied thresholds are evaluated correctly
+- faster startup responsiveness by moving SPD/XMP cache loading out of the blocking startup path
+- continued use of the corrected SHA-256 verified automatic updater introduced in 0.6.3
 
-See the full release notes on the [Thermiqra 0.6.3 release page](https://github.com/grishachev/Thermiqra/releases/tag/v0.6.3).
+See the full release notes on the [Thermiqra 0.7.0 release page](https://github.com/grishachev/Thermiqra/releases/tag/v0.7.0).
 
 ## Memory diagnostics
 
@@ -104,11 +105,11 @@ Monitoring history is stored locally in SQLite. Thermiqra provides:
 
 ## Automatic updates
 
-Thermiqra 0.6.3 contains the corrected in-app updater.
+Thermiqra 0.7.0 uses the corrected in-app updater introduced in 0.6.3.
 
 When a newer GitHub Release is available, Thermiqra notifies the user and asks whether the update should be installed. If accepted, Thermiqra downloads the matching installer, shows download progress, verifies the SHA-256 digest when GitHub provides one, starts the installer in silent mode and launches Thermiqra again after the update.
 
-Thermiqra 0.6.1 and 0.6.2 contain an updater bug that can prevent automatic installation after the installer download completes. Users on those versions should install 0.6.3 manually once. After 0.6.3 is installed, future releases can use the corrected in-app update flow.
+Thermiqra 0.6.1 and 0.6.2 contain an updater bug that can prevent automatic installation after the installer download completes. Users on those versions should install 0.6.3 or newer manually once. After that, future releases can use the corrected in-app update flow.
 
 Users running Thermiqra 0.6.0 or earlier also need to install a newer release manually before using the in-app update flow.
 
@@ -120,7 +121,7 @@ Thermiqra supports:
 - **English**
 - **Русский**
 
-The main monitor, Settings, Statistics, System Information, tray messages, notifications and update interface are localized.
+The main monitor, Settings, Statistics, System Information, tray menu, notifications and update interface are localized.
 
 ## Technology
 
