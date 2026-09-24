@@ -1980,6 +1980,21 @@ public partial class MainWindow : Window
             statusLine);
 
 
+        Button analyzeButton =
+            CreateDriveAnalyzeButton(
+                drive);
+
+        analyzeButton.HorizontalAlignment =
+            HorizontalAlignment.Right;
+
+        analyzeButton.Margin =
+            new Thickness(
+                0, 8, 0, 0);
+
+        usagePanel.Children.Add(
+            analyzeButton);
+
+
         Grid.SetColumn(
             driveIcon,
             0);
@@ -2150,6 +2165,12 @@ public partial class MainWindow : Window
                 Width = GridLength.Auto
             });
 
+        fillRow.ColumnDefinitions.Add(
+            new ColumnDefinition
+            {
+                Width = GridLength.Auto
+            });
+
         ProgressBar fillBar = new()
         {
             Minimum = 0,
@@ -2200,11 +2221,29 @@ public partial class MainWindow : Window
             fillText,
             1);
 
+        Button steamAnalyzeButton =
+            CreateDriveAnalyzeButton(
+                drive);
+
+        steamAnalyzeButton.Margin =
+            new Thickness(
+                10, 0, 0, 0);
+
+        steamAnalyzeButton.VerticalAlignment =
+            VerticalAlignment.Center;
+
+        Grid.SetColumn(
+            steamAnalyzeButton,
+            2);
+
         fillRow.Children.Add(
             fillBar);
 
         fillRow.Children.Add(
             fillText);
+
+        fillRow.Children.Add(
+            steamAnalyzeButton);
 
         information.Children.Add(
             name);
@@ -2698,10 +2737,54 @@ public partial class MainWindow : Window
                 frostProgressStyle;
         }
 
+        Grid frostActionRow =
+            new();
+
+        frostActionRow.ColumnDefinitions.Add(
+            new ColumnDefinition
+            {
+                Width =
+                    new GridLength(
+                        1,
+                        GridUnitType.Star)
+            });
+
+        frostActionRow.ColumnDefinitions.Add(
+            new ColumnDefinition
+            {
+                Width =
+                    GridLength.Auto
+            });
+
+        Button frostAnalyzeButton =
+            CreateDriveAnalyzeButton(
+                drive);
+
+        frostAnalyzeButton.Margin =
+            new Thickness(
+                10, 0, 0, 0);
+
+        frostAnalyzeButton.VerticalAlignment =
+            VerticalAlignment.Center;
+
+        Grid.SetColumn(
+            fillBar,
+            0);
+
+        Grid.SetColumn(
+            frostAnalyzeButton,
+            1);
+
+        frostActionRow.Children.Add(
+            fillBar);
+
+        frostActionRow.Children.Add(
+            frostAnalyzeButton);
+
         information.Children.Add(caption);
         information.Children.Add(name);
         information.Children.Add(free);
-        information.Children.Add(fillBar);
+        information.Children.Add(frostActionRow);
 
         Border meter = new()
         {
@@ -3100,15 +3183,59 @@ public partial class MainWindow : Window
                 segment);
         }
 
+        Grid militaryActionRow =
+            new();
+
+        militaryActionRow.ColumnDefinitions.Add(
+            new ColumnDefinition
+            {
+                Width =
+                    new GridLength(
+                        1,
+                        GridUnitType.Star)
+            });
+
+        militaryActionRow.ColumnDefinitions.Add(
+            new ColumnDefinition
+            {
+                Width =
+                    GridLength.Auto
+            });
+
+        Button militaryAnalyzeButton =
+            CreateDriveAnalyzeButton(
+                drive);
+
+        militaryAnalyzeButton.Margin =
+            new Thickness(
+                10, 0, 0, 0);
+
+        militaryAnalyzeButton.VerticalAlignment =
+            VerticalAlignment.Center;
+
+        Grid.SetColumn(
+            segments,
+            0);
+
+        Grid.SetColumn(
+            militaryAnalyzeButton,
+            1);
+
+        militaryActionRow.Children.Add(
+            segments);
+
+        militaryActionRow.Children.Add(
+            militaryAnalyzeButton);
+
         Grid.SetRow(caption, 0);
         Grid.SetRow(name, 1);
         Grid.SetRow(free, 2);
-        Grid.SetRow(segments, 3);
+        Grid.SetRow(militaryActionRow, 3);
 
         information.Children.Add(caption);
         information.Children.Add(name);
         information.Children.Add(free);
-        information.Children.Add(segments);
+        information.Children.Add(militaryActionRow);
 
         Border meter = new()
         {
@@ -3219,6 +3346,192 @@ public partial class MainWindow : Window
         outer.Child = root;
 
         return outer;
+    }
+
+
+    private Button CreateDriveAnalyzeButton(
+        LogicalDriveInfo drive)
+    {
+        Button button =
+            new()
+            {
+                Content =
+                    SettingsService.L(
+                        "Анализ",
+                        "Analyze"),
+
+                Tag =
+                    drive.Name,
+
+                MinWidth =
+                    72,
+
+                MinHeight =
+                    24,
+
+                Height =
+                    24,
+
+                Padding =
+                    new Thickness(
+                        9, 2, 9, 2),
+
+                FontSize =
+                    9,
+
+                FontWeight =
+                    FontWeights.Bold,
+
+                BorderThickness =
+                    new Thickness(1),
+
+                Cursor =
+                    System.Windows.Input.Cursors.Hand
+            };
+
+        string skinName =
+            SettingsService
+                .Current
+                .SkinName;
+
+        ApplyDriveAnalyzeButtonVisual(
+            button,
+            skinName,
+            hovered: false);
+
+        button.MouseEnter +=
+            (_, _) =>
+            {
+                ApplyDriveAnalyzeButtonVisual(
+                    button,
+                    skinName,
+                    hovered: true);
+            };
+
+        button.MouseLeave +=
+            (_, _) =>
+            {
+                ApplyDriveAnalyzeButtonVisual(
+                    button,
+                    skinName,
+                    hovered: false);
+            };
+
+        button.Click +=
+            DriveAnalyzeButton_Click;
+
+        return button;
+    }
+
+
+    private static void ApplyDriveAnalyzeButtonVisual(
+        Button button,
+        string skinName,
+        bool hovered)
+    {
+        if (hovered)
+        {
+            button.SetResourceReference(
+                Control.BackgroundProperty,
+                "AccentBrush");
+
+            button.SetResourceReference(
+                Control.BorderBrushProperty,
+                "AccentBrush");
+
+            button.SetResourceReference(
+                Control.ForegroundProperty,
+                "WindowBackgroundBrush");
+
+            return;
+        }
+
+        if (skinName == "SteamPunk")
+        {
+            button.SetResourceReference(
+                Control.BackgroundProperty,
+                "SteamDarkMetalBrush");
+
+            button.SetResourceReference(
+                Control.BorderBrushProperty,
+                "SteamMetalBrush");
+
+            button.SetResourceReference(
+                Control.ForegroundProperty,
+                "AccentBrush");
+
+            return;
+        }
+
+        if (skinName == "FrostCore")
+        {
+            button.SetResourceReference(
+                Control.BackgroundProperty,
+                "FrostGlassBrush");
+
+            button.SetResourceReference(
+                Control.BorderBrushProperty,
+                "FrostIceBrush");
+
+            button.SetResourceReference(
+                Control.ForegroundProperty,
+                "FrostIceBrush");
+
+            return;
+        }
+
+        if (skinName == "MilitaryOps")
+        {
+            button.SetResourceReference(
+                Control.BackgroundProperty,
+                "MilitaryPanelBrush");
+
+            button.SetResourceReference(
+                Control.BorderBrushProperty,
+                "MilitaryKhakiBrush");
+
+            button.SetResourceReference(
+                Control.ForegroundProperty,
+                "MilitaryKhakiBrush");
+
+            return;
+        }
+
+        button.SetResourceReference(
+            Control.BackgroundProperty,
+            "InputBackgroundBrush");
+
+        button.SetResourceReference(
+            Control.BorderBrushProperty,
+            "AccentBrush");
+
+        button.SetResourceReference(
+            Control.ForegroundProperty,
+            "AccentBrush");
+    }
+
+
+    private void DriveAnalyzeButton_Click(
+        object sender,
+        RoutedEventArgs e)
+    {
+        if (sender is not Button button ||
+            button.Tag is not string driveName ||
+            string.IsNullOrWhiteSpace(
+                driveName))
+        {
+            return;
+        }
+
+        StorageAnalyzerWindow window =
+            new(
+                driveName)
+            {
+                Owner =
+                    this
+            };
+
+        window.Show();
     }
 
 

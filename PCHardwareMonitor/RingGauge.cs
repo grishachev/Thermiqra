@@ -5400,6 +5400,38 @@ public sealed class RingGauge : Border
             TextBlock.ForegroundProperty,
             foregroundResource);
 
+        button.MouseEnter +=
+            (_, _) =>
+            {
+                button.SetResourceReference(
+                    Border.BackgroundProperty,
+                    "AccentBrush");
+
+                button.SetResourceReference(
+                    Border.BorderBrushProperty,
+                    "AccentBrush");
+
+                text.SetResourceReference(
+                    TextBlock.ForegroundProperty,
+                    "WindowBackgroundBrush");
+            };
+
+        button.MouseLeave +=
+            (_, _) =>
+            {
+                button.SetResourceReference(
+                    Border.BackgroundProperty,
+                    backgroundResource);
+
+                button.SetResourceReference(
+                    Border.BorderBrushProperty,
+                    borderResource);
+
+                text.SetResourceReference(
+                    TextBlock.ForegroundProperty,
+                    foregroundResource);
+            };
+
         button.Child =
             text;
 
