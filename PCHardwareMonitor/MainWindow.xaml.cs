@@ -1091,6 +1091,11 @@ public partial class MainWindow : Window
             _lastSnapshot =
                 snapshot;
 
+            _tray.UpdateTooltip(
+                snapshot.Cpu.Temperature,
+                GetTrayGpuTemperature(
+                    snapshot));
+
             _cpuDetailsWindow?
                 .UpdateSnapshot(
                     snapshot);
@@ -1258,6 +1263,31 @@ public partial class MainWindow : Window
                 _gpuGauges.Count - 1);
         }
     }
+
+    private static float? GetTrayGpuTemperature(
+        HardwareSnapshot snapshot)
+    {
+        float? highestTemperature =
+            null;
+
+        foreach (GpuInfo gpu
+                 in snapshot.Gpus)
+        {
+            if (!gpu.Temperature.HasValue)
+                continue;
+
+            if (!highestTemperature.HasValue ||
+                gpu.Temperature.Value >
+                highestTemperature.Value)
+            {
+                highestTemperature =
+                    gpu.Temperature.Value;
+            }
+        }
+
+        return highestTemperature;
+    }
+
 
     private static string BuildGpuDetails(
         GpuInfo gpu)

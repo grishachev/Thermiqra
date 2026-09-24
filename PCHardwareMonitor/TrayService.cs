@@ -11,6 +11,8 @@ public sealed class TrayService : IDisposable
 {
     private readonly Forms.NotifyIcon _notifyIcon;
 
+    private readonly Forms.ContextMenuStrip _menu;
+
     private readonly Icon _trayIcon;
 
     private readonly Action _openAction;
@@ -53,8 +55,19 @@ public sealed class TrayService : IDisposable
         // МЕНЮ ТРЕЯ
         // ========================================================
 
-        Forms.ContextMenuStrip menu =
-            new();
+        _menu =
+            new Forms.ContextMenuStrip
+            {
+                ShowImageMargin =
+                    false,
+
+                ShowCheckMargin =
+                    false,
+
+                Padding =
+                    new Forms.Padding(
+                        4)
+            };
 
         _openItem =
             new();
@@ -68,7 +81,17 @@ public sealed class TrayService : IDisposable
         _exitItem =
             new();
 
+        ApplyMenuItemLayout(
+            _openItem);
+
+        ApplyMenuItemLayout(
+            _settingsItem);
+
+        ApplyMenuItemLayout(
+            _exitItem);
+
         RefreshLanguage();
+        RefreshAppearance();
 
 
         _openItem.Click +=
@@ -84,16 +107,16 @@ public sealed class TrayService : IDisposable
                 _exitAction();
 
 
-        menu.Items.Add(
+        _menu.Items.Add(
             _openItem);
 
-        menu.Items.Add(
+        _menu.Items.Add(
             _settingsItem);
 
-        menu.Items.Add(
+        _menu.Items.Add(
             separator);
 
-        menu.Items.Add(
+        _menu.Items.Add(
             _exitItem);
 
 
@@ -114,7 +137,7 @@ public sealed class TrayService : IDisposable
                     true,
 
                 ContextMenuStrip =
-                    menu
+                    _menu
             };
 
 
@@ -122,6 +145,148 @@ public sealed class TrayService : IDisposable
         _notifyIcon.DoubleClick +=
             (_, _) =>
                 _openAction();
+
+        _menu.Opening +=
+            (_, _) =>
+                RefreshAppearance();
+    }
+
+
+    public void UpdateTooltip(
+        float? cpuTemperature,
+        float? gpuTemperature)
+    {
+        string cpuText =
+            cpuTemperature.HasValue
+                ? $"{cpuTemperature.Value:F0} °C"
+                : "—";
+
+        string gpuText =
+            gpuTemperature.HasValue
+                ? $"{gpuTemperature.Value:F0} °C"
+                : "—";
+
+        string tooltipText =
+            $"Thermiqra\n" +
+            $"CPU: {cpuText}\n" +
+            $"GPU: {gpuText}";
+
+        if (string.Equals(
+                _notifyIcon.Text,
+                tooltipText,
+                StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        _notifyIcon.Text =
+            tooltipText;
+    }
+
+
+    public void RefreshAppearance()
+    {
+        Color background =
+            GetThemeColor(
+                "CardBackgroundBrush",
+                Color.FromArgb(
+                    28, 31, 36));
+
+        Color border =
+            GetThemeColor(
+                "BorderBrush",
+                Color.FromArgb(
+                    85, 95, 105));
+
+        Color text =
+            GetThemeColor(
+                "PrimaryTextBrush",
+                Color.Gainsboro);
+
+        Color accent =
+            GetThemeColor(
+                "AccentBrush",
+                Color.DeepSkyBlue);
+
+        Color selectedText =
+            GetThemeColor(
+                "WindowBackgroundBrush",
+                Color.Black);
+
+        _menu.BackColor =
+            background;
+
+        _menu.ForeColor =
+            text;
+
+        _menu.Renderer =
+            new TrayMenuRenderer(
+                background,
+                border,
+                text,
+                accent,
+                selectedText);
+
+        _openItem.ForeColor =
+            text;
+
+        _settingsItem.ForeColor =
+            text;
+
+        _exitItem.ForeColor =
+            text;
+    }
+
+
+    private static void ApplyMenuItemLayout(
+        Forms.ToolStripMenuItem item)
+    {
+        item.AutoSize =
+            true;
+
+        item.Padding =
+            new Forms.Padding(
+                10,
+                6,
+                10,
+                6);
+
+        item.Margin =
+            new Forms.Padding(
+                1);
+
+        item.Font =
+            new System.Drawing.Font(
+                new System.Drawing.FontFamily(
+                    "Segoe UI"),
+                10.0f,
+                System.Drawing.FontStyle.Regular);
+    }
+
+
+    private static Color GetThemeColor(
+        string resourceKey,
+        Color fallback)
+    {
+        object? resource =
+            Application.Current?
+                .TryFindResource(
+                    resourceKey);
+
+        if (resource is
+            System.Windows.Media.SolidColorBrush brush)
+        {
+            System.Windows.Media.Color color =
+                brush.Color;
+
+            return Color.FromArgb(
+                color.A,
+                color.R,
+                color.G,
+                color.B);
+        }
+
+        return fallback;
     }
 
 
@@ -141,6 +306,115 @@ public sealed class TrayService : IDisposable
             SettingsService.L(
                 "Выход",
                 "Exit");
+    }
+
+
+    private sealed class TrayMenuRenderer :
+        Forms.ToolStripProfessionalRenderer
+    {
+        private readonly Color _textColor;
+
+        private readonly Color _selectedTextColor;
+
+
+        public TrayMenuRenderer(
+            Color background,
+            Color border,
+            Color textColor,
+            Color accent,
+            Color selectedTextColor)
+            : base(
+                new TrayMenuColorTable(
+                    background,
+                    border,
+                    accent))
+        {
+            _textColor =
+                textColor;
+
+            _selectedTextColor =
+                selectedTextColor;
+
+            RoundedEdges =
+                false;
+        }
+
+
+        protected override void OnRenderItemText(
+            Forms.ToolStripItemTextRenderEventArgs e)
+        {
+            e.TextColor =
+                e.Item.Selected
+                    ? _selectedTextColor
+                    : _textColor;
+
+            base.OnRenderItemText(
+                e);
+        }
+    }
+
+
+    private sealed class TrayMenuColorTable :
+        Forms.ProfessionalColorTable
+    {
+        private readonly Color _background;
+
+        private readonly Color _border;
+
+        private readonly Color _accent;
+
+
+        public TrayMenuColorTable(
+            Color background,
+            Color border,
+            Color accent)
+        {
+            _background =
+                background;
+
+            _border =
+                border;
+
+            _accent =
+                accent;
+
+            UseSystemColors =
+                false;
+        }
+
+
+        public override Color ToolStripDropDownBackground =>
+            _background;
+
+        public override Color MenuBorder =>
+            _border;
+
+        public override Color MenuItemBorder =>
+            _accent;
+
+        public override Color MenuItemSelected =>
+            _accent;
+
+        public override Color MenuItemSelectedGradientBegin =>
+            _accent;
+
+        public override Color MenuItemSelectedGradientEnd =>
+            _accent;
+
+        public override Color SeparatorDark =>
+            _border;
+
+        public override Color SeparatorLight =>
+            _border;
+
+        public override Color ImageMarginGradientBegin =>
+            _background;
+
+        public override Color ImageMarginGradientMiddle =>
+            _background;
+
+        public override Color ImageMarginGradientEnd =>
+            _background;
     }
 
 
@@ -189,6 +463,8 @@ public sealed class TrayService : IDisposable
             false;
 
         _notifyIcon.Dispose();
+
+        _menu.Dispose();
 
         _trayIcon.Dispose();
     }
