@@ -21,9 +21,9 @@
 		<Description>Hardware monitoring for Windows</Description>
 
 		<!-- Версия приложения -->
-		<Version>0.6.3</Version>
-		<FileVersion>0.6.3.0</FileVersion>
-		<AssemblyVersion>0.6.3.0</AssemblyVersion>
+		<Version>0.7.0</Version>
+		<FileVersion>0.7.0.0</FileVersion>
+		<AssemblyVersion>0.7.0.0</AssemblyVersion>
 
 		<!-- Основная иконка -->
 		<ApplicationIcon>Assets\Thermiqra.ico</ApplicationIcon>
@@ -60,6 +60,13 @@
 	<ItemGroup>
 		<Resource Include="Assets\Thermiqra.ico" />
 		<Resource Include="Assets\Thermiqra_Tray.ico" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Content Include="Assets\*.wav">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+		</Content>
 	</ItemGroup>
 
 </Project>

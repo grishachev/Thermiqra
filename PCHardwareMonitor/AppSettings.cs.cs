@@ -41,6 +41,16 @@ public sealed class AppSettings
 
     public bool NotificationsEnabled { get; set; } = true;
 
+    public bool NotificationSoundsEnabled { get; set; } = true;
+
+    public string WarningSoundName { get; set; } = "warning.wav";
+
+    public string CriticalSoundName { get; set; } = "critical.wav";
+
+    public string InfoSoundName { get; set; } = "info.wav";
+
+    public bool CriticalNotificationsTopmost { get; set; } = false;
+
     public int AlertDelaySeconds { get; set; } = 8;
 
 
@@ -187,6 +197,24 @@ public static class SettingsService
         ["После первого запуска Thermiqra по умолчанию работает скрыто в системном трее."] = "After the first run, Thermiqra works hidden in the system tray by default.",
         ["УВЕДОМЛЕНИЯ"] = "NOTIFICATIONS",
         ["Показывать уведомления"] = "Show notifications",
+        ["Звуки уведомлений"] = "Notification sounds",
+        ["Звук предупреждения"] = "Warning sound",
+        ["Спокойный"] = "Calm",
+        ["Импульс"] = "Pulse",
+        ["Технический"] = "Technical",
+        ["Звук критического уведомления"] = "Critical notification sound",
+        ["Тревога"] = "Alarm",
+        ["Сирена"] = "Siren",
+        ["Аварийный"] = "Emergency",
+        ["Звук информационного уведомления"] = "Info notification sound",
+        ["Цифровой звон"] = "Digital chime",
+        ["Мягкий"] = "Soft",
+        ["Сигнал"] = "Signal",
+        ["Прослушать"] = "Preview",
+        ["▶  Прослушать"] = "▶  Preview",
+        ["Можно выбрать и прослушать отдельный сигнал для каждого типа уведомления."] = "You can choose and preview a separate sound for each notification type.",
+        ["Показывать критические уведомления поверх всех окон"] = "Show critical notifications above other windows",
+        ["Режим поверх всех окон применяется только к критическим уведомлениям."] = "The above-other-windows mode applies only to critical notifications.",
         ["Задержка первого предупреждения"] = "Initial alert delay",
         ["СЕКУНДЫ"] = "SECONDS",
         ["Повтор критического предупреждения"] = "Critical alert repeat interval",

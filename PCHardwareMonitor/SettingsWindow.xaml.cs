@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Globalization;
+using System.IO;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -9,13 +11,20 @@ namespace PCHardwareMonitor;
 
 public partial class SettingsWindow : Window
 {
+    private const uint SndAsync = 0x0001;
+
+    private const uint SndNoDefault = 0x0002;
+
+    private const uint SndFileName = 0x00020000;
+
+
     private readonly bool _firstRun;
 
-    private readonly string _originalSkin;
+    private string _originalSkin;
 
     private string _selectedSkin;
 
-    private readonly string _originalTheme;
+    private string _originalTheme;
 
     private string _selectedLanguage;
 
@@ -87,6 +96,27 @@ public partial class SettingsWindow : Window
         NotificationsCheck.IsChecked =
             settings.NotificationsEnabled;
 
+        NotificationSoundsCheck.IsChecked =
+            settings.NotificationSoundsEnabled;
+
+        SelectSoundItem(
+            WarningSoundComboBox,
+            settings.WarningSoundName,
+            "warning.wav");
+
+        SelectSoundItem(
+            CriticalSoundComboBox,
+            settings.CriticalSoundName,
+            "critical.wav");
+
+        SelectSoundItem(
+            InfoSoundComboBox,
+            settings.InfoSoundName,
+            "info.wav");
+
+        CriticalNotificationsTopmostCheck.IsChecked =
+            settings.CriticalNotificationsTopmost;
+
         AlertDelayText.Text =
             settings.AlertDelaySeconds
                 .ToString();
@@ -155,6 +185,204 @@ public partial class SettingsWindow : Window
     }
 
     // ============================================================
+    // ЗВУКИ УВЕДОМЛЕНИЙ
+    // ============================================================
+
+    private void SoundComboBox_PreviewMouseWheel(
+        object sender,
+        MouseWheelEventArgs e)
+    {
+        if (sender is not ComboBox comboBox ||
+            comboBox.IsDropDownOpen)
+        {
+            return;
+        }
+
+        ForwardMouseWheelToParentScrollViewer(
+            comboBox,
+            e);
+    }
+
+
+    private void PreviewSound_Click(
+        object sender,
+        RoutedEventArgs e)
+    {
+        if (sender is not Button button ||
+            button.Tag is not string comboBoxName ||
+            FindName(comboBoxName) is not ComboBox comboBox)
+        {
+            return;
+        }
+
+        string fileName =
+            GetSelectedSoundName(
+                comboBox,
+                string.Empty);
+
+        if (string.IsNullOrWhiteSpace(
+                fileName))
+        {
+            return;
+        }
+
+        string path =
+            Path.Combine(
+                AppContext.BaseDirectory,
+                "Assets",
+                fileName);
+
+        if (!File.Exists(
+                path))
+        {
+            ShowError(
+                SettingsService.L(
+                    "Файл звука не найден.",
+                    "The sound file was not found."));
+
+            return;
+        }
+
+        try
+        {
+            PlaySound(
+                path,
+                IntPtr.Zero,
+                SndAsync |
+                SndNoDefault |
+                SndFileName);
+        }
+        catch
+        {
+            ShowError(
+                SettingsService.L(
+                    "Не удалось воспроизвести звук.",
+                    "The sound could not be played."));
+        }
+    }
+
+
+    private static void SelectSoundItem(
+        ComboBox comboBox,
+        string? soundName,
+        string fallbackSoundName)
+    {
+        string target =
+            string.IsNullOrWhiteSpace(
+                soundName)
+                ? fallbackSoundName
+                : soundName;
+
+        foreach (object itemObject
+                 in comboBox.Items)
+        {
+            if (itemObject is not ComboBoxItem item ||
+                item.Tag is not string tag)
+            {
+                continue;
+            }
+
+            if (!string.Equals(
+                    tag,
+                    target,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            comboBox.SelectedItem =
+                item;
+
+            return;
+        }
+
+        foreach (object itemObject
+                 in comboBox.Items)
+        {
+            if (itemObject is ComboBoxItem item &&
+                item.Tag is string tag &&
+                string.Equals(
+                    tag,
+                    fallbackSoundName,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                comboBox.SelectedItem =
+                    item;
+
+                return;
+            }
+        }
+
+        if (comboBox.Items.Count >
+            0)
+        {
+            comboBox.SelectedIndex =
+                0;
+        }
+    }
+
+
+    private static string GetSelectedSoundName(
+        ComboBox comboBox,
+        string fallbackSoundName)
+    {
+        return comboBox.SelectedItem
+                   is ComboBoxItem item &&
+               item.Tag is string tag &&
+               !string.IsNullOrWhiteSpace(
+                   tag)
+            ? tag
+            : fallbackSoundName;
+    }
+
+
+    private static void ForwardMouseWheelToParentScrollViewer(
+        DependencyObject start,
+        MouseWheelEventArgs e)
+    {
+        e.Handled =
+            true;
+
+        DependencyObject? current =
+            start;
+
+        while (current != null)
+        {
+            current =
+                VisualTreeHelper.GetParent(
+                    current);
+
+            if (current is not ScrollViewer scrollViewer)
+            {
+                continue;
+            }
+
+            int steps =
+                Math.Max(
+                    1,
+                    Math.Abs(e.Delta) / 120);
+
+            for (int i = 0;
+                 i < steps;
+                 i++)
+            {
+                if (e.Delta >
+                    0)
+                {
+                    scrollViewer.LineUp();
+                }
+                else
+                {
+                    scrollViewer.LineDown();
+                }
+            }
+
+            break;
+        }
+    }
+
+
+    // ============================================================
     // ЯЗЫК
     // ============================================================
 
@@ -189,44 +417,9 @@ public partial class SettingsWindow : Window
             return;
         }
 
-        e.Handled =
-            true;
-
-        DependencyObject? current =
-            LanguageComboBox;
-
-        while (current != null)
-        {
-            current =
-                VisualTreeHelper.GetParent(
-                    current);
-
-            if (current is not ScrollViewer scrollViewer)
-            {
-                continue;
-            }
-
-            int steps =
-                Math.Max(
-                    1,
-                    Math.Abs(e.Delta) / 120);
-
-            for (int i = 0;
-                 i < steps;
-                 i++)
-            {
-                if (e.Delta > 0)
-                {
-                    scrollViewer.LineUp();
-                }
-                else
-                {
-                    scrollViewer.LineDown();
-                }
-            }
-
-            break;
-        }
+        ForwardMouseWheelToParentScrollViewer(
+            LanguageComboBox,
+            e);
     }
 
 
@@ -564,6 +757,29 @@ public partial class SettingsWindow : Window
             NotificationsCheck.IsChecked ==
             true;
 
+        settings.NotificationSoundsEnabled =
+            NotificationSoundsCheck.IsChecked ==
+            true;
+
+        settings.WarningSoundName =
+            GetSelectedSoundName(
+                WarningSoundComboBox,
+                "warning.wav");
+
+        settings.CriticalSoundName =
+            GetSelectedSoundName(
+                CriticalSoundComboBox,
+                "critical.wav");
+
+        settings.InfoSoundName =
+            GetSelectedSoundName(
+                InfoSoundComboBox,
+                "info.wav");
+
+        settings.CriticalNotificationsTopmost =
+            CriticalNotificationsTopmostCheck.IsChecked ==
+            true;
+
         settings.AlertDelaySeconds =
             alertDelay;
 
@@ -629,22 +845,32 @@ public partial class SettingsWindow : Window
 
         SettingsService.ApplyLanguagePreference();
 
+        SettingsService.ApplyLanguageToWindow(
+            this);
+
+        UpdateVersionText();
+
         ThemeManager.ApplyAppearance(
             settings.SkinName,
             settings.ThemeName);
 
+        UpdateSkinCards();
+
         if (Owner is MainWindow mainWindow)
         {
             mainWindow.RefreshLanguage();
+
+            mainWindow.ResetAlertStatesAfterSettingsChange();
         }
+
+        _originalSkin =
+            settings.SkinName;
+
+        _originalTheme =
+            settings.ThemeName;
 
         _saved =
             true;
-
-        DialogResult =
-            true;
-
-        Close();
     }
 
     // ============================================================
@@ -661,12 +887,9 @@ public partial class SettingsWindow : Window
     protected override void OnClosed(
         EventArgs e)
     {
-        if (!_saved)
-        {
-            ThemeManager.ApplyAppearance(
-                _originalSkin,
-                _originalTheme);
-        }
+        ThemeManager.ApplyAppearance(
+            _originalSkin,
+            _originalTheme);
 
         base.OnClosed(e);
     }
@@ -708,4 +931,14 @@ public partial class SettingsWindow : Window
             MessageBoxButton.OK,
             MessageBoxImage.Warning);
     }
+
+    [DllImport(
+        "winmm.dll",
+        CharSet = CharSet.Unicode,
+        SetLastError = true)]
+    private static extern bool PlaySound(
+        string? soundName,
+        IntPtr moduleHandle,
+        uint flags);
+
 }

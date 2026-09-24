@@ -1863,6 +1863,142 @@
                                 <CheckBox x:Name="NotificationsCheck"
                                           Content="Показывать уведомления"/>
 
+                                <CheckBox x:Name="NotificationSoundsCheck"
+                                          Content="Звуки уведомлений"/>
+
+                                <TextBlock Text="Можно выбрать и прослушать отдельный сигнал для каждого типа уведомления."
+                                           Foreground="{DynamicResource SecondaryTextBrush}"
+                                           FontSize="11"
+                                           TextWrapping="Wrap"
+                                           Margin="0,1,0,8"/>
+
+                                <Grid Margin="0,2,0,8">
+
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="12"/>
+                                        <ColumnDefinition Width="126"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <StackPanel Grid.Row="0"
+                                                Grid.Column="0"
+                                                Margin="0,0,0,7">
+
+                                        <TextBlock Text="Звук предупреждения"
+                                                   Style="{StaticResource TechLabelStyle}"
+                                                   Margin="0,0,0,4"/>
+
+                                        <ComboBox x:Name="WarningSoundComboBox"
+                                                  Height="36"
+                                                  Style="{StaticResource ThemedComboBoxStyle}"
+                                                  PreviewMouseWheel="SoundComboBox_PreviewMouseWheel">
+
+                                            <ComboBoxItem Content="Спокойный"
+                                                          Tag="warning.wav"/>
+
+                                            <ComboBoxItem Content="Импульс"
+                                                          Tag="warning_pulse.wav"/>
+
+                                            <ComboBoxItem Content="Технический"
+                                                          Tag="warning_technical.wav"/>
+
+                                        </ComboBox>
+
+                                    </StackPanel>
+
+                                    <Button Grid.Row="0"
+                                            Grid.Column="2"
+                                            Content="▶  Прослушать"
+                                            Tag="WarningSoundComboBox"
+                                            VerticalAlignment="Bottom"
+                                            Margin="0,0,0,7"
+                                            Click="PreviewSound_Click"/>
+
+
+                                    <StackPanel Grid.Row="1"
+                                                Grid.Column="0"
+                                                Margin="0,0,0,7">
+
+                                        <TextBlock Text="Звук критического уведомления"
+                                                   Style="{StaticResource TechLabelStyle}"
+                                                   Margin="0,0,0,4"/>
+
+                                        <ComboBox x:Name="CriticalSoundComboBox"
+                                                  Height="36"
+                                                  Style="{StaticResource ThemedComboBoxStyle}"
+                                                  PreviewMouseWheel="SoundComboBox_PreviewMouseWheel">
+
+                                            <ComboBoxItem Content="Тревога"
+                                                          Tag="critical.wav"/>
+
+                                            <ComboBoxItem Content="Сирена"
+                                                          Tag="critical_siren.wav"/>
+
+                                            <ComboBoxItem Content="Аварийный"
+                                                          Tag="critical_emergency.wav"/>
+
+                                        </ComboBox>
+
+                                    </StackPanel>
+
+                                    <Button Grid.Row="1"
+                                            Grid.Column="2"
+                                            Content="▶  Прослушать"
+                                            Tag="CriticalSoundComboBox"
+                                            VerticalAlignment="Bottom"
+                                            Margin="0,0,0,7"
+                                            Click="PreviewSound_Click"/>
+
+
+                                    <StackPanel Grid.Row="2"
+                                                Grid.Column="0">
+
+                                        <TextBlock Text="Звук информационного уведомления"
+                                                   Style="{StaticResource TechLabelStyle}"
+                                                   Margin="0,0,0,4"/>
+
+                                        <ComboBox x:Name="InfoSoundComboBox"
+                                                  Height="36"
+                                                  Style="{StaticResource ThemedComboBoxStyle}"
+                                                  PreviewMouseWheel="SoundComboBox_PreviewMouseWheel">
+
+                                            <ComboBoxItem Content="Цифровой звон"
+                                                          Tag="info.wav"/>
+
+                                            <ComboBoxItem Content="Мягкий"
+                                                          Tag="info_soft.wav"/>
+
+                                            <ComboBoxItem Content="Сигнал"
+                                                          Tag="info_signal.wav"/>
+
+                                        </ComboBox>
+
+                                    </StackPanel>
+
+                                    <Button Grid.Row="2"
+                                            Grid.Column="2"
+                                            Content="▶  Прослушать"
+                                            Tag="InfoSoundComboBox"
+                                            VerticalAlignment="Bottom"
+                                            Click="PreviewSound_Click"/>
+
+                                </Grid>
+
+                                <CheckBox x:Name="CriticalNotificationsTopmostCheck"
+                                          Content="Показывать критические уведомления поверх всех окон"/>
+
+                                <TextBlock Text="Режим поверх всех окон применяется только к критическим уведомлениям."
+                                           Foreground="{DynamicResource SecondaryTextBrush}"
+                                           FontSize="11"
+                                           TextWrapping="Wrap"
+                                           Margin="0,3,0,7"/>
+
 
                                 <Grid Margin="0,6,0,0">
 
@@ -2469,7 +2605,8 @@
                     </Grid.ColumnDefinitions>
 
 
-                    <StackPanel VerticalAlignment="Center">
+                    <StackPanel VerticalAlignment="Center"
+                                Margin="8,0,0,0">
 
                         <TextBlock Text="THERMIQRA // НАСТРОЙКИ"
                                    Style="{StaticResource TechLabelStyle}"/>

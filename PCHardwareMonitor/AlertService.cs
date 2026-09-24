@@ -6,7 +6,9 @@ namespace PCHardwareMonitor;
 
 public sealed class AlertService
 {
-    private readonly TrayService _tray;
+    private readonly NotificationService _notifications;
+
+    private readonly Action _openAction;
 
     private readonly StatisticsService? _statistics;
 
@@ -14,9 +16,14 @@ public sealed class AlertService
         _states = new();
 
     public AlertService(
-        TrayService tray)
+        NotificationService notifications,
+        Action openAction)
     {
-        _tray = tray;
+        _notifications =
+            notifications;
+
+        _openAction =
+            openAction;
 
         try
         {
@@ -235,6 +242,12 @@ public sealed class AlertService
         }
     }
 
+    public void ResetStates()
+    {
+        _states.Clear();
+    }
+
+
     // ============================================================
     // ПРОВЕРКА ОДНОГО ПОКАЗАТЕЛЯ
     // ============================================================
@@ -417,10 +430,13 @@ public sealed class AlertService
             $"{subject}: " +
             $"{value:F0} {unit}";
 
-        _tray.ShowNotification(
+        _notifications.Show(
+            critical
+                ? NotificationType.Critical
+                : NotificationType.Warning,
             title,
             message,
-            critical);
+            _openAction);
     }
 
     private void SaveStatisticsEvent(

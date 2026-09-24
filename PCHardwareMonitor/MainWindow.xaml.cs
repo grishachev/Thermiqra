@@ -20,6 +20,8 @@ public partial class MainWindow : Window
 
     private readonly TrayService _tray;
 
+    private readonly NotificationService _notifications;
+
     private readonly AlertService _alerts;
 
     private readonly StatisticsService? _statistics;
@@ -97,9 +99,13 @@ public partial class MainWindow : Window
                 exitAction:
                     ExitApplication);
 
+        _notifications =
+            new NotificationService();
+
         _alerts =
             new AlertService(
-                _tray);
+                _notifications,
+                ShowMainWindow);
 
         _cpuGauge =
             new RingGauge(
@@ -214,6 +220,12 @@ public partial class MainWindow : Window
             UpdateStorageTemperatures(
                 _lastSnapshot);
         }
+    }
+
+
+    public void ResetAlertStatesAfterSettingsChange()
+    {
+        _alerts.ResetStates();
     }
 
 
@@ -410,14 +422,15 @@ public partial class MainWindow : Window
             }
             else
             {
-                _tray.ShowNotification(
+                _notifications.Show(
+                    NotificationType.Info,
                     SettingsService.L(
                         "Доступно обновление Thermiqra",
                         "Thermiqra update available"),
                     SettingsService.L(
                         $"Версия {update.VersionText} готова к установке. Нажмите на уведомление, чтобы открыть Thermiqra.",
                         $"Version {update.VersionText} is ready to install. Click this notification to open Thermiqra."),
-                    false);
+                    ShowMainWindow);
             }
         }
         catch (Exception ex)
@@ -1060,6 +1073,8 @@ public partial class MainWindow : Window
         _timer.Stop();
 
         _updateCheckTimer.Stop();
+
+        _notifications.Dispose();
 
         _tray.Dispose();
 

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using LibreHardwareMonitor.Hardware;
 using RAMSPDToolkit.I2CSMBus;
 using RAMSPDToolkit.SPD;
@@ -18,7 +20,16 @@ public sealed class HardwareMonitorService : IDisposable
     private readonly Dictionary<string, MemorySpdXmpCacheEntry> _spdXmpCache =
         new(StringComparer.OrdinalIgnoreCase);
 
+    private readonly object _spdXmpCacheSync =
+        new();
+
+    private readonly CancellationTokenSource _spdXmpCancellation =
+        new();
+
+    private Task? _spdXmpLoadTask;
+
     private bool _spdXmpCacheInitialized;
+
     public HardwareMonitorService()
     {
         _computer = new Computer
@@ -33,6 +44,8 @@ public sealed class HardwareMonitorService : IDisposable
         };
 
         _computer.Open();
+
+        StartSpdXmpCacheLoading();
     }
 
     public HardwareSnapshot GetSnapshot()
@@ -56,7 +69,6 @@ public sealed class HardwareMonitorService : IDisposable
 
         ReadLogicalDrives(snapshot);
 
-        EnsureSpdXmpCache();
         ApplySpdXmpCache(snapshot);
         LastSnapshot =
             snapshot;
@@ -393,104 +405,220 @@ public sealed class HardwareMonitorService : IDisposable
         return null;
     }
 
-    private void EnsureSpdXmpCache()
+    private void StartSpdXmpCacheLoading()
     {
-        if (_spdXmpCacheInitialized)
+        if (_spdXmpLoadTask != null)
             return;
 
-        if (SMBusManager.RegisteredSMBuses.Count == 0)
-            return;
+        _spdXmpLoadTask =
+            Task.Run(
+                () =>
+                    LoadSpdXmpCacheAsync(
+                        _spdXmpCancellation.Token));
+    }
 
-        try
+
+    private async Task LoadSpdXmpCacheAsync(
+        CancellationToken cancellationToken)
+    {
+        const int maxAttempts = 8;
+        const int retryDelayMilliseconds = 750;
+
+        for (int attempt = 1;
+             attempt <= maxAttempts;
+             attempt++)
         {
-            foreach (SMBusInterface bus in SMBusManager.RegisteredSMBuses)
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (SMBusManager.RegisteredSMBuses.Count == 0)
             {
-                for (byte address = SPDConstants.SPD_BEGIN;
-                     address <= SPDConstants.SPD_END;
-                     address++)
+                if (attempt <
+                    maxAttempts)
                 {
-                    SPDDetector detector =
-                        new(bus, address);
-
-                    if (!detector.IsValid)
-                        continue;
-
-                    if (detector.Accessor is not DDR4Accessor ddr4)
-                        continue;
-
-                    byte[] header = new byte[9];
-
-                    for (int i = 0; i < header.Length; i++)
-                    {
-                        header[i] =
-                            ddr4.At((ushort)(384 + i));
-                    }
-
-                    bool hasXmp20 =
-                        header[0] == 0x0C &&
-                        header[1] == 0x4A &&
-                        header[3] == 0x20;
-
-                    string hardwareId =
-                        $"/memory/dimm/{ddr4.Index}";
-
-                    MemorySpdXmpCacheEntry cacheEntry = new()
-                    {
-                        HardwareId = hardwareId,
-                        HasXmp20 = hasXmp20,
-                        Jedec = ReadDdr4JedecInfo(ddr4)
-                    };
-
-                    if (hasXmp20)
-                    {
-                        byte profileEnabled =
-                            header[2];
-
-                        if ((profileEnabled & 0x01) != 0)
-                        {
-                            MemoryXmpProfileInfo? profile1 =
-                                ReadDdr4XmpProfile(
-                                    ddr4,
-                                    profileNumber: 1,
-                                    startAddress: 393);
-
-                            if (profile1 != null)
-                            {
-                                cacheEntry.Profiles.Add(
-                                    profile1);
-                            }
-                        }
-
-                        if ((profileEnabled & 0x02) != 0)
-                        {
-                            MemoryXmpProfileInfo? profile2 =
-                                ReadDdr4XmpProfile(
-                                    ddr4,
-                                    profileNumber: 2,
-                                    startAddress: 440);
-
-                            if (profile2 != null)
-                            {
-                                cacheEntry.Profiles.Add(
-                                    profile2);
-                            }
-                        }
-                    }
-
-                    _spdXmpCache[hardwareId] =
-                        cacheEntry;
+                    await Task.Delay(
+                        retryDelayMilliseconds,
+                        cancellationToken);
                 }
+
+                continue;
             }
 
-            _spdXmpCacheInitialized = true;
-        }
-        catch (Exception ex)
-        {
-            Trace.WriteLine(
-                $"Thermiqra SPD/XMP cache error: " +
-                $"{ex.GetType().Name}: {ex.Message}");
+            try
+            {
+                Dictionary<string, MemorySpdXmpCacheEntry>
+                    loadedCache =
+                        ReadSpdXmpCache();
+
+                lock (_spdXmpCacheSync)
+                {
+                    if (cancellationToken
+                        .IsCancellationRequested)
+                    {
+                        return;
+                    }
+
+                    _spdXmpCache.Clear();
+
+                    foreach (KeyValuePair<
+                                 string,
+                                 MemorySpdXmpCacheEntry> pair
+                             in loadedCache)
+                    {
+                        _spdXmpCache[
+                            pair.Key] =
+                                pair.Value;
+                    }
+
+                    _spdXmpCacheInitialized =
+                        true;
+                }
+
+                return;
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine(
+                    $"Thermiqra SPD/XMP background read error " +
+                    $"(attempt {attempt}/{maxAttempts}): " +
+                    $"{ex.GetType().Name}: {ex.Message}");
+
+                if (attempt <
+                    maxAttempts)
+                {
+                    try
+                    {
+                        await Task.Delay(
+                            retryDelayMilliseconds,
+                            cancellationToken);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        return;
+                    }
+                }
+            }
         }
     }
+
+
+    private static Dictionary<
+        string,
+        MemorySpdXmpCacheEntry> ReadSpdXmpCache()
+    {
+        Dictionary<string, MemorySpdXmpCacheEntry>
+            result =
+                new(
+                    StringComparer.OrdinalIgnoreCase);
+
+        foreach (SMBusInterface bus
+                 in SMBusManager.RegisteredSMBuses)
+        {
+            for (byte address = SPDConstants.SPD_BEGIN;
+                 address <= SPDConstants.SPD_END;
+                 address++)
+            {
+                SPDDetector detector =
+                    new(
+                        bus,
+                        address);
+
+                if (!detector.IsValid)
+                    continue;
+
+                if (detector.Accessor
+                    is not DDR4Accessor ddr4)
+                {
+                    continue;
+                }
+
+                byte[] header =
+                    new byte[9];
+
+                for (int i = 0;
+                     i < header.Length;
+                     i++)
+                {
+                    header[i] =
+                        ddr4.At(
+                            (ushort)(384 + i));
+                }
+
+                bool hasXmp20 =
+                    header[0] == 0x0C &&
+                    header[1] == 0x4A &&
+                    header[3] == 0x20;
+
+                string hardwareId =
+                    $"/memory/dimm/{ddr4.Index}";
+
+                MemorySpdXmpCacheEntry cacheEntry =
+                    new()
+                    {
+                        HardwareId =
+                            hardwareId,
+
+                        HasXmp20 =
+                            hasXmp20,
+
+                        Jedec =
+                            ReadDdr4JedecInfo(
+                                ddr4)
+                    };
+
+                if (hasXmp20)
+                {
+                    byte profileEnabled =
+                        header[2];
+
+                    if ((profileEnabled &
+                         0x01) != 0)
+                    {
+                        MemoryXmpProfileInfo? profile1 =
+                            ReadDdr4XmpProfile(
+                                ddr4,
+                                profileNumber: 1,
+                                startAddress: 393);
+
+                        if (profile1 != null)
+                        {
+                            cacheEntry
+                                .Profiles
+                                .Add(
+                                    profile1);
+                        }
+                    }
+
+                    if ((profileEnabled &
+                         0x02) != 0)
+                    {
+                        MemoryXmpProfileInfo? profile2 =
+                            ReadDdr4XmpProfile(
+                                ddr4,
+                                profileNumber: 2,
+                                startAddress: 440);
+
+                        if (profile2 != null)
+                        {
+                            cacheEntry
+                                .Profiles
+                                .Add(
+                                    profile2);
+                        }
+                    }
+                }
+
+                result[hardwareId] =
+                    cacheEntry;
+            }
+        }
+
+        return result;
+    }
+
 
     private static MemoryJedecInfo ReadDdr4JedecInfo(
         DDR4Accessor ddr4)
@@ -667,12 +795,14 @@ public sealed class HardwareMonitorService : IDisposable
     private void ApplySpdXmpCache(
         HardwareSnapshot snapshot)
     {
-        if (!_spdXmpCacheInitialized)
-            return;
-
-        foreach (MemorySpdModuleInfo module
-                 in snapshot.MemorySpdModules)
+        lock (_spdXmpCacheSync)
         {
+            if (!_spdXmpCacheInitialized)
+                return;
+
+            foreach (MemorySpdModuleInfo module
+                     in snapshot.MemorySpdModules)
+            {
             if (!_spdXmpCache.TryGetValue(
                     module.Id,
                     out MemorySpdXmpCacheEntry? cacheEntry))
@@ -746,12 +876,17 @@ public sealed class HardwareMonitorService : IDisposable
                                 profile.VoltageVolts
                         })
                     .ToList();
+            }
         }
     }
 
     public void Dispose()
     {
+        _spdXmpCancellation.Cancel();
+
         _computer.Close();
+
+        _spdXmpCancellation.Dispose();
     }
 }
 

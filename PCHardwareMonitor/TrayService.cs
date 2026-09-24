@@ -122,13 +122,6 @@ public sealed class TrayService : IDisposable
         _notifyIcon.DoubleClick +=
             (_, _) =>
                 _openAction();
-
-        // Щелчок по всплывающему уведомлению тоже открывает Thermiqra.
-        // Для уведомления об обновлении ShowMainWindow() сразу покажет
-        // уже найденное предложение установить новую версию.
-        _notifyIcon.BalloonTipClicked +=
-            (_, _) =>
-                _openAction();
     }
 
 
@@ -183,38 +176,6 @@ public sealed class TrayService : IDisposable
 
         return
             (Icon)originalIcon.Clone();
-    }
-
-
-    // ============================================================
-    // УВЕДОМЛЕНИЯ WINDOWS
-    // ============================================================
-
-    public void ShowNotification(
-        string title,
-        string message,
-        bool critical)
-    {
-        if (!SettingsService
-                .Current
-                .NotificationsEnabled)
-        {
-            return;
-        }
-
-        _notifyIcon.BalloonTipTitle =
-            title;
-
-        _notifyIcon.BalloonTipText =
-            message;
-
-        _notifyIcon.BalloonTipIcon =
-            critical
-                ? Forms.ToolTipIcon.Error
-                : Forms.ToolTipIcon.Warning;
-
-        _notifyIcon.ShowBalloonTip(
-            5000);
     }
 
 
