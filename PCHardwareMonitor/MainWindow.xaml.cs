@@ -428,8 +428,8 @@ public partial class MainWindow : Window
                         "Доступно обновление Thermiqra",
                         "Thermiqra update available"),
                     SettingsService.L(
-                        $"Версия {update.VersionText} готова к установке. Нажмите на уведомление, чтобы открыть Thermiqra.",
-                        $"Version {update.VersionText} is ready to install. Click this notification to open Thermiqra."),
+                        $"Доступна версия {update.VersionText}. Нажмите, чтобы открыть Thermiqra и установить обновление.",
+                        $"Version {update.VersionText} is available. Click to open Thermiqra and install the update."),
                     ShowMainWindow);
             }
         }
@@ -498,13 +498,9 @@ public partial class MainWindow : Window
         UpdateInfo update)
     {
         string description =
-            string.IsNullOrWhiteSpace(
-                update.Summary)
-
-                ? SettingsService.L(
-                    "Доступна новая версия Thermiqra.",
-                    "A new Thermiqra version is available.")
-                : update.Summary;
+            SettingsService.L(
+                $"Доступна новая версия Thermiqra {update.VersionText}.",
+                $"A new version of Thermiqra {update.VersionText} is available.");
 
         Window dialog =
             new()
@@ -624,8 +620,8 @@ public partial class MainWindow : Window
                     Environment.NewLine +
                     Environment.NewLine +
                     SettingsService.L(
-                        "Нажмите «Обновить» — Thermiqra сама скачает и установит новую версию.",
-                        "Click “Update” and Thermiqra will download and install the new version automatically."),
+                        "Нажмите «Обновить» — Thermiqra автоматически скачает установщик, проверит его целостность и установит новую версию. После установки Thermiqra запустится снова. Настройки и статистика будут сохранены.",
+                        "Click “Update” — Thermiqra will automatically download the installer, verify its integrity, and install the new version. Thermiqra will start again after installation. Your settings and statistics will be preserved."),
                 Margin =
                     new Thickness(
                         0,
