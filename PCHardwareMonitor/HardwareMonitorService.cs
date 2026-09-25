@@ -357,8 +357,11 @@ public sealed class HardwareMonitorService : IDisposable
                 if (!drive.IsReady)
                     continue;
 
-                if (drive.DriveType != DriveType.Fixed)
+                if (drive.DriveType != DriveType.Fixed &&
+                    drive.DriveType != DriveType.Removable)
+                {
                     continue;
+                }
 
                 snapshot.Drives.Add(
                     new LogicalDriveInfo

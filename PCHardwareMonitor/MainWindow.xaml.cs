@@ -1560,7 +1560,8 @@ public partial class MainWindow : Window
         PrepareResponsiveGrid(
             DrivesPanel,
             snapshot.Drives.Count,
-            out int columns);
+            out int columns,
+            minimumCardWidth: 340);
 
         for (int i = 0;
              i < snapshot.Drives.Count;
@@ -5393,7 +5394,8 @@ public partial class MainWindow : Window
     private void PrepareResponsiveGrid(
         Grid grid,
         int itemCount,
-        out int columns)
+        out int columns,
+        double minimumCardWidth = 250)
     {
         grid.Children.Clear();
 
@@ -5406,9 +5408,6 @@ public partial class MainWindow : Window
             columns = 1;
             return;
         }
-
-        const double minimumCardWidth =
-            250;
 
         const double gap =
             12;
