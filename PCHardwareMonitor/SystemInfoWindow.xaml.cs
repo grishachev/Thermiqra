@@ -2626,46 +2626,6 @@ public partial class SystemInfoWindow : Window
     }
 
 
-    // ============================================================
-    // КОПИРОВАНИЕ ИНФОРМАЦИИ
-    // ============================================================
-
-    private void CopyInformationButton_Click(
-        object sender,
-        RoutedEventArgs e)
-    {
-        if (_snapshot == null)
-        {
-            StatusText.Text =
-                SettingsService.TranslateText(
-                    "Информация о системе ещё не загружена.");
-
-            return;
-        }
-
-        try
-        {
-            string text =
-                BuildCopyText(
-                    _snapshot);
-
-            Clipboard.SetText(
-                text);
-
-            StatusText.Text =
-                SettingsService.TranslateText(
-                    "Информация скопирована в буфер обмена.");
-        }
-        catch (Exception ex)
-        {
-            StatusText.Text =
-                SettingsService.TranslateText(
-                    $"Не удалось скопировать данные: " +
-                    $"{ex.Message}");
-        }
-    }
-
-
     private static string BuildCopyText(
         SystemInformationSnapshot snapshot)
     {

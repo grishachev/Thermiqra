@@ -249,6 +249,194 @@ public sealed class StatisticsService
     }
 
 
+    public HistoryAnalyticsResult GetHistoryAnalytics(
+        StatisticsPeriod period)
+    {
+        DateTimeOffset currentEndUtc =
+            DateTimeOffset.UtcNow;
+
+        DateTimeOffset currentStartUtc =
+            GetPeriodStartUtc(
+                period,
+                currentEndUtc);
+
+        long currentStartUnix =
+            currentStartUtc.ToUnixTimeSeconds();
+
+        long currentEndUnix =
+            currentEndUtc.ToUnixTimeSeconds();
+
+        long durationSeconds =
+            Math.Max(
+                1,
+                currentEndUnix -
+                currentStartUnix);
+
+        DateTimeOffset previousEndUtc =
+            DateTimeOffset.FromUnixTimeSeconds(
+                currentStartUnix - 1);
+
+        DateTimeOffset previousStartUtc =
+            DateTimeOffset.FromUnixTimeSeconds(
+                currentStartUnix -
+                durationSeconds -
+                1);
+
+        DateTimeOffset weekEndUtc =
+            currentEndUtc;
+
+        DateTimeOffset weekStartUtc =
+            weekEndUtc.Subtract(
+                TimeSpan.FromDays(7));
+
+        using SqliteConnection connection =
+            OpenConnection();
+
+        HistoryAnalyticsResult result =
+            new()
+            {
+                Period =
+                    period,
+
+                CurrentStartUtc =
+                    currentStartUtc,
+
+                CurrentEndUtc =
+                    currentEndUtc,
+
+                PreviousStartUtc =
+                    previousStartUtc,
+
+                PreviousEndUtc =
+                    previousEndUtc,
+
+                CurrentSampleCount =
+                    GetMainSampleCount(
+                        connection,
+                        currentStartUtc,
+                        currentEndUtc),
+
+                PreviousSampleCount =
+                    GetMainSampleCount(
+                        connection,
+                        previousStartUtc,
+                        previousEndUtc),
+
+                CurrentCpuTemperature =
+                    ReadMainMetric(
+                        connection,
+                        "CpuTemperature",
+                        currentStartUtc,
+                        currentEndUtc),
+
+                PreviousCpuTemperature =
+                    ReadMainMetric(
+                        connection,
+                        "CpuTemperature",
+                        previousStartUtc,
+                        previousEndUtc),
+
+                CurrentCpuLoad =
+                    ReadMainMetric(
+                        connection,
+                        "CpuLoad",
+                        currentStartUtc,
+                        currentEndUtc),
+
+                PreviousCpuLoad =
+                    ReadMainMetric(
+                        connection,
+                        "CpuLoad",
+                        previousStartUtc,
+                        previousEndUtc),
+
+                CurrentRamLoad =
+                    ReadMainMetric(
+                        connection,
+                        "RamLoad",
+                        currentStartUtc,
+                        currentEndUtc),
+
+                PreviousRamLoad =
+                    ReadMainMetric(
+                        connection,
+                        "RamLoad",
+                        previousStartUtc,
+                        previousEndUtc),
+
+                CurrentAlerts =
+                    ReadAlertEventCounts(
+                        connection,
+                        currentStartUtc,
+                        currentEndUtc),
+
+                PreviousAlerts =
+                    ReadAlertEventCounts(
+                        connection,
+                        previousStartUtc,
+                        previousEndUtc),
+
+                Last7Days =
+                    new WeeklyHistorySummary
+                    {
+                        StartUtc =
+                            weekStartUtc,
+
+                        EndUtc =
+                            weekEndUtc,
+
+                        SampleCount =
+                            GetMainSampleCount(
+                                connection,
+                                weekStartUtc,
+                                weekEndUtc),
+
+                        DaysWithSamples =
+                            ReadDaysWithSamples(
+                                connection,
+                                weekStartUtc,
+                                weekEndUtc),
+
+                        CpuTemperature =
+                            ReadMainMetric(
+                                connection,
+                                "CpuTemperature",
+                                weekStartUtc,
+                                weekEndUtc),
+
+                        CpuLoad =
+                            ReadMainMetric(
+                                connection,
+                                "CpuLoad",
+                                weekStartUtc,
+                                weekEndUtc),
+
+                        RamLoad =
+                            ReadMainMetric(
+                                connection,
+                                "RamLoad",
+                                weekStartUtc,
+                                weekEndUtc),
+
+                        Alerts =
+                            ReadAlertEventCounts(
+                                connection,
+                                weekStartUtc,
+                                weekEndUtc)
+                    }
+            };
+
+        result.RecurringAlerts.AddRange(
+            ReadRecurringAlertSummaries(
+                connection,
+                currentStartUtc,
+                currentEndUtc,
+                6));
+
+        return result;
+    }
+
+
     public StatisticsChartSeries GetChartSeries(
         StatisticsPeriod period,
         StatisticsChartMetric metric,
@@ -1499,6 +1687,190 @@ public sealed class StatisticsService
     }
 
 
+    private static AlertEventCounts ReadAlertEventCounts(
+        SqliteConnection connection,
+        DateTimeOffset startUtc,
+        DateTimeOffset endUtc)
+    {
+        using SqliteCommand command =
+            connection.CreateCommand();
+
+        command.CommandText =
+            """
+            SELECT Level, COUNT(*)
+            FROM AlertEvents
+            WHERE TimestampUtc >= $startUtc
+              AND TimestampUtc <= $endUtc
+            GROUP BY Level;
+            """;
+
+        AddRangeParameters(
+            command,
+            startUtc,
+            endUtc);
+
+        AlertEventCounts counts =
+            new();
+
+        using SqliteDataReader reader =
+            command.ExecuteReader();
+
+        while (reader.Read())
+        {
+            StatisticsAlertLevel level =
+                (StatisticsAlertLevel)
+                reader.GetInt32(0);
+
+            int count =
+                reader.GetInt32(1);
+
+            if (level ==
+                StatisticsAlertLevel.Warning)
+            {
+                counts.WarningCount =
+                    count;
+            }
+            else if (level ==
+                     StatisticsAlertLevel.Critical)
+            {
+                counts.CriticalCount =
+                    count;
+            }
+        }
+
+        return counts;
+    }
+
+
+    private static int ReadDaysWithSamples(
+        SqliteConnection connection,
+        DateTimeOffset startUtc,
+        DateTimeOffset endUtc)
+    {
+        using SqliteCommand command =
+            connection.CreateCommand();
+
+        command.CommandText =
+            """
+            SELECT COUNT(
+                DISTINCT date(
+                    TimestampUtc,
+                    'unixepoch',
+                    'localtime'))
+            FROM MonitoringSamples
+            WHERE TimestampUtc >= $startUtc
+              AND TimestampUtc <= $endUtc;
+            """;
+
+        AddRangeParameters(
+            command,
+            startUtc,
+            endUtc);
+
+        object? result =
+            command.ExecuteScalar();
+
+        return Convert.ToInt32(
+            result ?? 0);
+    }
+
+
+    private static List<RecurringAlertSummary>
+        ReadRecurringAlertSummaries(
+            SqliteConnection connection,
+            DateTimeOffset startUtc,
+            DateTimeOffset endUtc,
+            int limit)
+    {
+        limit =
+            Math.Clamp(
+                limit,
+                1,
+                20);
+
+        using SqliteCommand command =
+            connection.CreateCommand();
+
+        command.CommandText =
+            """
+            SELECT
+                EventKey,
+                Level,
+                DeviceName,
+                Subject,
+                Unit,
+                COUNT(*) AS EventCount,
+                MAX(Value) AS MaximumValue,
+                MAX(TimestampUtc) AS LastTimestampUtc
+            FROM AlertEvents
+            WHERE TimestampUtc >= $startUtc
+              AND TimestampUtc <= $endUtc
+            GROUP BY
+                EventKey,
+                Level,
+                DeviceName,
+                Subject,
+                Unit
+            HAVING COUNT(*) >= 2
+            ORDER BY
+                EventCount DESC,
+                Level DESC,
+                LastTimestampUtc DESC
+            LIMIT $limit;
+            """;
+
+        AddRangeParameters(
+            command,
+            startUtc,
+            endUtc);
+
+        command.Parameters.AddWithValue(
+            "$limit",
+            limit);
+
+        List<RecurringAlertSummary> result =
+            new();
+
+        using SqliteDataReader reader =
+            command.ExecuteReader();
+
+        while (reader.Read())
+        {
+            result.Add(
+                new RecurringAlertSummary
+                {
+                    EventKey =
+                        reader.GetString(0),
+
+                    Level =
+                        (StatisticsAlertLevel)
+                        reader.GetInt32(1),
+
+                    DeviceName =
+                        reader.GetString(2),
+
+                    Subject =
+                        reader.GetString(3),
+
+                    Unit =
+                        reader.GetString(4),
+
+                    Count =
+                        reader.GetInt32(5),
+
+                    MaximumValue =
+                        reader.GetDouble(6),
+
+                    LastAtUtc =
+                        DateTimeOffset.FromUnixTimeSeconds(
+                            reader.GetInt64(7))
+                });
+        }
+
+        return result;
+    }
+
+
     private static DateTimeOffset GetPeriodStartUtc(
         StatisticsPeriod period,
         DateTimeOffset endUtc)
@@ -2148,6 +2520,98 @@ public sealed class StatisticsExportRow
     public double Value { get; set; }
 
     public string Unit { get; set; } = "";
+}
+
+
+public sealed class HistoryAnalyticsResult
+{
+    public StatisticsPeriod Period { get; set; }
+
+    public DateTimeOffset CurrentStartUtc { get; set; }
+
+    public DateTimeOffset CurrentEndUtc { get; set; }
+
+    public DateTimeOffset PreviousStartUtc { get; set; }
+
+    public DateTimeOffset PreviousEndUtc { get; set; }
+
+    public int CurrentSampleCount { get; set; }
+
+    public int PreviousSampleCount { get; set; }
+
+    public MetricStatistics CurrentCpuTemperature { get; set; } =
+        new();
+
+    public MetricStatistics PreviousCpuTemperature { get; set; } =
+        new();
+
+    public MetricStatistics CurrentCpuLoad { get; set; } =
+        new();
+
+    public MetricStatistics PreviousCpuLoad { get; set; } =
+        new();
+
+    public MetricStatistics CurrentRamLoad { get; set; } =
+        new();
+
+    public MetricStatistics PreviousRamLoad { get; set; } =
+        new();
+
+    public AlertEventCounts CurrentAlerts { get; set; } =
+        new();
+
+    public AlertEventCounts PreviousAlerts { get; set; } =
+        new();
+
+    public WeeklyHistorySummary Last7Days { get; set; } =
+        new();
+
+    public List<RecurringAlertSummary> RecurringAlerts { get; } =
+        new();
+}
+
+
+public sealed class WeeklyHistorySummary
+{
+    public DateTimeOffset StartUtc { get; set; }
+
+    public DateTimeOffset EndUtc { get; set; }
+
+    public int SampleCount { get; set; }
+
+    public int DaysWithSamples { get; set; }
+
+    public MetricStatistics CpuTemperature { get; set; } =
+        new();
+
+    public MetricStatistics CpuLoad { get; set; } =
+        new();
+
+    public MetricStatistics RamLoad { get; set; } =
+        new();
+
+    public AlertEventCounts Alerts { get; set; } =
+        new();
+}
+
+
+public sealed class RecurringAlertSummary
+{
+    public string EventKey { get; set; } = "";
+
+    public StatisticsAlertLevel Level { get; set; }
+
+    public string DeviceName { get; set; } = "";
+
+    public string Subject { get; set; } = "";
+
+    public int Count { get; set; }
+
+    public double MaximumValue { get; set; }
+
+    public string Unit { get; set; } = "";
+
+    public DateTimeOffset LastAtUtc { get; set; }
 }
 
 
