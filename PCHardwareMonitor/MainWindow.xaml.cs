@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -844,7 +845,15 @@ public partial class MainWindow : Window
         Window? progressWindow =
             null;
 
-        bool installerStarted =
+        CancelEventHandler?
+            progressClosingHandler =
+                null;
+
+        using CancellationTokenSource
+            downloadCancellation =
+                new();
+
+        bool downloadCompleted =
             false;
 
         try
@@ -852,13 +861,37 @@ public partial class MainWindow : Window
             progressWindow =
                 CreateUpdateProgressWindow(
                     out ProgressBar progressBar,
-                    out TextBlock statusText);
+                    out TextBlock statusText,
+                    out Button cancelButton);
+
+            progressClosingHandler =
+                (_, _) =>
+                {
+                    if (!downloadCompleted)
+                    {
+                        downloadCancellation
+                            .Cancel();
+                    }
+                };
+
+            progressWindow.Closing +=
+                progressClosingHandler;
+
+            cancelButton.Click +=
+                (_, _) =>
+                {
+                    downloadCancellation
+                        .Cancel();
+
+                    if (progressWindow != null &&
+                        progressWindow.IsVisible)
+                    {
+                        progressWindow.Close();
+                    }
+                };
 
             progressWindow.Show();
             progressWindow.Activate();
-
-            IsEnabled =
-                false;
 
             Progress<int> progress =
                 new(
@@ -877,7 +910,18 @@ public partial class MainWindow : Window
                 await UpdateService
                     .DownloadInstallerAsync(
                         update,
-                        progress);
+                        progress,
+                        downloadCancellation.Token);
+
+            downloadCancellation
+                .Token
+                .ThrowIfCancellationRequested();
+
+            downloadCompleted =
+                true;
+
+            cancelButton.IsEnabled =
+                false;
 
             statusText.Text =
                 SettingsService.L(
@@ -893,16 +937,25 @@ public partial class MainWindow : Window
             UpdateService.StartInstaller(
                 installerPath);
 
-            installerStarted =
-                true;
+            if (progressClosingHandler !=
+                null)
+            {
+                progressWindow.Closing -=
+                    progressClosingHandler;
+            }
 
             progressWindow.Close();
-            progressWindow = null;
-
-            IsEnabled =
-                true;
+            progressWindow =
+                null;
 
             ExitApplication();
+        }
+        catch (OperationCanceledException)
+            when (downloadCancellation
+                .IsCancellationRequested)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                "Загрузка обновления Thermiqra отменена пользователем.");
         }
         catch (Exception ex)
         {
@@ -911,12 +964,21 @@ public partial class MainWindow : Window
 
             if (progressWindow != null)
             {
-                progressWindow.Close();
-                progressWindow = null;
-            }
+                if (progressClosingHandler !=
+                    null)
+                {
+                    progressWindow.Closing -=
+                        progressClosingHandler;
+                }
 
-            IsEnabled =
-                true;
+                if (progressWindow.IsVisible)
+                {
+                    progressWindow.Close();
+                }
+
+                progressWindow =
+                    null;
+            }
 
             MessageBox.Show(
                 this,
@@ -931,16 +993,19 @@ public partial class MainWindow : Window
         }
         finally
         {
-            if (!installerStarted &&
-                IsVisible)
-            {
-                IsEnabled =
-                    true;
-            }
-
             if (progressWindow != null)
             {
-                progressWindow.Close();
+                if (progressClosingHandler !=
+                    null)
+                {
+                    progressWindow.Closing -=
+                        progressClosingHandler;
+                }
+
+                if (progressWindow.IsVisible)
+                {
+                    progressWindow.Close();
+                }
             }
 
             _isUpdateInstallRunning =
@@ -950,7 +1015,8 @@ public partial class MainWindow : Window
 
     private Window CreateUpdateProgressWindow(
         out ProgressBar progressBar,
-        out TextBlock statusText)
+        out TextBlock statusText,
+        out Button cancelButton)
     {
         Window window =
             new()
@@ -961,7 +1027,7 @@ public partial class MainWindow : Window
                         "Thermiqra — Обновление",
                         "Thermiqra — Update"),
                 Width = 460,
-                Height = 155,
+                Height = 205,
                 WindowStartupLocation =
                     WindowStartupLocation.CenterOwner,
                 ResizeMode =
@@ -1020,11 +1086,50 @@ public partial class MainWindow : Window
             Control.ForegroundProperty,
             "AccentBrush");
 
+        cancelButton =
+            new Button
+            {
+                Content =
+                    SettingsService.L(
+                        "Отмена",
+                        "Cancel"),
+                MinWidth = 100,
+                Padding =
+                    new Thickness(
+                        16,
+                        8,
+                        16,
+                        8),
+                Margin =
+                    new Thickness(
+                        0,
+                        16,
+                        0,
+                        0),
+                HorizontalAlignment =
+                    HorizontalAlignment.Right
+            };
+
+        cancelButton.SetResourceReference(
+            Control.BackgroundProperty,
+            "InputBackgroundBrush");
+
+        cancelButton.SetResourceReference(
+            Control.ForegroundProperty,
+            "PrimaryTextBrush");
+
+        cancelButton.SetResourceReference(
+            Control.BorderBrushProperty,
+            "BorderBrush");
+
         panel.Children.Add(
             statusText);
 
         panel.Children.Add(
             progressBar);
+
+        panel.Children.Add(
+            cancelButton);
 
         window.Content =
             panel;
