@@ -819,10 +819,18 @@
                        FontSize="10"
                        VerticalAlignment="Center"/>
 
-            <Button Grid.Column="1"
-                    Content="Закрыть"
-                    MinWidth="100"
-                    Click="CloseButton_Click"/>
+            <StackPanel Grid.Column="1"
+                        Orientation="Horizontal">
+                <Button x:Name="ExportCsvButton"
+                        Content="Экспорт CSV"
+                        MinWidth="130"
+                        Margin="0,0,10,0"
+                        Click="ExportCsvButton_Click"/>
+
+                <Button Content="Закрыть"
+                        MinWidth="100"
+                        Click="CloseButton_Click"/>
+            </StackPanel>
         </Grid>
     </Grid>
 </Window>
