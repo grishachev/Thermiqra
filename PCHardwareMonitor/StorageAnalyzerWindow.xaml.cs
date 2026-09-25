@@ -239,20 +239,39 @@ public partial class StorageAnalyzerWindow : Window
             result.LargestFiles,
             12);
 
+        bool isNtfs =
+            string.Equals(
+                result.FileSystem,
+                "NTFS",
+                StringComparison.OrdinalIgnoreCase);
+
         string unresolvedText =
             result.UnresolvedNonEmptyFiles > 0
-                ? SettingsService.L(
-                    $"   •   не привязано: {result.UnresolvedNonEmptyFiles:N0}",
-                    $"   •   unresolved: {result.UnresolvedNonEmptyFiles:N0}")
+                ? isNtfs
+                    ? SettingsService.L(
+                        $"   •   не привязано: {result.UnresolvedNonEmptyFiles:N0}",
+                        $"   •   unresolved: {result.UnresolvedNonEmptyFiles:N0}")
+                    : SettingsService.L(
+                        $"   •   пропущено: {result.UnresolvedNonEmptyFiles:N0}",
+                        $"   •   skipped: {result.UnresolvedNonEmptyFiles:N0}")
                 : "";
+
+        string modeText =
+            isNtfs
+                ? ""
+                : SettingsService.L(
+                    $"   •   {result.FileSystem}, безопасный обход",
+                    $"   •   {result.FileSystem}, safe traversal");
 
         StatusText.Text =
             SettingsService.L(
                 $"Готово: {result.FileCount:N0} файлов, " +
                 $"{result.DirectoryCount:N0} папок" +
+                $"{modeText}" +
                 $"{unresolvedText}",
                 $"Done: {result.FileCount:N0} files, " +
                 $"{result.DirectoryCount:N0} folders" +
+                $"{modeText}" +
                 $"{unresolvedText}");
     }
 

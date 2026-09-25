@@ -65,9 +65,11 @@ public sealed class StorageAnalyzerService
                 "NTFS",
                 StringComparison.OrdinalIgnoreCase))
         {
-            throw new NotSupportedException(
-                $"Fast storage analysis currently supports NTFS only. " +
-                $"Drive {normalizedDrive} uses {fileSystem}.");
+            return AnalyzeByTraversal(
+                drive,
+                normalizedDrive,
+                fileSystem,
+                cancellationToken);
         }
 
         char driveLetter = char.ToUpperInvariant(normalizedDrive[0]);
@@ -332,6 +334,453 @@ public sealed class StorageAnalyzerService
             largestFolders,
             largestFiles);
     }
+
+    private static StorageAnalysisResult AnalyzeByTraversal(
+        DriveInfo drive,
+        string normalizedDrive,
+        string fileSystem,
+        CancellationToken cancellationToken)
+    {
+        long totalBytes =
+            drive.TotalSize;
+
+        long freeBytes =
+            drive.AvailableFreeSpace;
+
+        long windowsUsedBytes =
+            checked(
+                totalBytes -
+                freeBytes);
+
+        Stopwatch totalTimer =
+            Stopwatch.StartNew();
+
+        long clusterSize =
+            GetClusterSize(
+                normalizedDrive);
+
+        Dictionary<string, FallbackFolderStat> folders =
+            new(
+                StringComparer.OrdinalIgnoreCase);
+
+        HashSet<string> visitedDirectories =
+            new(
+                StringComparer.OrdinalIgnoreCase);
+
+        Stack<FallbackWorkItem> work =
+            new();
+
+        work.Push(
+            new FallbackWorkItem(
+                normalizedDrive,
+                null,
+                false));
+
+        List<StorageAnalysisItem> largestFileCandidates =
+            new();
+
+        long logicalFileBytes = 0;
+        long allocatedFileBytes = 0;
+
+        int fileCount = 0;
+        int directoryCount = 0;
+        int skippedEntries = 0;
+
+        while (work.Count > 0)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            FallbackWorkItem item =
+                work.Pop();
+
+            if (item.IsExit)
+            {
+                if (!folders.TryGetValue(
+                        item.Path,
+                        out FallbackFolderStat? completed))
+                {
+                    continue;
+                }
+
+                if (!string.IsNullOrWhiteSpace(
+                        completed.ParentPath) &&
+                    folders.TryGetValue(
+                        completed.ParentPath,
+                        out FallbackFolderStat? parent))
+                {
+                    parent.RecursiveLogicalBytes =
+                        SafeAdd(
+                            parent.RecursiveLogicalBytes,
+                            completed.RecursiveLogicalBytes);
+
+                    parent.RecursiveAllocatedBytes =
+                        SafeAdd(
+                            parent.RecursiveAllocatedBytes,
+                            completed.RecursiveAllocatedBytes);
+                }
+
+                continue;
+            }
+
+            if (!visitedDirectories.Add(
+                    item.Path))
+            {
+                continue;
+            }
+
+            FallbackFolderStat folder =
+                new(
+                    item.Path,
+                    item.ParentPath,
+                    GetFallbackName(
+                        item.Path));
+
+            folders[item.Path] =
+                folder;
+
+            directoryCount++;
+
+            work.Push(
+                new FallbackWorkItem(
+                    item.Path,
+                    item.ParentPath,
+                    true));
+
+            try
+            {
+                foreach (string entryPath in
+                         Directory.EnumerateFileSystemEntries(
+                             item.Path))
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    FileAttributes attributes;
+
+                    try
+                    {
+                        attributes =
+                            File.GetAttributes(
+                                entryPath);
+                    }
+                    catch (UnauthorizedAccessException)
+                    {
+                        skippedEntries++;
+                        continue;
+                    }
+                    catch (IOException)
+                    {
+                        skippedEntries++;
+                        continue;
+                    }
+
+                    if ((attributes &
+                         FileAttributes.ReparsePoint) != 0)
+                    {
+                        continue;
+                    }
+
+                    if ((attributes &
+                         FileAttributes.Directory) != 0)
+                    {
+                        work.Push(
+                            new FallbackWorkItem(
+                                entryPath,
+                                item.Path,
+                                false));
+
+                        continue;
+                    }
+
+                    long logicalSize;
+
+                    try
+                    {
+                        logicalSize =
+                            new FileInfo(
+                                entryPath)
+                                .Length;
+                    }
+                    catch (UnauthorizedAccessException)
+                    {
+                        skippedEntries++;
+                        continue;
+                    }
+                    catch (IOException)
+                    {
+                        skippedEntries++;
+                        continue;
+                    }
+
+                    long allocatedSize;
+
+                    if (!TryGetAllocatedSizeFromWindows(
+                            ToExtendedPath(
+                                entryPath),
+                            out allocatedSize))
+                    {
+                        allocatedSize =
+                            EstimateAllocatedSize(
+                                logicalSize,
+                                clusterSize);
+                    }
+
+                    if (allocatedSize < 0)
+                    {
+                        allocatedSize =
+                            logicalSize;
+                    }
+
+                    fileCount++;
+
+                    logicalFileBytes =
+                        SafeAdd(
+                            logicalFileBytes,
+                            logicalSize);
+
+                    allocatedFileBytes =
+                        SafeAdd(
+                            allocatedFileBytes,
+                            allocatedSize);
+
+                    folder.RecursiveLogicalBytes =
+                        SafeAdd(
+                            folder.RecursiveLogicalBytes,
+                            logicalSize);
+
+                    folder.RecursiveAllocatedBytes =
+                        SafeAdd(
+                            folder.RecursiveAllocatedBytes,
+                            allocatedSize);
+
+                    StorageAnalysisItem fileItem =
+                        new(
+                            entryPath,
+                            Path.GetFileName(
+                                entryPath),
+                            logicalSize,
+                            allocatedSize,
+                            false);
+
+                    AddTopCandidate(
+                        largestFileCandidates,
+                        fileItem,
+                        30);
+                }
+            }
+            catch (UnauthorizedAccessException)
+            {
+                skippedEntries++;
+            }
+            catch (IOException)
+            {
+                skippedEntries++;
+            }
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        List<StorageAnalysisItem> rootFolders =
+            folders.Values
+                .Where(
+                    folder =>
+                        folder.ParentPath != null &&
+                        string.Equals(
+                            folder.ParentPath,
+                            normalizedDrive,
+                            StringComparison.OrdinalIgnoreCase) &&
+                        folder.RecursiveAllocatedBytes > 0)
+                .OrderByDescending(
+                    folder =>
+                        folder.RecursiveAllocatedBytes)
+                .Select(
+                    folder =>
+                        new StorageAnalysisItem(
+                            folder.Path,
+                            folder.Name,
+                            folder.RecursiveLogicalBytes,
+                            folder.RecursiveAllocatedBytes,
+                            true))
+                .ToList();
+
+        List<StorageAnalysisItem> largestFolders =
+            folders.Values
+                .Where(
+                    folder =>
+                        !string.Equals(
+                            folder.Path,
+                            normalizedDrive,
+                            StringComparison.OrdinalIgnoreCase) &&
+                        folder.RecursiveAllocatedBytes > 0)
+                .OrderByDescending(
+                    folder =>
+                        folder.RecursiveAllocatedBytes)
+                .Take(30)
+                .Select(
+                    folder =>
+                        new StorageAnalysisItem(
+                            folder.Path,
+                            folder.Name,
+                            folder.RecursiveLogicalBytes,
+                            folder.RecursiveAllocatedBytes,
+                            true))
+                .ToList();
+
+        List<StorageAnalysisItem> largestFiles =
+            largestFileCandidates
+                .OrderByDescending(
+                    file =>
+                        file.AllocatedBytes)
+                .Take(30)
+                .ToList();
+
+        totalTimer.Stop();
+
+        long fileSystemOverheadBytes =
+            windowsUsedBytes >
+            allocatedFileBytes
+                ? windowsUsedBytes -
+                  allocatedFileBytes
+                : 0;
+
+        return new StorageAnalysisResult(
+            normalizedDrive,
+            fileSystem,
+            totalBytes,
+            freeBytes,
+            windowsUsedBytes,
+            logicalFileBytes,
+            allocatedFileBytes,
+            fileSystemOverheadBytes,
+            fileCount,
+            directoryCount,
+            0,
+            skippedEntries,
+            totalTimer.Elapsed,
+            rootFolders,
+            largestFolders,
+            largestFiles);
+    }
+
+
+    private static void AddTopCandidate(
+        List<StorageAnalysisItem> items,
+        StorageAnalysisItem item,
+        int limit)
+    {
+        items.Add(
+            item);
+
+        if (items.Count <=
+            limit * 2)
+        {
+            return;
+        }
+
+        items.Sort(
+            (left, right) =>
+                right.AllocatedBytes.CompareTo(
+                    left.AllocatedBytes));
+
+        items.RemoveRange(
+            limit,
+            items.Count -
+            limit);
+    }
+
+
+    private static string GetFallbackName(
+        string path)
+    {
+        string trimmed =
+            path.TrimEnd(
+                Path.DirectorySeparatorChar,
+                Path.AltDirectorySeparatorChar);
+
+        string name =
+            Path.GetFileName(
+                trimmed);
+
+        return string.IsNullOrWhiteSpace(
+                name)
+            ? path
+            : name;
+    }
+
+
+    private static long GetClusterSize(
+        string rootPath)
+    {
+        try
+        {
+            if (!GetDiskFreeSpaceW(
+                    rootPath,
+                    out uint sectorsPerCluster,
+                    out uint bytesPerSector,
+                    out _,
+                    out _))
+            {
+                return 0;
+            }
+
+            return checked(
+                (long)sectorsPerCluster *
+                bytesPerSector);
+        }
+        catch
+        {
+            return 0;
+        }
+    }
+
+
+    private static long EstimateAllocatedSize(
+        long logicalSize,
+        long clusterSize)
+    {
+        if (logicalSize <= 0)
+            return 0;
+
+        if (clusterSize <= 0)
+            return logicalSize;
+
+        try
+        {
+            long clusters =
+                checked(
+                    (logicalSize +
+                     clusterSize -
+                     1) /
+                    clusterSize);
+
+            return checked(
+                clusters *
+                clusterSize);
+        }
+        catch (OverflowException)
+        {
+            return logicalSize;
+        }
+    }
+
+
+    private static long SafeAdd(
+        long left,
+        long right)
+    {
+        if (right <= 0)
+            return left;
+
+        if (left >
+            long.MaxValue -
+            right)
+        {
+            return long.MaxValue;
+        }
+
+        return left +
+               right;
+    }
+
 
     private static void ParseRecord(
         Span<byte> record,
@@ -1323,6 +1772,36 @@ public sealed class StorageAnalyzerService
         return unchecked((long)value);
     }
 
+    private sealed class FallbackFolderStat
+    {
+        public FallbackFolderStat(
+            string path,
+            string? parentPath,
+            string name)
+        {
+            Path = path;
+            ParentPath = parentPath;
+            Name = name;
+        }
+
+        public string Path { get; }
+
+        public string? ParentPath { get; }
+
+        public string Name { get; }
+
+        public long RecursiveLogicalBytes { get; set; }
+
+        public long RecursiveAllocatedBytes { get; set; }
+    }
+
+
+    private readonly record struct FallbackWorkItem(
+        string Path,
+        string? ParentPath,
+        bool IsExit);
+
+
     private sealed class Entry
     {
         public Entry(ulong recordNumber)
@@ -1439,6 +1918,19 @@ public sealed class StorageAnalyzerService
     private static extern uint GetCompressedFileSizeW(
         string lpFileName,
         out uint lpFileSizeHigh);
+
+
+    [DllImport(
+        "kernel32.dll",
+        CharSet = CharSet.Unicode,
+        SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool GetDiskFreeSpaceW(
+        string lpRootPathName,
+        out uint lpSectorsPerCluster,
+        out uint lpBytesPerSector,
+        out uint lpNumberOfFreeClusters,
+        out uint lpTotalNumberOfClusters);
 }
 
 public sealed record StorageAnalysisResult(
