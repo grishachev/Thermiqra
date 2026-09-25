@@ -136,12 +136,12 @@
                                      Value="True">
                                 <Setter TargetName="HeaderBorder"
                                         Property="Background"
-                                        Value="{DynamicResource SystemInfoTabHoverBackgroundBrush}"/>
+                                        Value="{DynamicResource AccentBrush}"/>
                                 <Setter TargetName="HeaderBorder"
                                         Property="BorderBrush"
-                                        Value="{DynamicResource SystemInfoTabSelectedBorderBrush}"/>
+                                        Value="{DynamicResource AccentBrush}"/>
                                 <Setter Property="Foreground"
-                                        Value="{DynamicResource SystemInfoTabSelectedForegroundBrush}"/>
+                                        Value="{DynamicResource WindowBackgroundBrush}"/>
                             </Trigger>
 
                             <Trigger Property="IsSelected"
@@ -198,9 +198,11 @@
                                 BorderThickness="{TemplateBinding BorderThickness}"
                                 CornerRadius="{DynamicResource ButtonCornerRadius}"
                                 Padding="{TemplateBinding Padding}">
-                            <ContentPresenter HorizontalAlignment="Center"
+                            <ContentPresenter x:Name="ButtonContent"
+                                              HorizontalAlignment="Center"
                                               VerticalAlignment="Center"
-                                              RecognizesAccessKey="True"/>
+                                              RecognizesAccessKey="True"
+                                              TextElement.Foreground="{TemplateBinding Foreground}"/>
                         </Border>
 
                         <ControlTemplate.Triggers>
@@ -208,12 +210,13 @@
                                      Value="True">
                                 <Setter TargetName="ButtonBorder"
                                         Property="Background"
-                                        Value="{DynamicResource CardBackgroundBrush}"/>
+                                        Value="{DynamicResource AccentBrush}"/>
                                 <Setter TargetName="ButtonBorder"
                                         Property="BorderBrush"
                                         Value="{DynamicResource AccentBrush}"/>
-                                <Setter Property="Foreground"
-                                        Value="{DynamicResource AccentBrush}"/>
+                                <Setter TargetName="ButtonContent"
+                                        Property="TextElement.Foreground"
+                                        Value="{DynamicResource WindowBackgroundBrush}"/>
                             </Trigger>
 
                             <Trigger Property="IsPressed"

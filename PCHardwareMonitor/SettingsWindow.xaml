@@ -522,8 +522,10 @@
                                 BorderThickness="{TemplateBinding BorderThickness}"
                                 CornerRadius="{DynamicResource ButtonCornerRadius}">
 
-                            <ContentPresenter HorizontalAlignment="Center"
-                                              VerticalAlignment="Center"/>
+                            <ContentPresenter x:Name="ButtonContent"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              TextElement.Foreground="{TemplateBinding Foreground}"/>
 
                         </Border>
 
@@ -533,11 +535,16 @@
                                      Value="True">
 
                                 <Setter TargetName="ButtonBorder"
+                                        Property="Background"
+                                        Value="{DynamicResource AccentBrush}"/>
+
+                                <Setter TargetName="ButtonBorder"
                                         Property="BorderBrush"
                                         Value="{DynamicResource AccentBrush}"/>
 
-                                <Setter Property="Foreground"
-                                        Value="{DynamicResource AccentBrush}"/>
+                                <Setter TargetName="ButtonContent"
+                                        Property="TextElement.Foreground"
+                                        Value="{DynamicResource WindowBackgroundBrush}"/>
 
                             </Trigger>
 
