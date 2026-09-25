@@ -100,6 +100,9 @@ public partial class MainWindow : Window
                     () =>
                         OpenSettings(false),
 
+                checkUpdatesAction:
+                    CheckForUpdatesManually,
+
                 exitAction:
                     ExitApplication);
 
@@ -451,6 +454,78 @@ public partial class MainWindow : Window
         finally
         {
             _isHardwareChangeCheckRunning =
+                false;
+        }
+    }
+
+
+    private async void CheckForUpdatesManually()
+    {
+        if (_isUpdateCheckRunning ||
+            _isUpdateInstallRunning ||
+            _isExiting)
+        {
+            return;
+        }
+
+        _isUpdateCheckRunning =
+            true;
+
+        try
+        {
+            UpdateInfo? update =
+                await UpdateService
+                    .CheckForUpdateAsync();
+
+            if (update == null)
+            {
+                _notifications.Show(
+                    NotificationType.Info,
+                    SettingsService.L(
+                        "Thermiqra — обновления",
+                        "Thermiqra — updates"),
+                    SettingsService.L(
+                        "Установлена последняя версия Thermiqra.",
+                        "You have the latest version of Thermiqra."),
+                    null);
+
+                return;
+            }
+
+            _pendingUpdate =
+                update;
+
+            _notifiedUpdateVersion =
+                update.VersionText;
+
+            _notifications.Show(
+                NotificationType.Info,
+                SettingsService.L(
+                    "Доступно обновление Thermiqra",
+                    "Thermiqra update available"),
+                SettingsService.L(
+                    $"Доступна версия {update.VersionText}. Нажмите, чтобы открыть Thermiqra и установить обновление.",
+                    $"Version {update.VersionText} is available. Click to open Thermiqra and install the update."),
+                ShowMainWindow);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"Не удалось вручную проверить обновления Thermiqra: {ex}");
+
+            _notifications.Show(
+                NotificationType.Info,
+                SettingsService.L(
+                    "Thermiqra — обновления",
+                    "Thermiqra — updates"),
+                SettingsService.L(
+                    $"Не удалось проверить обновления.\n{ex.Message}",
+                    $"Failed to check for updates.\n{ex.Message}"),
+                null);
+        }
+        finally
+        {
+            _isUpdateCheckRunning =
                 false;
         }
     }

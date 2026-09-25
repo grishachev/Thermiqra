@@ -19,11 +19,15 @@ public sealed class TrayService : IDisposable
 
     private readonly Action _settingsAction;
 
+    private readonly Action _checkUpdatesAction;
+
     private readonly Action _exitAction;
 
     private readonly Forms.ToolStripMenuItem _openItem;
 
     private readonly Forms.ToolStripMenuItem _settingsItem;
+
+    private readonly Forms.ToolStripMenuItem _checkUpdatesItem;
 
     private readonly Forms.ToolStripMenuItem _exitItem;
 
@@ -31,6 +35,7 @@ public sealed class TrayService : IDisposable
     public TrayService(
         Action openAction,
         Action settingsAction,
+        Action checkUpdatesAction,
         Action exitAction)
     {
         _openAction =
@@ -38,6 +43,9 @@ public sealed class TrayService : IDisposable
 
         _settingsAction =
             settingsAction;
+
+        _checkUpdatesAction =
+            checkUpdatesAction;
 
         _exitAction =
             exitAction;
@@ -75,6 +83,9 @@ public sealed class TrayService : IDisposable
         _settingsItem =
             new();
 
+        _checkUpdatesItem =
+            new();
+
         Forms.ToolStripSeparator separator =
             new();
 
@@ -86,6 +97,9 @@ public sealed class TrayService : IDisposable
 
         ApplyMenuItemLayout(
             _settingsItem);
+
+        ApplyMenuItemLayout(
+            _checkUpdatesItem);
 
         ApplyMenuItemLayout(
             _exitItem);
@@ -102,6 +116,10 @@ public sealed class TrayService : IDisposable
             (_, _) =>
                 _settingsAction();
 
+        _checkUpdatesItem.Click +=
+            (_, _) =>
+                _checkUpdatesAction();
+
         _exitItem.Click +=
             (_, _) =>
                 _exitAction();
@@ -112,6 +130,9 @@ public sealed class TrayService : IDisposable
 
         _menu.Items.Add(
             _settingsItem);
+
+        _menu.Items.Add(
+            _checkUpdatesItem);
 
         _menu.Items.Add(
             separator);
@@ -233,6 +254,9 @@ public sealed class TrayService : IDisposable
         _settingsItem.ForeColor =
             text;
 
+        _checkUpdatesItem.ForeColor =
+            text;
+
         _exitItem.ForeColor =
             text;
     }
@@ -301,6 +325,11 @@ public sealed class TrayService : IDisposable
             SettingsService.L(
                 "Настройки",
                 "Settings");
+
+        _checkUpdatesItem.Text =
+            SettingsService.L(
+                "Проверить обновления",
+                "Check for updates");
 
         _exitItem.Text =
             SettingsService.L(
