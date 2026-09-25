@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
@@ -44,6 +45,8 @@ public partial class MainWindow : Window
     private bool _livePulseBright = true;
 
     private bool _isUpdateCheckRunning;
+
+    private bool _isHardwareChangeCheckRunning;
 
     private bool _isUpdateInstallRunning;
 
@@ -162,6 +165,8 @@ public partial class MainWindow : Window
         _updateCheckTimer.Start();
 
         _ = CheckForUpdatesAsync();
+
+        _ = CheckHardwareChangesAsync();
     }
 
     public void ShowMainWindow()
@@ -374,6 +379,81 @@ public partial class MainWindow : Window
     {
         UpdateMonitor();
     }
+
+    private async Task CheckHardwareChangesAsync()
+    {
+        if (_isHardwareChangeCheckRunning ||
+            _isExiting)
+        {
+            return;
+        }
+
+        _isHardwareChangeCheckRunning =
+            true;
+
+        try
+        {
+            HardwareChangeResult result =
+                await Task.Run(
+                    () =>
+                        new HardwareChangeService()
+                            .CheckAndUpdate());
+
+            if (!result.HasChanges ||
+                _isExiting)
+            {
+                return;
+            }
+
+            const int maxVisibleChanges = 4;
+
+            List<string> visibleChanges =
+                result.Changes
+                    .Take(
+                        maxVisibleChanges)
+                    .ToList();
+
+            string message =
+                string.Join(
+                    Environment.NewLine,
+                    visibleChanges
+                        .Select(
+                            change =>
+                                $"• {change}"));
+
+            int hiddenCount =
+                result.Changes.Count -
+                visibleChanges.Count;
+
+            if (hiddenCount > 0)
+            {
+                message +=
+                    Environment.NewLine +
+                    SettingsService.L(
+                        $"• И ещё изменений: {hiddenCount}",
+                        $"• And {hiddenCount} more change(s)");
+            }
+
+            _notifications.Show(
+                NotificationType.Info,
+                SettingsService.L(
+                    "Thermiqra — изменилось оборудование",
+                    "Thermiqra — hardware changed"),
+                message,
+                ShowMainWindow);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"Не удалось проверить изменения оборудования: {ex}");
+        }
+        finally
+        {
+            _isHardwareChangeCheckRunning =
+                false;
+        }
+    }
+
 
     private async void UpdateCheckTimer_Tick(
         object? sender,

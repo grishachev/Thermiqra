@@ -446,7 +446,13 @@
                     <Button x:Name="Last30DaysButton"
                             Content="30 дней"
                             MinWidth="100"
+                            Margin="0,0,14,0"
                             Click="Last30DaysButton_Click"/>
+
+                    <Button x:Name="SummaryReportButton"
+                            Content="Сводный отчёт"
+                            MinWidth="150"
+                            Click="SummaryReportButton_Click"/>
                 </StackPanel>
 
                 <TextBlock Grid.Column="2"

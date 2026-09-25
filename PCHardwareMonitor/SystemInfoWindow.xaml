@@ -1379,11 +1379,6 @@
                         Margin="0,0,10,0"
                         Click="SaveDiagnosticReportButton_Click"/>
 
-                <Button Content="Копировать информацию"
-                        MinWidth="190"
-                        Margin="0,0,10,0"
-                        Click="CopyInformationButton_Click"/>
-
                 <Button Content="Закрыть"
                         MinWidth="100"
                         Click="CloseButton_Click"/>
