@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows;
+using Microsoft.Win32;
 using System.Windows.Controls;
 
 namespace PCHardwareMonitor;
@@ -12,14 +14,31 @@ public partial class SystemInfoWindow : Window
     private readonly SystemInfoService _systemInfoService =
         new();
 
+    private readonly StatisticsService? _statistics;
+
     private SystemInformationSnapshot? _snapshot;
 
     public SystemInfoWindow()
+        : this(null)
+    {
+    }
+
+
+    public SystemInfoWindow(
+        StatisticsService? statistics)
     {
         InitializeComponent();
 
+        _statistics =
+            statistics;
+
         SettingsService.ApplyLanguageToWindow(
             this);
+
+        SaveDiagnosticReportButton.Content =
+            SettingsService.L(
+                "Сохранить отчёт",
+                "Save report");
 
         Loaded +=
             SystemInfoWindow_Loaded;
@@ -1810,6 +1829,800 @@ public partial class SystemInfoWindow : Window
         return SettingsService.L(
             $"{gigabytes:F1} ГБ",
             $"{gigabytes:F1} GB");
+    }
+
+
+    // ============================================================
+    // ДИАГНОСТИЧЕСКИЙ ОТЧЁТ
+    // ============================================================
+
+    private void SaveDiagnosticReportButton_Click(
+        object sender,
+        RoutedEventArgs e)
+    {
+        if (_snapshot == null)
+        {
+            StatusText.Text =
+                SettingsService.L(
+                    "Информация о системе ещё не загружена.",
+                    "System information has not been loaded yet.");
+
+            return;
+        }
+
+        try
+        {
+            SaveFileDialog dialog =
+                new()
+                {
+                    Title =
+                        SettingsService.L(
+                            "Сохранить диагностический отчёт Thermiqra",
+                            "Save Thermiqra diagnostic report"),
+
+                    FileName =
+                        $"Thermiqra_Diagnostic_" +
+                        $"{DateTime.Now:yyyy-MM-dd_HH-mm}.txt",
+
+                    DefaultExt =
+                        ".txt",
+
+                    AddExtension =
+                        true,
+
+                    Filter =
+                        SettingsService.L(
+                            "Текстовый файл (*.txt)|*.txt|Все файлы (*.*)|*.*",
+                            "Text file (*.txt)|*.txt|All files (*.*)|*.*")
+                };
+
+            bool? result =
+                dialog.ShowDialog(
+                    this);
+
+            if (result != true)
+                return;
+
+            string report =
+                BuildDiagnosticReport(
+                    _snapshot);
+
+            File.WriteAllText(
+                dialog.FileName,
+                report,
+                new UTF8Encoding(
+                    encoderShouldEmitUTF8Identifier:
+                    true));
+
+            StatusText.Text =
+                SettingsService.L(
+                    $"Диагностический отчёт сохранён: {dialog.FileName}",
+                    $"Diagnostic report saved: {dialog.FileName}");
+        }
+        catch (Exception ex)
+        {
+            StatusText.Text =
+                SettingsService.L(
+                    $"Не удалось сохранить отчёт: {ex.Message}",
+                    $"Failed to save the report: {ex.Message}");
+
+            MessageBox.Show(
+                this,
+                SettingsService.L(
+                    $"Не удалось сохранить диагностический отчёт.\n\n{ex.Message}",
+                    $"Failed to save the diagnostic report.\n\n{ex.Message}"),
+                "Thermiqra",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
+        }
+    }
+
+
+    private string BuildDiagnosticReport(
+        SystemInformationSnapshot systemSnapshot)
+    {
+        StringBuilder text =
+            new();
+
+        text.AppendLine(
+            "THERMIQRA — " +
+            SettingsService.L(
+                "ДИАГНОСТИЧЕСКИЙ ОТЧЁТ",
+                "DIAGNOSTIC REPORT"));
+
+        text.AppendLine(
+            new string(
+                '=',
+                62));
+
+        text.AppendLine();
+
+        text.AppendLine(
+            $"{SettingsService.L("Создан", "Generated")}: " +
+            $"{DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+
+        text.AppendLine(
+            $"{SettingsService.L("Версия Thermiqra", "Thermiqra version")}: " +
+            $"{GetThermiqraVersion()}");
+
+        text.AppendLine(
+            SettingsService.L(
+                "Отчёт создан локально. Thermiqra не отправляет эти данные автоматически.",
+                "This report was created locally. Thermiqra does not send this data automatically."));
+
+        text.AppendLine();
+
+        text.AppendLine(
+            BuildCopyText(
+                systemSnapshot));
+
+        text.AppendLine();
+        text.AppendLine();
+
+        AppendCurrentMonitoringSection(
+            text);
+
+        text.AppendLine();
+
+        AppendSpdXmpSection(
+            text);
+
+        text.AppendLine();
+
+        AppendHistorySection(
+            text);
+
+        return text
+            .ToString()
+            .TrimEnd();
+    }
+
+
+    private static void AppendCurrentMonitoringSection(
+        StringBuilder text)
+    {
+        text.AppendLine(
+            $"[{SettingsService.L("ТЕКУЩИЙ МОНИТОРИНГ", "CURRENT MONITORING")}]");
+
+        HardwareSnapshot? snapshot =
+            HardwareMonitorService.LastSnapshot;
+
+        if (snapshot == null)
+        {
+            text.AppendLine(
+                SettingsService.L(
+                    "Текущий снимок датчиков пока недоступен.",
+                    "The current sensor snapshot is not available yet."));
+
+            return;
+        }
+
+        text.AppendLine();
+
+        text.AppendLine(
+            $"CPU: {snapshot.Cpu.Name}");
+
+        text.AppendLine(
+            $"  {SettingsService.L("Температура", "Temperature")}: " +
+            $"{FormatLiveTemperature(snapshot.Cpu.Temperature)}");
+
+        text.AppendLine(
+            $"  {SettingsService.L("Загрузка", "Load")}: " +
+            $"{FormatLivePercent(snapshot.Cpu.Load)}");
+
+        text.AppendLine();
+
+        text.AppendLine(
+            $"GPU:");
+
+        if (snapshot.Gpus.Count == 0)
+        {
+            text.AppendLine(
+                $"  {SettingsService.L("Нет данных", "No data")}");
+        }
+        else
+        {
+            for (int i = 0;
+                 i < snapshot.Gpus.Count;
+                 i++)
+            {
+                GpuInfo gpu =
+                    snapshot.Gpus[i];
+
+                text.AppendLine(
+                    $"  GPU {i + 1}: {gpu.Name}");
+
+                text.AppendLine(
+                    $"    {SettingsService.L("Температура", "Temperature")}: " +
+                    $"{FormatLiveTemperature(gpu.Temperature)}");
+
+                text.AppendLine(
+                    $"    Hot Spot: " +
+                    $"{FormatLiveTemperature(gpu.HotSpotTemperature)}");
+
+                text.AppendLine(
+                    $"    {SettingsService.L("Температура VRAM", "VRAM temperature")}: " +
+                    $"{FormatLiveTemperature(gpu.MemoryTemperature)}");
+
+                text.AppendLine(
+                    $"    {SettingsService.L("Загрузка", "Load")}: " +
+                    $"{FormatLivePercent(gpu.Load)}");
+
+                text.AppendLine(
+                    $"    {SettingsService.L("Загрузка памяти GPU", "GPU memory load")}: " +
+                    $"{FormatLivePercent(gpu.MemoryLoad)}");
+            }
+        }
+
+        text.AppendLine();
+
+        text.AppendLine(
+            $"RAM:");
+
+        text.AppendLine(
+            $"  {SettingsService.L("Загрузка", "Load")}: " +
+            $"{FormatLivePercent(snapshot.Memory.Load)}");
+
+        text.AppendLine(
+            $"  {SettingsService.L("Используется", "Used")}: " +
+            $"{FormatLiveGigabytes(snapshot.Memory.UsedGb)}");
+
+        text.AppendLine(
+            $"  {SettingsService.L("Доступно", "Available")}: " +
+            $"{FormatLiveGigabytes(snapshot.Memory.AvailableGb)}");
+
+        text.AppendLine(
+            $"  {SettingsService.L("Всего", "Total")}: " +
+            $"{FormatLiveGigabytes(snapshot.Memory.TotalGb)}");
+
+        text.AppendLine();
+
+        text.AppendLine(
+            $"[{SettingsService.L("ТЕМПЕРАТУРЫ НАКОПИТЕЛЕЙ", "STORAGE TEMPERATURES")}]");
+
+        if (snapshot.StorageDevices.Count == 0)
+        {
+            text.AppendLine(
+                SettingsService.L(
+                    "Нет данных",
+                    "No data"));
+        }
+        else
+        {
+            foreach (StorageDeviceInfo storage
+                     in snapshot.StorageDevices)
+            {
+                text.AppendLine(
+                    $"{storage.Name}: " +
+                    $"{FormatLiveTemperature(storage.Temperature)}");
+            }
+        }
+
+        text.AppendLine();
+
+        text.AppendLine(
+            $"[{SettingsService.L("ЛОГИЧЕСКИЕ ДИСКИ", "LOGICAL DRIVES")}]");
+
+        if (snapshot.Drives.Count == 0)
+        {
+            text.AppendLine(
+                SettingsService.L(
+                    "Нет данных",
+                    "No data"));
+        }
+        else
+        {
+            foreach (LogicalDriveInfo drive
+                     in snapshot.Drives)
+            {
+                long usedBytes =
+                    Math.Max(
+                        0,
+                        drive.TotalBytes -
+                        drive.FreeBytes);
+
+                double usedPercent =
+                    drive.TotalBytes > 0
+                        ? usedBytes * 100.0 /
+                          drive.TotalBytes
+                        : 0;
+
+                string label =
+                    string.IsNullOrWhiteSpace(
+                        drive.VolumeLabel)
+                        ? string.Empty
+                        : $" ({drive.VolumeLabel})";
+
+                text.AppendLine(
+                    $"{drive.Name}{label}");
+
+                text.AppendLine(
+                    $"  {SettingsService.L("Всего", "Total")}: " +
+                    $"{FormatLongBytes(drive.TotalBytes)}");
+
+                text.AppendLine(
+                    $"  {SettingsService.L("Занято", "Used")}: " +
+                    $"{FormatLongBytes(usedBytes)} " +
+                    $"({usedPercent:F1} %)");
+
+                text.AppendLine(
+                    $"  {SettingsService.L("Свободно", "Free")}: " +
+                    $"{FormatLongBytes(drive.FreeBytes)}");
+            }
+        }
+    }
+
+
+    private static void AppendSpdXmpSection(
+        StringBuilder text)
+    {
+        text.AppendLine(
+            $"[{SettingsService.L("SPD / JEDEC / XMP", "SPD / JEDEC / XMP")}]");
+
+        HardwareSnapshot? snapshot =
+            HardwareMonitorService.LastSnapshot;
+
+        if (snapshot == null ||
+            snapshot.MemorySpdModules.Count == 0)
+        {
+            text.AppendLine(
+                SettingsService.L(
+                    "Расширенные SPD/XMP-данные пока недоступны.",
+                    "Extended SPD/XMP data is not available yet."));
+
+            return;
+        }
+
+        for (int i = 0;
+             i < snapshot.MemorySpdModules.Count;
+             i++)
+        {
+            MemorySpdModuleInfo module =
+                snapshot.MemorySpdModules[i];
+
+            if (i > 0)
+                text.AppendLine();
+
+            string moduleName =
+                string.IsNullOrWhiteSpace(
+                    module.Name)
+                    ? SettingsService.L(
+                        $"Модуль {i + 1}",
+                        $"Module {i + 1}")
+                    : module.Name;
+
+            text.AppendLine(
+                $"{SettingsService.L("Модуль", "Module")} {i + 1}: " +
+                $"{moduleName}");
+
+            text.AppendLine(
+                $"  {SettingsService.L("Ёмкость", "Capacity")}: " +
+                $"{FormatSpdCapacity(module.CapacityGb)}");
+
+            if (module.Jedec != null)
+            {
+                text.AppendLine(
+                    $"  JEDEC: " +
+                    $"{BuildJedecSummary(module.Jedec)}");
+
+                if (module.Jedec.SupportedCasLatencies.Count > 0)
+                {
+                    text.AppendLine(
+                        $"  JEDEC CL: " +
+                        $"{string.Join(", ", module.Jedec.SupportedCasLatencies)}");
+                }
+            }
+            else
+            {
+                text.AppendLine(
+                    $"  JEDEC: " +
+                    $"{SettingsService.L("Нет данных", "No data")}");
+            }
+
+            if (module.XmpProfiles.Count == 0)
+            {
+                text.AppendLine(
+                    $"  XMP: " +
+                    $"{SettingsService.L("Профили не обнаружены", "No profiles detected")}");
+            }
+            else
+            {
+                foreach (MemoryXmpProfileInfo profile
+                         in module.XmpProfiles)
+                {
+                    text.AppendLine(
+                        $"  {module.XmpVersion ?? "XMP"} " +
+                        $"{SettingsService.L("профиль", "profile")} " +
+                        $"{profile.ProfileNumber}: " +
+                        $"{BuildXmpProfileSummary(profile)}");
+                }
+            }
+
+            if (module.Timings.Count > 0)
+            {
+                text.AppendLine(
+                    $"  {SettingsService.L("SPD-тайминги", "SPD timings")}:");
+
+                foreach (MemorySpdTimingInfo timing
+                         in module.Timings)
+                {
+                    text.AppendLine(
+                        $"    {timing.Name}: " +
+                        $"{timing.ValueNanoseconds:0.###} ns");
+                }
+            }
+        }
+    }
+
+
+    private void AppendHistorySection(
+        StringBuilder text)
+    {
+        text.AppendLine(
+            $"[{SettingsService.L("ИСТОРИЯ — ПОСЛЕДНИЕ 30 ДНЕЙ", "HISTORY — LAST 30 DAYS")}]");
+
+        if (_statistics == null)
+        {
+            text.AppendLine(
+                SettingsService.L(
+                    "Сервис статистики недоступен. Остальная часть отчёта сохранена.",
+                    "The statistics service is unavailable. The rest of the report was saved."));
+
+            return;
+        }
+
+        try
+        {
+            StatisticsSummary summary =
+                _statistics.GetSummary(
+                    StatisticsPeriod.Last30Days);
+
+            text.AppendLine(
+                $"{SettingsService.L("Сохранённых точек", "Saved samples")}: " +
+                $"{summary.SampleCount}");
+
+            if (summary.SampleCount > 0)
+            {
+                text.AppendLine(
+                    $"{SettingsService.L("Период данных", "Data range")}: " +
+                    $"{FormatHistoryDate(summary.StartUtc)} — " +
+                    $"{FormatHistoryDate(summary.EndUtc)}");
+            }
+
+            text.AppendLine();
+
+            AppendHistoryMetric(
+                text,
+                "CPU / " +
+                SettingsService.L(
+                    "температура",
+                    "temperature"),
+                summary.CpuTemperature.Average,
+                summary.CpuTemperature.Maximum,
+                summary.CpuTemperature.MaximumAtUtc,
+                "°C");
+
+            AppendHistoryMetric(
+                text,
+                "CPU / " +
+                SettingsService.L(
+                    "загрузка",
+                    "load"),
+                summary.CpuLoad.Average,
+                summary.CpuLoad.Maximum,
+                summary.CpuLoad.MaximumAtUtc,
+                "%");
+
+            AppendHistoryMetric(
+                text,
+                "RAM / " +
+                SettingsService.L(
+                    "загрузка",
+                    "load"),
+                summary.RamLoad.Average,
+                summary.RamLoad.Maximum,
+                summary.RamLoad.MaximumAtUtc,
+                "%");
+
+            foreach (GpuStatisticsSummary gpu
+                     in summary.Gpus)
+            {
+                AppendHistoryMetric(
+                    text,
+                    $"GPU / {gpu.DeviceName} / " +
+                    SettingsService.L(
+                        "температура",
+                        "temperature"),
+                    gpu.Temperature.Average,
+                    gpu.Temperature.Maximum,
+                    gpu.Temperature.MaximumAtUtc,
+                    "°C");
+
+                AppendHistoryMetric(
+                    text,
+                    $"GPU / {gpu.DeviceName} / " +
+                    SettingsService.L(
+                        "загрузка",
+                        "load"),
+                    gpu.Load.Average,
+                    gpu.Load.Maximum,
+                    gpu.Load.MaximumAtUtc,
+                    "%");
+
+                AppendHistoryMetric(
+                    text,
+                    $"GPU / {gpu.DeviceName} / Hot Spot",
+                    gpu.HotSpotTemperature.Average,
+                    gpu.HotSpotTemperature.Maximum,
+                    gpu.HotSpotTemperature.MaximumAtUtc,
+                    "°C");
+
+                AppendHistoryMetric(
+                    text,
+                    $"GPU / {gpu.DeviceName} / VRAM",
+                    gpu.MemoryTemperature.Average,
+                    gpu.MemoryTemperature.Maximum,
+                    gpu.MemoryTemperature.MaximumAtUtc,
+                    "°C");
+            }
+
+            foreach (StorageStatisticsSummary storage
+                     in summary.StorageDevices)
+            {
+                AppendHistoryMetric(
+                    text,
+                    $"{SettingsService.L("Накопитель", "Storage")} / " +
+                    $"{storage.DeviceName} / " +
+                    SettingsService.L(
+                        "температура",
+                        "temperature"),
+                    storage.Temperature.Average,
+                    storage.Temperature.Maximum,
+                    storage.Temperature.MaximumAtUtc,
+                    "°C");
+            }
+
+            AlertEventCounts counts =
+                _statistics.GetAlertEventCounts(
+                    StatisticsPeriod.Last30Days);
+
+            text.AppendLine();
+
+            text.AppendLine(
+                $"WARNING: {counts.WarningCount}   •   " +
+                $"CRITICAL: {counts.CriticalCount}");
+
+            text.AppendLine();
+            text.AppendLine(
+                $"[{SettingsService.L("РЕКОРДЫ ЗА ВСЁ ВРЕМЯ", "ALL-TIME RECORDS")}]");
+
+            List<AllTimeRecord> records =
+                _statistics.GetAllTimeRecords();
+
+            if (records.Count == 0)
+            {
+                text.AppendLine(
+                    SettingsService.L(
+                        "Рекордов пока нет.",
+                        "No records yet."));
+            }
+            else
+            {
+                foreach (AllTimeRecord record
+                         in records)
+                {
+                    text.AppendLine(
+                        $"{GetDiagnosticRecordName(record)}: " +
+                        $"{FormatHistoryValue(record.Value, record.Unit)}" +
+                        $"   •   " +
+                        $"{FormatHistoryDate(record.TimestampUtc)}");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            text.AppendLine(
+                SettingsService.L(
+                    $"Не удалось прочитать историю: {ex.Message}",
+                    $"Failed to read history: {ex.Message}"));
+        }
+    }
+
+
+    private static void AppendHistoryMetric(
+        StringBuilder text,
+        string name,
+        double? average,
+        double? maximum,
+        DateTimeOffset? maximumAtUtc,
+        string unit)
+    {
+        text.AppendLine(
+            $"{name}:");
+
+        text.AppendLine(
+            $"  {SettingsService.L("Среднее", "Average")}: " +
+            $"{FormatHistoryValue(average, unit)}");
+
+        text.AppendLine(
+            $"  {SettingsService.L("Максимум", "Maximum")}: " +
+            $"{FormatHistoryValue(maximum, unit)}" +
+            $"   •   " +
+            $"{SettingsService.L("зафиксирован", "recorded")}: " +
+            $"{FormatHistoryDate(maximumAtUtc)}");
+    }
+
+
+    private static string GetDiagnosticRecordName(
+        AllTimeRecord record)
+    {
+        return record.Category switch
+        {
+            "CPU" =>
+                SettingsService.L(
+                    "CPU / максимальная температура",
+                    "CPU / maximum temperature"),
+
+            "GPU" =>
+                $"GPU / {record.DeviceName}",
+
+            "RAM" =>
+                SettingsService.L(
+                    "RAM / максимальная загрузка",
+                    "RAM / maximum load"),
+
+            "STORAGE" =>
+                SettingsService.L(
+                    $"Накопитель / {record.DeviceName}",
+                    $"Storage / {record.DeviceName}"),
+
+            _ =>
+                record.DeviceName
+        };
+    }
+
+
+    private static string GetThermiqraVersion()
+    {
+        Version? version =
+            typeof(SystemInfoWindow)
+                .Assembly
+                .GetName()
+                .Version;
+
+        if (version == null)
+            return "—";
+
+        return version.Revision > 0
+            ? $"{version.Major}." +
+              $"{version.Minor}." +
+              $"{version.Build}." +
+              $"{version.Revision}"
+            : $"{version.Major}." +
+              $"{version.Minor}." +
+              $"{version.Build}";
+    }
+
+
+    private static string FormatLiveTemperature(
+        float? value)
+    {
+        return value.HasValue
+            ? $"{value.Value:F1} °C"
+            : "—";
+    }
+
+
+    private static string FormatLivePercent(
+        float? value)
+    {
+        return value.HasValue
+            ? $"{value.Value:F1} %"
+            : "—";
+    }
+
+
+    private static string FormatLiveGigabytes(
+        float? value)
+    {
+        return value.HasValue
+            ? SettingsService.L(
+                $"{value.Value:F1} ГБ",
+                $"{value.Value:F1} GB")
+            : "—";
+    }
+
+
+    private static string FormatLongBytes(
+        long bytes)
+    {
+        if (bytes < 0)
+            return "—";
+
+        double value =
+            bytes;
+
+        string[] units =
+            SettingsService.IsRussian
+                ? new[]
+                {
+                    "Б",
+                    "КБ",
+                    "МБ",
+                    "ГБ",
+                    "ТБ"
+                }
+                : new[]
+                {
+                    "B",
+                    "KB",
+                    "MB",
+                    "GB",
+                    "TB"
+                };
+
+        int unitIndex =
+            0;
+
+        while (value >= 1024 &&
+               unitIndex <
+               units.Length - 1)
+        {
+            value /=
+                1024;
+
+            unitIndex++;
+        }
+
+        return
+            $"{value:F1} " +
+            $"{units[unitIndex]}";
+    }
+
+
+    private static string FormatHistoryValue(
+        double? value,
+        string unit)
+    {
+        if (!value.HasValue)
+            return "—";
+
+        return unit == "%"
+            ? $"{value.Value:F1} %"
+            : $"{value.Value:F1} °C";
+    }
+
+
+    private static string FormatHistoryValue(
+        double value,
+        string unit)
+    {
+        return unit == "%"
+            ? $"{value:F1} %"
+            : $"{value:F1} °C";
+    }
+
+
+    private static string FormatHistoryDate(
+        DateTimeOffset valueUtc)
+    {
+        DateTimeOffset local =
+            valueUtc.ToLocalTime();
+
+        return local.ToString(
+            SettingsService.IsRussian
+                ? "dd.MM.yyyy HH:mm"
+                : "yyyy-MM-dd HH:mm");
+    }
+
+
+    private static string FormatHistoryDate(
+        DateTimeOffset? valueUtc)
+    {
+        return valueUtc.HasValue
+            ? FormatHistoryDate(
+                valueUtc.Value)
+            : "—";
     }
 
 

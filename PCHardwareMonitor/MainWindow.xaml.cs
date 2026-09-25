@@ -359,7 +359,8 @@ public partial class MainWindow : Window
         RoutedEventArgs e)
     {
         SystemInfoWindow window =
-            new()
+            new(
+                _statistics)
             {
                 Owner = this
             };

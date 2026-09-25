@@ -1373,6 +1373,12 @@
             <StackPanel Grid.Column="1"
                         Orientation="Horizontal">
 
+                <Button x:Name="SaveDiagnosticReportButton"
+                        Content="Сохранить отчёт"
+                        MinWidth="170"
+                        Margin="0,0,10,0"
+                        Click="SaveDiagnosticReportButton_Click"/>
+
                 <Button Content="Копировать информацию"
                         MinWidth="190"
                         Margin="0,0,10,0"
