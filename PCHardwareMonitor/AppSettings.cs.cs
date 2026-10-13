@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -62,7 +62,9 @@ public sealed class AppSettings
 
     public bool GpuTemperatureNotificationsEnabled { get; set; } = true;
 
-    public bool StorageTemperatureNotificationsEnabled { get; set; } = true;
+    public bool StorageTemperatureNotificationsEnabled { get; set; } = false;
+
+    public bool AutomaticStorageTemperatureThresholdsEnabled { get; set; } = true;
 
     public bool DiskSpaceNotificationsEnabled { get; set; } = true;
 
@@ -229,6 +231,8 @@ public static class SettingsService
         ["НАКОПИТЕЛИ"] = "STORAGE",
         ["ТЕМПЕРАТУРА И ЗАПОЛНЕНИЕ ДИСКОВ"] = "TEMPERATURE AND DISK USAGE",
         ["Контроль температуры накопителей"] = "Storage temperature monitoring",
+        ["Автоматические пороги по типу накопителя"] = "Automatic thresholds by storage type",
+        ["Автоматически: HDD 55/60 °C · SATA SSD 60/70 °C · NVMe 70/80 °C · неизвестный тип 65/80 °C. Ручные пороги используются только после отключения автоматики."] = "Automatic: HDD 55/60 °C · SATA SSD 60/70 °C · NVMe 70/80 °C · unknown type 65/80 °C. Manual thresholds are used only after automatic mode is disabled.",
         ["Контроль свободного места на дисках"] = "Disk free-space monitoring",
         ["ПРЕДУПРЕЖДЕНИЕ, %"] = "WARNING, %",
         ["КРИТИЧЕСКОЕ, %"] = "CRITICAL, %",
@@ -779,3 +783,193 @@ public static class SettingsService
         }
     }
 }
+
+// ================================================================
+// НАСТРОЙКИ АВТОМАТИЧЕСКИХ ПОРОГОВ НАКОПИТЕЛЕЙ
+// ================================================================
+
+public partial class SettingsWindow
+{
+    private CheckBox? _storageAutomaticThresholdsCheck;
+
+    private TextBlock? _storageAutomaticThresholdsHint;
+
+    static SettingsWindow()
+    {
+        EventManager.RegisterClassHandler(
+            typeof(SettingsWindow),
+            FrameworkElement.LoadedEvent,
+            new RoutedEventHandler(
+                SettingsWindow_Loaded));
+
+        EventManager.RegisterClassHandler(
+            typeof(SettingsWindow),
+            Button.ClickEvent,
+            new RoutedEventHandler(
+                SettingsWindow_ButtonClick),
+            true);
+    }
+
+    private static void SettingsWindow_Loaded(
+        object sender,
+        RoutedEventArgs e)
+    {
+        if (sender is SettingsWindow window)
+        {
+            window.InitializeStorageAutomaticThresholdControls();
+        }
+    }
+
+    private static void SettingsWindow_ButtonClick(
+        object sender,
+        RoutedEventArgs e)
+    {
+        if (sender is not SettingsWindow window ||
+            e.OriginalSource is not Button button ||
+            button.Content is not string content)
+        {
+            return;
+        }
+
+        bool saveButton =
+            string.Equals(
+                content,
+                "СОХРАНИТЬ",
+                StringComparison.Ordinal) ||
+            string.Equals(
+                content,
+                "SAVE",
+                StringComparison.Ordinal);
+
+        if (!saveButton ||
+            !window.Saved)
+        {
+            return;
+        }
+
+        SettingsService.Current
+            .AutomaticStorageTemperatureThresholdsEnabled =
+                window._storageAutomaticThresholdsCheck
+                    ?.IsChecked != false;
+
+        SettingsService.Save();
+    }
+
+    private void InitializeStorageAutomaticThresholdControls()
+    {
+        if (_storageAutomaticThresholdsCheck != null)
+        {
+            return;
+        }
+
+        if (StorageTemperatureNotificationsCheck.Parent
+            is not StackPanel storagePanel)
+        {
+            return;
+        }
+
+        int notificationIndex =
+            storagePanel.Children.IndexOf(
+                StorageTemperatureNotificationsCheck);
+
+        if (notificationIndex < 0)
+        {
+            return;
+        }
+
+        CheckBox automaticCheck =
+            new()
+            {
+                Content =
+                    "Автоматические пороги по типу накопителя",
+
+                Margin =
+                    new Thickness(
+                        0,
+                        8,
+                        0,
+                        0),
+
+                IsChecked =
+                    SettingsService
+                        .Current
+                        .AutomaticStorageTemperatureThresholdsEnabled
+            };
+
+        automaticCheck.Checked +=
+            StorageAutomaticThresholdsCheck_Changed;
+
+        automaticCheck.Unchecked +=
+            StorageAutomaticThresholdsCheck_Changed;
+
+        TextBlock hint =
+            new()
+            {
+                Text =
+                    "Автоматически: HDD 55/60 °C · SATA SSD 60/70 °C · NVMe 70/80 °C · неизвестный тип 65/80 °C. Ручные пороги используются только после отключения автоматики.",
+
+                Margin =
+                    new Thickness(
+                        0,
+                        4,
+                        0,
+                        2),
+
+                FontSize =
+                    10,
+
+                Opacity =
+                    0.85,
+
+                TextWrapping =
+                    TextWrapping.Wrap
+            };
+
+        hint.SetResourceReference(
+            TextBlock.ForegroundProperty,
+            "SecondaryTextBrush");
+
+        _storageAutomaticThresholdsCheck =
+            automaticCheck;
+
+        _storageAutomaticThresholdsHint =
+            hint;
+
+        storagePanel.Children.Insert(
+            notificationIndex + 1,
+            automaticCheck);
+
+        storagePanel.Children.Insert(
+            notificationIndex + 2,
+            hint);
+
+        SettingsService.ApplyLanguageToElement(
+            automaticCheck);
+
+        SettingsService.ApplyLanguageToElement(
+            hint);
+
+        UpdateStorageAutomaticThresholdControls();
+    }
+
+    private void StorageAutomaticThresholdsCheck_Changed(
+        object sender,
+        RoutedEventArgs e)
+    {
+        UpdateStorageAutomaticThresholdControls();
+    }
+
+    private void UpdateStorageAutomaticThresholdControls()
+    {
+        bool automatic =
+            _storageAutomaticThresholdsCheck
+                ?.IsChecked != false;
+
+        StorageWarningText.IsEnabled =
+            !automatic;
+
+        StorageCriticalText.IsEnabled =
+            !automatic;
+    }
+}
+

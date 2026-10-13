@@ -196,7 +196,7 @@
     </Window.Resources>
 
     <!-- Основное содержимое свободно растягивается вместе с окном. -->
-    <Grid Margin="22"
+    <Grid Margin="18"
           HorizontalAlignment="Stretch">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -206,7 +206,7 @@
         </Grid.RowDefinitions>
 
         <!-- ШАПКА -->
-        <Grid Grid.Row="0" Margin="0,0,0,18">
+        <Grid Grid.Row="0" Margin="0,0,0,12">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
@@ -470,14 +470,14 @@
                       Grid.Row="2"
                       VerticalScrollBarVisibility="Auto"
                       HorizontalScrollBarVisibility="Disabled">
-            <StackPanel>
+            <StackPanel Margin="0,0,6,0">
 
                 <!-- КРАТКАЯ СВОДКА -->
                 <TextBlock Text="КРАТКАЯ СВОДКА"
                            Style="{StaticResource SectionTitleStyle}"
-                           Margin="0,0,0,10"/>
+                           Margin="0,0,0,7"/>
 
-                <UniformGrid Columns="4" Margin="0,0,0,20">
+                <UniformGrid Columns="4" Margin="0,0,0,12">
                     <Border Style="{StaticResource StatisticsPanelStyle}"
                             Padding="16"
                             Margin="0,0,10,0">
@@ -490,13 +490,13 @@
                                     Height="3"
                                     HorizontalAlignment="Left"
                                     Background="{DynamicResource AccentBrush}"/>
-                            <StackPanel Grid.Row="1" Margin="0,10,0,0">
+                            <StackPanel Grid.Row="1" Margin="0,8,0,0">
                                 <TextBlock Text="CPU / МАКС. ТЕМПЕРАТУРА"
                                            Style="{StaticResource LabelStyle}"/>
                                 <TextBlock x:Name="CpuMaxTemperatureText"
                                            Text="—"
                                            Style="{StaticResource ValueStyle}"
-                                           Margin="0,7,0,0"/>
+                                           Margin="0,5,0,0"/>
                                 <TextBlock x:Name="CpuMaxTemperatureTimeText"
                                            Text="Нет данных"
                                            Foreground="{DynamicResource SecondaryTextBrush}"
@@ -518,13 +518,13 @@
                                     Height="3"
                                     HorizontalAlignment="Left"
                                     Background="{DynamicResource AccentBrush}"/>
-                            <StackPanel Grid.Row="1" Margin="0,10,0,0">
+                            <StackPanel Grid.Row="1" Margin="0,8,0,0">
                                 <TextBlock Text="GPU / МАКС. ТЕМПЕРАТУРА"
                                            Style="{StaticResource LabelStyle}"/>
                                 <TextBlock x:Name="GpuMaxTemperatureText"
                                            Text="—"
                                            Style="{StaticResource ValueStyle}"
-                                           Margin="0,7,0,0"/>
+                                           Margin="0,5,0,0"/>
                                 <TextBlock x:Name="GpuMaxTemperatureDeviceText"
                                            Text="Нет данных"
                                            Foreground="{DynamicResource SecondaryTextBrush}"
@@ -547,13 +547,13 @@
                                     Height="3"
                                     HorizontalAlignment="Left"
                                     Background="{DynamicResource AccentBrush}"/>
-                            <StackPanel Grid.Row="1" Margin="0,10,0,0">
+                            <StackPanel Grid.Row="1" Margin="0,8,0,0">
                                 <TextBlock Text="RAM / МАКС. ЗАГРУЗКА"
                                            Style="{StaticResource LabelStyle}"/>
                                 <TextBlock x:Name="RamMaxLoadText"
                                            Text="—"
                                            Style="{StaticResource ValueStyle}"
-                                           Margin="0,7,0,0"/>
+                                           Margin="0,5,0,0"/>
                                 <TextBlock x:Name="RamMaxLoadTimeText"
                                            Text="Нет данных"
                                            Foreground="{DynamicResource SecondaryTextBrush}"
@@ -564,7 +564,7 @@
                     </Border>
 
                     <Border Style="{StaticResource StatisticsPanelStyle}"
-                            Padding="16">
+                            Padding="13">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="3"/>
@@ -574,13 +574,13 @@
                                     Height="3"
                                     HorizontalAlignment="Left"
                                     Background="{DynamicResource AccentBrush}"/>
-                            <StackPanel Grid.Row="1" Margin="0,10,0,0">
+                            <StackPanel Grid.Row="1" Margin="0,8,0,0">
                                 <TextBlock Text="САМЫЙ ГОРЯЧИЙ НАКОПИТЕЛЬ"
                                            Style="{StaticResource LabelStyle}"/>
                                 <TextBlock x:Name="StorageMaxTemperatureText"
                                            Text="—"
                                            Style="{StaticResource ValueStyle}"
-                                           Margin="0,7,0,0"/>
+                                           Margin="0,5,0,0"/>
                                 <TextBlock x:Name="StorageMaxTemperatureDeviceText"
                                            Text="Нет данных"
                                            Foreground="{DynamicResource SecondaryTextBrush}"
@@ -593,7 +593,7 @@
                 </UniformGrid>
 
                 <!-- CPU И RAM -->
-                <Grid Margin="0,0,0,20">
+                <Grid Margin="0,0,0,12">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="12"/>
@@ -685,7 +685,7 @@
                 <!-- ГРАФИК -->
                 <TextBlock Text="ГРАФИК ПО ВРЕМЕНИ"
                            Style="{StaticResource SectionTitleStyle}"
-                           Margin="0,0,0,10"/>
+                           Margin="0,0,0,7"/>
 
                 <Border Style="{StaticResource StatisticsPanelStyle}"
                         Padding="18"
@@ -694,7 +694,7 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="280"/>
+                            <RowDefinition Height="250"/>
                         </Grid.RowDefinitions>
 
                         <Grid>
@@ -799,21 +799,21 @@
                 <!-- GPU -->
                 <TextBlock Text="ВИДЕОКАРТЫ"
                            Style="{StaticResource SectionTitleStyle}"
-                           Margin="0,0,0,10"/>
+                           Margin="0,0,0,7"/>
                 <Grid x:Name="GpuDetailsPanel"
                       Margin="0,0,0,20"/>
 
                 <!-- НАКОПИТЕЛИ -->
                 <TextBlock Text="ФИЗИЧЕСКИЕ НАКОПИТЕЛИ"
                            Style="{StaticResource SectionTitleStyle}"
-                           Margin="0,0,0,10"/>
+                           Margin="0,0,0,7"/>
                 <Grid x:Name="StorageDetailsPanel"/>
 
             </StackPanel>
         </ScrollViewer>
 
         <!-- ПОДВАЛ -->
-        <Grid Grid.Row="3" Margin="0,16,0,0">
+        <Grid Grid.Row="3" Margin="0,10,0,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>

@@ -659,6 +659,20 @@ public partial class MainWindow : Window
                 $"Доступна новая версия Thermiqra {update.VersionText}.",
                 $"A new version of Thermiqra {update.VersionText} is available.");
 
+        string whatsNew =
+            string.IsNullOrWhiteSpace(
+                update.Summary)
+
+                ? string.Empty
+
+                : SettingsService.L(
+                    "Что нового:",
+                    "What's new:") +
+                  Environment.NewLine +
+                  update.Summary +
+                  Environment.NewLine +
+                  Environment.NewLine;
+
         Window dialog =
             new()
             {
@@ -776,6 +790,7 @@ public partial class MainWindow : Window
                     description +
                     Environment.NewLine +
                     Environment.NewLine +
+                    whatsNew +
                     SettingsService.L(
                         "Нажмите «Обновить» — Thermiqra автоматически скачает установщик, проверит его целостность и установит новую версию. После установки Thermiqra запустится снова. Настройки и статистика будут сохранены.",
                         "Click “Update” — Thermiqra will automatically download the installer, verify its integrity, and install the new version. Thermiqra will start again after installation. Your settings and statistics will be preserved."),

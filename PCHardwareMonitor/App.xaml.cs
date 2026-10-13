@@ -107,6 +107,8 @@ public partial class App : Application
                 .Current
                 .ThemeName);
 
+        IntroductionFeature.Initialize();
+
         _mainWindow =
             new MainWindow();
 
@@ -134,6 +136,9 @@ public partial class App : Application
 
             _mainWindow.OpenSettings(
                 firstRun: true);
+
+            IntroductionFeature.Show(
+                _mainWindow);
 
             return;
         }

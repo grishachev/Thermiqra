@@ -666,8 +666,12 @@ public static class UpdateService
                     string.Empty)
                 .Trim();
 
+        string selectedText =
+            ExtractLanguageSection(
+                normalized);
+
         string[] lines =
-            normalized.Split('\n');
+            selectedText.Split('\n');
 
         List<string> summaryLines =
             new();
@@ -726,4 +730,140 @@ public static class UpdateService
 
         return summary;
     }
+
+
+    private static string ExtractLanguageSection(
+        string text)
+    {
+        string targetLanguage =
+            SettingsService.IsRussian
+                ? "ru"
+                : "en";
+
+        string[] lines =
+            text.Split('\n');
+
+        List<string> selectedLines =
+            new();
+
+        bool targetSectionFound =
+            false;
+
+        bool insideTargetSection =
+            false;
+
+        foreach (string rawLine
+                 in lines)
+        {
+            string line =
+                rawLine.Trim();
+
+            if (TryGetLanguageSectionCode(
+                    line,
+                    out string languageCode))
+            {
+                if (targetSectionFound &&
+                    !string.Equals(
+                        languageCode,
+                        targetLanguage,
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    break;
+                }
+
+                insideTargetSection =
+                    string.Equals(
+                        languageCode,
+                        targetLanguage,
+                        StringComparison.OrdinalIgnoreCase);
+
+                if (insideTargetSection)
+                {
+                    targetSectionFound =
+                        true;
+                }
+
+                continue;
+            }
+
+            if (insideTargetSection)
+            {
+                selectedLines.Add(
+                    rawLine);
+            }
+        }
+
+        if (!targetSectionFound)
+        {
+            // Совместимость со старыми Release Notes:
+            // если языковых секций нет, используем прежнюю логику.
+            return text;
+        }
+
+        return string.Join(
+                Environment.NewLine,
+                selectedLines)
+            .Trim();
+    }
+
+
+    private static bool TryGetLanguageSectionCode(
+        string line,
+        out string languageCode)
+    {
+        languageCode =
+            string.Empty;
+
+        if (string.IsNullOrWhiteSpace(
+                line) ||
+            !line.StartsWith(
+                "#",
+                StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        string heading =
+            line.TrimStart('#')
+                .Trim()
+                .TrimEnd(':')
+                .Trim();
+
+        if (string.Equals(
+                heading,
+                "Русский",
+                StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(
+                heading,
+                "Russian",
+                StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(
+                heading,
+                "RU",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            languageCode =
+                "ru";
+
+            return true;
+        }
+
+        if (string.Equals(
+                heading,
+                "English",
+                StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(
+                heading,
+                "EN",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            languageCode =
+                "en";
+
+            return true;
+        }
+
+        return false;
+    }
+
 }

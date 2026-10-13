@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -6,6 +6,8 @@ namespace PCHardwareMonitor;
 
 public sealed class AlertService
 {
+    private const double TemperatureRecoveryMargin = 5.0;
+
     private readonly NotificationService _notifications;
 
     private readonly Action _openAction;
@@ -80,7 +82,10 @@ public sealed class AlertService
                         "Temperature"),
 
                 repeatCritical:
-                    true);
+                    true,
+
+                recoveryMargin:
+                    TemperatureRecoveryMargin);
         }
         else
         {
@@ -130,7 +135,10 @@ public sealed class AlertService
                             "Temperature"),
 
                     repeatCritical:
-                        true);
+                        true,
+
+                    recoveryMargin:
+                        TemperatureRecoveryMargin);
             }
         }
         else
@@ -152,6 +160,11 @@ public sealed class AlertService
                 StorageDeviceInfo storage =
                     snapshot.StorageDevices[i];
 
+                StorageTemperatureThresholds thresholds =
+                    GetStorageTemperatureThresholds(
+                        storage,
+                        settings);
+
                 EvaluateValue(
                     key:
                         $"STORAGE_TEMP_{i}",
@@ -163,10 +176,10 @@ public sealed class AlertService
                         storage.Temperature,
 
                     warning:
-                        settings.StorageWarningTemperature,
+                        thresholds.Warning,
 
                     critical:
-                        settings.StorageCriticalTemperature,
+                        thresholds.Critical,
 
                     unit:
                         "°C",
@@ -177,7 +190,10 @@ public sealed class AlertService
                             "Storage temperature"),
 
                     repeatCritical:
-                        true);
+                        true,
+
+                    recoveryMargin:
+                        TemperatureRecoveryMargin);
             }
         }
         else
@@ -232,7 +248,10 @@ public sealed class AlertService
 
                     // Диски не повторяем.
                     repeatCritical:
-                        false);
+                        false,
+
+                    recoveryMargin:
+                        0);
             }
         }
         else
@@ -249,6 +268,89 @@ public sealed class AlertService
 
 
     // ============================================================
+    // ПОРОГИ ТЕМПЕРАТУРЫ НАКОПИТЕЛЕЙ
+    // ============================================================
+
+    private static StorageTemperatureThresholds
+        GetStorageTemperatureThresholds(
+            StorageDeviceInfo storage,
+            AppSettings settings)
+    {
+        // Автоматический режим включён по умолчанию.
+        // Ручные пороги используются только если пользователь
+        // сознательно отключил автоматическую настройку.
+        if (!settings.AutomaticStorageTemperatureThresholdsEnabled)
+        {
+            return new StorageTemperatureThresholds(
+                settings.StorageWarningTemperature,
+                settings.StorageCriticalTemperature);
+        }
+
+        StorageKind kind =
+            DetectStorageKind(
+                storage);
+
+        // Тип определяется по внутреннему Identifier,
+        // который LibreHardwareMonitor формирует для класса накопителя.
+        // Если тип неизвестен, используем осторожный универсальный профиль:
+        // раннее предупреждение без прежнего Critical на 65 °C.
+        return kind switch
+        {
+            StorageKind.Hdd =>
+                new StorageTemperatureThresholds(
+                    55,
+                    60),
+
+            StorageKind.SataSsd =>
+                new StorageTemperatureThresholds(
+                    60,
+                    70),
+
+            StorageKind.Nvme =>
+                new StorageTemperatureThresholds(
+                    70,
+                    80),
+
+            _ =>
+                new StorageTemperatureThresholds(
+                    65,
+                    80)
+        };
+    }
+
+    private static StorageKind DetectStorageKind(
+        StorageDeviceInfo storage)
+    {
+        string identifier =
+            storage.Id ??
+            string.Empty;
+
+        if (identifier.Contains(
+                "nvme",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return StorageKind.Nvme;
+        }
+
+        if (identifier.Contains(
+                "ssd",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return StorageKind.SataSsd;
+        }
+
+        if (identifier.Contains(
+                "hdd",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return StorageKind.Hdd;
+        }
+
+        return StorageKind.Unknown;
+    }
+
+
+    // ============================================================
     // ПРОВЕРКА ОДНОГО ПОКАЗАТЕЛЯ
     // ============================================================
 
@@ -260,7 +362,8 @@ public sealed class AlertService
         double critical,
         string unit,
         string subject,
-        bool repeatCritical)
+        bool repeatCritical,
+        double recoveryMargin)
     {
         if (!value.HasValue)
         {
@@ -268,31 +371,31 @@ public sealed class AlertService
             return;
         }
 
+        DateTime now =
+            DateTime.UtcNow;
+
+        double currentValue =
+            value.Value;
+
         AlertLevel targetLevel =
-            value.Value >= critical
+            currentValue >= critical
                 ? AlertLevel.Critical
 
-                : value.Value >= warning
+                : currentValue >= warning
                     ? AlertLevel.Warning
 
                     : AlertLevel.None;
 
-        // Показатель вернулся в норму.
-        // Сбрасываем состояние полностью.
-        if (targetLevel ==
-            AlertLevel.None)
-        {
-            RemoveState(key);
-            return;
-        }
-
-        // Первый переход через порог
-        // или изменение уровня Warning -> Critical.
         if (!_states.TryGetValue(
                 key,
-                out AlertState? state) ||
-            state.Level != targetLevel)
+                out AlertState? state))
         {
+            if (targetLevel ==
+                AlertLevel.None)
+            {
+                return;
+            }
+
             _states[key] =
                 new AlertState
                 {
@@ -300,12 +403,52 @@ public sealed class AlertService
                         targetLevel,
 
                     SinceUtc =
-                        DateTime.UtcNow,
-
-                    LastNotificationUtc =
-                        null
+                        now
                 };
 
+            return;
+        }
+
+        // ========================================================
+        // ВОССТАНОВЛЕНИЕ С ГИСТЕРЕЗИСОМ
+        // ========================================================
+
+        double recoveryThreshold =
+            warning -
+            Math.Max(
+                0,
+                recoveryMargin);
+
+        // Температурный эпизод заканчивается не сразу при падении
+        // ниже Warning, а только после заметного охлаждения.
+        // Например, при Warning 80 °C и запасе 5 °C новый эпизод
+        // разрешается только после охлаждения до 75 °C или ниже.
+        if (targetLevel ==
+                AlertLevel.None &&
+            currentValue <=
+                recoveryThreshold)
+        {
+            RemoveState(key);
+            return;
+        }
+
+        // Уровень изменился: начинаем выдержку заново.
+        // Это не сбрасывает уже показанные уведомления текущего эпизода.
+        if (state.Level !=
+            targetLevel)
+        {
+            state.Level =
+                targetLevel;
+
+            state.SinceUtc =
+                now;
+        }
+
+        // Значение ниже Warning, но ещё не достигло порога восстановления.
+        // Эпизод сохраняем, уведомления не показываем.
+        if (targetLevel ==
+            AlertLevel.None)
+        {
             return;
         }
 
@@ -317,9 +460,8 @@ public sealed class AlertService
                 1,
                 120);
 
-        // Ждём, пока проблема продержится
-        // заданное количество секунд.
-        if ((DateTime.UtcNow -
+        // Порог должен удерживаться заданное время.
+        if ((now -
              state.SinceUtc).TotalSeconds <
             delaySeconds)
         {
@@ -327,41 +469,77 @@ public sealed class AlertService
         }
 
         // ========================================================
-        // ПЕРВОЕ УВЕДОМЛЕНИЕ
+        // WARNING — ОДИН РАЗ ЗА ЭПИЗОД
         // ========================================================
 
-        if (!state.LastNotificationUtc.HasValue)
+        if (targetLevel ==
+            AlertLevel.Warning)
         {
+            // После уже показанного Warning или Critical
+            // повторный Warning в том же эпизоде не нужен.
+            if (state.WarningNotified ||
+                state.CriticalNotified)
+            {
+                return;
+            }
+
             SendNotification(
                 name,
-                value.Value,
+                currentValue,
                 unit,
                 subject,
-                targetLevel);
+                AlertLevel.Warning);
 
             SaveStatisticsEvent(
                 key,
                 name,
-                value.Value,
+                currentValue,
                 unit,
                 subject,
-                targetLevel);
+                AlertLevel.Warning);
+
+            state.WarningNotified =
+                true;
 
             state.LastNotificationUtc =
-                DateTime.UtcNow;
+                now;
 
             return;
         }
 
         // ========================================================
-        // ПОВТОР КРИТИЧЕСКИХ ТЕМПЕРАТУР
+        // CRITICAL — ПЕРВОЕ СРАБАТЫВАНИЕ / ЭСКАЛАЦИЯ
         // ========================================================
 
-        if (targetLevel !=
-            AlertLevel.Critical)
+        if (!state.CriticalNotified)
         {
+            SendNotification(
+                name,
+                currentValue,
+                unit,
+                subject,
+                AlertLevel.Critical);
+
+            SaveStatisticsEvent(
+                key,
+                name,
+                currentValue,
+                unit,
+                subject,
+                AlertLevel.Critical);
+
+            state.CriticalNotified =
+                true;
+
+            state.LastNotificationUtc =
+                now;
+
             return;
         }
+
+        // ========================================================
+        // ПОВТОР CRITICAL
+        // ========================================================
 
         if (!repeatCritical)
         {
@@ -375,6 +553,11 @@ public sealed class AlertService
             return;
         }
 
+        if (!state.LastNotificationUtc.HasValue)
+        {
+            return;
+        }
+
         int repeatMinutes =
             Math.Clamp(
                 SettingsService
@@ -383,7 +566,7 @@ public sealed class AlertService
                 1,
                 120);
 
-        if ((DateTime.UtcNow -
+        if ((now -
              state.LastNotificationUtc.Value)
             .TotalMinutes <
             repeatMinutes)
@@ -393,13 +576,13 @@ public sealed class AlertService
 
         SendNotification(
             name,
-            value.Value,
+            currentValue,
             unit,
             subject,
-            targetLevel);
+            AlertLevel.Critical);
 
         state.LastNotificationUtc =
-            DateTime.UtcNow;
+            now;
     }
 
     // ============================================================
@@ -511,6 +694,22 @@ public sealed class AlertService
         public DateTime SinceUtc { get; set; }
 
         public DateTime? LastNotificationUtc { get; set; }
+
+        public bool WarningNotified { get; set; }
+
+        public bool CriticalNotified { get; set; }
+    }
+
+    private readonly record struct StorageTemperatureThresholds(
+        double Warning,
+        double Critical);
+
+    private enum StorageKind
+    {
+        Unknown,
+        Hdd,
+        SataSsd,
+        Nvme
     }
 
     private enum AlertLevel

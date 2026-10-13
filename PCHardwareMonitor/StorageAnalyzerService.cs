@@ -314,6 +314,23 @@ public sealed class StorageAnalyzerService
                     true))
                 .ToList();
 
+        long fileSystemOverheadBytes =
+            windowsUsedBytes >
+            allocatedFileBytes
+                ? windowsUsedBytes -
+                  allocatedFileBytes
+                : 0;
+
+        StorageAnalysisTree tree =
+            BuildNtfsTree(
+                driveLetter,
+                windowsUsedBytes,
+                logicalFileBytes,
+                fileSystemOverheadBytes,
+                files,
+                directories,
+                folderAggregation);
+
         totalTimer.Stop();
 
         return new StorageAnalysisResult(
@@ -324,7 +341,7 @@ public sealed class StorageAnalyzerService
             windowsUsedBytes,
             logicalFileBytes,
             allocatedFileBytes,
-            checked(windowsUsedBytes - allocatedFileBytes),
+            fileSystemOverheadBytes,
             files.Count,
             directories.Count,
             specialFilesCorrected,
@@ -332,7 +349,11 @@ public sealed class StorageAnalyzerService
             totalTimer.Elapsed,
             rootFolders,
             largestFolders,
-            largestFiles);
+            largestFiles)
+        {
+            Tree =
+                tree
+        };
     }
 
     private static StorageAnalysisResult AnalyzeByTraversal(
@@ -377,6 +398,9 @@ public sealed class StorageAnalyzerService
                 false));
 
         List<StorageAnalysisItem> largestFileCandidates =
+            new();
+
+        List<FallbackFileTreeEntry> fallbackTreeFiles =
             new();
 
         long logicalFileBytes = 0;
@@ -552,14 +576,29 @@ public sealed class StorageAnalyzerService
                             folder.RecursiveAllocatedBytes,
                             allocatedSize);
 
+                    string fileName =
+                        Path.GetFileName(
+                            entryPath);
+
                     StorageAnalysisItem fileItem =
                         new(
                             entryPath,
-                            Path.GetFileName(
-                                entryPath),
+                            fileName,
                             logicalSize,
                             allocatedSize,
                             false);
+
+                    if (allocatedSize > 0 &&
+                        !string.IsNullOrWhiteSpace(
+                            fileName))
+                    {
+                        fallbackTreeFiles.Add(
+                            new FallbackFileTreeEntry(
+                                item.Path,
+                                fileName,
+                                logicalSize,
+                                allocatedSize));
+                    }
 
                     AddTopCandidate(
                         largestFileCandidates,
@@ -633,14 +672,23 @@ public sealed class StorageAnalyzerService
                 .Take(30)
                 .ToList();
 
-        totalTimer.Stop();
-
         long fileSystemOverheadBytes =
             windowsUsedBytes >
             allocatedFileBytes
                 ? windowsUsedBytes -
                   allocatedFileBytes
                 : 0;
+
+        StorageAnalysisTree tree =
+            BuildTraversalTree(
+                normalizedDrive,
+                windowsUsedBytes,
+                logicalFileBytes,
+                fileSystemOverheadBytes,
+                folders,
+                fallbackTreeFiles);
+
+        totalTimer.Stop();
 
         return new StorageAnalysisResult(
             normalizedDrive,
@@ -658,7 +706,241 @@ public sealed class StorageAnalyzerService
             totalTimer.Elapsed,
             rootFolders,
             largestFolders,
-            largestFiles);
+            largestFiles)
+        {
+            Tree =
+                tree
+        };
+    }
+
+
+    private static StorageAnalysisTree BuildNtfsTree(
+        char driveLetter,
+        long windowsUsedBytes,
+        long logicalFileBytes,
+        long fileSystemOverheadBytes,
+        IReadOnlyList<Entry> files,
+        IReadOnlyList<Entry> directories,
+        FolderAggregation folderAggregation)
+    {
+        const long rootNodeId = 5;
+        const long fileSystemNodeId = -1;
+        const long unresolvedNodeId = -2;
+
+        Dictionary<long, StorageAnalysisTreeNode> nodes =
+            new();
+
+        nodes[rootNodeId] =
+            new StorageAnalysisTreeNode(
+                rootNodeId,
+                long.MinValue,
+                $"{driveLetter}:\\",
+                logicalFileBytes,
+                windowsUsedBytes,
+                StorageAnalysisTreeNodeKind.Drive);
+
+        foreach (Entry directory in directories)
+        {
+            if (directory.RecordNumber == 5 ||
+                string.IsNullOrWhiteSpace(
+                    directory.Name) ||
+                !folderAggregation.Stats.TryGetValue(
+                    directory.RecordNumber,
+                    out FolderStat? folder) ||
+                folder.RecursiveAllocatedBytes <= 0)
+            {
+                continue;
+            }
+
+            long nodeId =
+                checked(
+                    (long)directory.RecordNumber);
+
+            long parentNodeId =
+                checked(
+                    (long)directory.ParentRecord);
+
+            nodes[nodeId] =
+                new StorageAnalysisTreeNode(
+                    nodeId,
+                    parentNodeId,
+                    directory.Name,
+                    folder.RecursiveLogicalBytes,
+                    folder.RecursiveAllocatedBytes,
+                    StorageAnalysisTreeNodeKind.Directory);
+        }
+
+        foreach (Entry file in files)
+        {
+            if (!file.HasUnnamedData ||
+                file.AllocatedSize <= 0 ||
+                string.IsNullOrWhiteSpace(
+                    file.Name))
+            {
+                continue;
+            }
+
+            long nodeId =
+                checked(
+                    (long)file.RecordNumber);
+
+            long parentNodeId =
+                checked(
+                    (long)file.ParentRecord);
+
+            nodes[nodeId] =
+                new StorageAnalysisTreeNode(
+                    nodeId,
+                    parentNodeId,
+                    file.Name,
+                    file.LogicalSize,
+                    file.AllocatedSize,
+                    StorageAnalysisTreeNodeKind.File);
+        }
+
+        if (fileSystemOverheadBytes > 0)
+        {
+            nodes[fileSystemNodeId] =
+                new StorageAnalysisTreeNode(
+                    fileSystemNodeId,
+                    rootNodeId,
+                    "",
+                    fileSystemOverheadBytes,
+                    fileSystemOverheadBytes,
+                    StorageAnalysisTreeNodeKind.FileSystemData);
+        }
+
+        if (folderAggregation.UnresolvedAllocatedBytes > 0)
+        {
+            nodes[unresolvedNodeId] =
+                new StorageAnalysisTreeNode(
+                    unresolvedNodeId,
+                    rootNodeId,
+                    "",
+                    folderAggregation.UnresolvedLogicalBytes,
+                    folderAggregation.UnresolvedAllocatedBytes,
+                    StorageAnalysisTreeNodeKind.UnresolvedData);
+        }
+
+        return new StorageAnalysisTree(
+            $"{driveLetter}:\\",
+            rootNodeId,
+            nodes);
+    }
+
+
+    private static StorageAnalysisTree BuildTraversalTree(
+        string normalizedDrive,
+        long windowsUsedBytes,
+        long logicalFileBytes,
+        long fileSystemOverheadBytes,
+        IReadOnlyDictionary<string, FallbackFolderStat> folders,
+        IReadOnlyList<FallbackFileTreeEntry> files)
+    {
+        const long rootNodeId = 0;
+        const long fileSystemNodeId = -1;
+
+        Dictionary<long, StorageAnalysisTreeNode> nodes =
+            new();
+
+        Dictionary<string, long> folderIds =
+            new(
+                StringComparer.OrdinalIgnoreCase)
+            {
+                [normalizedDrive] =
+                    rootNodeId
+            };
+
+        long nextNodeId = 1;
+
+        nodes[rootNodeId] =
+            new StorageAnalysisTreeNode(
+                rootNodeId,
+                long.MinValue,
+                normalizedDrive,
+                logicalFileBytes,
+                windowsUsedBytes,
+                StorageAnalysisTreeNodeKind.Drive);
+
+        foreach (FallbackFolderStat folder
+                 in folders.Values
+                     .Where(
+                         folder =>
+                             !string.Equals(
+                                 folder.Path,
+                                 normalizedDrive,
+                                 StringComparison.OrdinalIgnoreCase) &&
+                             folder.RecursiveAllocatedBytes > 0)
+                     .OrderBy(
+                         folder =>
+                             folder.Path.Count(
+                                 character =>
+                                     character == '\\')))
+        {
+            if (string.IsNullOrWhiteSpace(
+                    folder.ParentPath) ||
+                !folderIds.TryGetValue(
+                    folder.ParentPath,
+                    out long parentNodeId))
+            {
+                continue;
+            }
+
+            long nodeId =
+                nextNodeId++;
+
+            folderIds[folder.Path] =
+                nodeId;
+
+            nodes[nodeId] =
+                new StorageAnalysisTreeNode(
+                    nodeId,
+                    parentNodeId,
+                    folder.Name,
+                    folder.RecursiveLogicalBytes,
+                    folder.RecursiveAllocatedBytes,
+                    StorageAnalysisTreeNodeKind.Directory);
+        }
+
+        foreach (FallbackFileTreeEntry file
+                 in files)
+        {
+            if (!folderIds.TryGetValue(
+                    file.ParentPath,
+                    out long parentNodeId))
+            {
+                continue;
+            }
+
+            long nodeId =
+                nextNodeId++;
+
+            nodes[nodeId] =
+                new StorageAnalysisTreeNode(
+                    nodeId,
+                    parentNodeId,
+                    file.Name,
+                    file.LogicalBytes,
+                    file.AllocatedBytes,
+                    StorageAnalysisTreeNodeKind.File);
+        }
+
+        if (fileSystemOverheadBytes > 0)
+        {
+            nodes[fileSystemNodeId] =
+                new StorageAnalysisTreeNode(
+                    fileSystemNodeId,
+                    rootNodeId,
+                    "",
+                    fileSystemOverheadBytes,
+                    fileSystemOverheadBytes,
+                    StorageAnalysisTreeNodeKind.FileSystemData);
+        }
+
+        return new StorageAnalysisTree(
+            normalizedDrive,
+            rootNodeId,
+            nodes);
     }
 
 
@@ -1037,6 +1319,8 @@ public sealed class StorageAnalyzerService
                 directory => new FolderStat(directory));
 
         int unresolvedNonEmptyFiles = 0;
+        long unresolvedLogicalBytes = 0;
+        long unresolvedAllocatedBytes = 0;
 
         foreach (Entry file in files)
         {
@@ -1089,12 +1373,24 @@ public sealed class StorageAnalyzerService
                  !string.IsNullOrWhiteSpace(file.Name)))
             {
                 unresolvedNonEmptyFiles++;
+
+                unresolvedLogicalBytes =
+                    SafeAdd(
+                        unresolvedLogicalBytes,
+                        file.LogicalSize);
+
+                unresolvedAllocatedBytes =
+                    SafeAdd(
+                        unresolvedAllocatedBytes,
+                        file.AllocatedSize);
             }
         }
 
         return new FolderAggregation(
             stats,
-            unresolvedNonEmptyFiles);
+            unresolvedNonEmptyFiles,
+            unresolvedLogicalBytes,
+            unresolvedAllocatedBytes);
     }
 
     private static bool TryReadResidentDataSize(
@@ -1849,7 +2145,17 @@ public sealed class StorageAnalyzerService
 
     private readonly record struct FolderAggregation(
         Dictionary<ulong, FolderStat> Stats,
-        int UnresolvedNonEmptyFiles);
+        int UnresolvedNonEmptyFiles,
+        long UnresolvedLogicalBytes,
+        long UnresolvedAllocatedBytes);
+
+
+    private readonly record struct FallbackFileTreeEntry(
+        string ParentPath,
+        string Name,
+        long LogicalBytes,
+        long AllocatedBytes);
+
 
     private readonly record struct DataRun(
         long StartVcn,
@@ -1949,7 +2255,315 @@ public sealed record StorageAnalysisResult(
     TimeSpan Elapsed,
     IReadOnlyList<StorageAnalysisItem> RootFolders,
     IReadOnlyList<StorageAnalysisItem> LargestFolders,
-    IReadOnlyList<StorageAnalysisItem> LargestFiles);
+    IReadOnlyList<StorageAnalysisItem> LargestFiles)
+{
+    public StorageAnalysisTree? Tree { get; init; }
+}
+
+
+public enum StorageAnalysisTreeNodeKind
+{
+    Drive,
+    Directory,
+    File,
+    FileSystemData,
+    UnresolvedData
+}
+
+
+public sealed record StorageAnalysisTreeNode(
+    long Id,
+    long ParentId,
+    string Name,
+    long LogicalBytes,
+    long AllocatedBytes,
+    StorageAnalysisTreeNodeKind Kind)
+{
+    public bool IsDirectory =>
+        Kind == StorageAnalysisTreeNodeKind.Drive ||
+        Kind == StorageAnalysisTreeNodeKind.Directory;
+}
+
+
+public sealed class StorageAnalysisTree
+{
+    private readonly Dictionary<long, StorageAnalysisTreeNode> _nodes;
+
+    private readonly Dictionary<long, long[]> _children;
+
+    public StorageAnalysisTree(
+        string driveName,
+        long rootNodeId,
+        IReadOnlyDictionary<long, StorageAnalysisTreeNode> nodes)
+    {
+        DriveName =
+            driveName;
+
+        RootNodeId =
+            rootNodeId;
+
+        _nodes =
+            new Dictionary<long, StorageAnalysisTreeNode>(
+                nodes);
+
+        Dictionary<long, List<long>> children =
+            new();
+
+        foreach (StorageAnalysisTreeNode node
+                 in _nodes.Values)
+        {
+            if (node.Id == RootNodeId ||
+                !_nodes.ContainsKey(
+                    node.ParentId))
+            {
+                continue;
+            }
+
+            if (!children.TryGetValue(
+                    node.ParentId,
+                    out List<long>? childIds))
+            {
+                childIds =
+                    new List<long>();
+
+                children[node.ParentId] =
+                    childIds;
+            }
+
+            childIds.Add(
+                node.Id);
+        }
+
+        _children =
+            new Dictionary<long, long[]>(
+                children.Count);
+
+        foreach (
+            KeyValuePair<long, List<long>> pair
+            in children)
+        {
+            pair.Value.Sort(
+                (leftId, rightId) =>
+                {
+                    StorageAnalysisTreeNode left =
+                        _nodes[leftId];
+
+                    StorageAnalysisTreeNode right =
+                        _nodes[rightId];
+
+                    // Внутри каждой папки сначала показываем папки,
+                    // затем файлы. В каждой группе — от большего к меньшему.
+                    if (left.IsDirectory !=
+                        right.IsDirectory)
+                    {
+                        return left.IsDirectory
+                            ? -1
+                            : 1;
+                    }
+
+                    int sizeComparison =
+                        right.AllocatedBytes.CompareTo(
+                            left.AllocatedBytes);
+
+                    if (sizeComparison != 0)
+                        return sizeComparison;
+
+                    return string.Compare(
+                        left.Name,
+                        right.Name,
+                        StringComparison.CurrentCultureIgnoreCase);
+                });
+
+            _children[pair.Key] =
+                pair.Value.ToArray();
+        }
+    }
+
+
+    public string DriveName { get; }
+
+    public long RootNodeId { get; }
+
+    public int NodeCount =>
+        _nodes.Count;
+
+    public IEnumerable<StorageAnalysisTreeNode> Nodes =>
+        _nodes.Values;
+
+    public StorageAnalysisTreeNode RootNode =>
+        _nodes[RootNodeId];
+
+
+    public bool HasChildren(
+        long nodeId)
+    {
+        return
+            _children.TryGetValue(
+                nodeId,
+                out long[]? children) &&
+            children.Length > 0;
+    }
+
+
+    public IReadOnlyList<StorageAnalysisTreeNode> GetChildren(
+        long nodeId)
+    {
+        if (!_children.TryGetValue(
+                nodeId,
+                out long[]? childIds) ||
+            childIds.Length == 0)
+        {
+            return Array.Empty<StorageAnalysisTreeNode>();
+        }
+
+        StorageAnalysisTreeNode[] result =
+            new StorageAnalysisTreeNode[
+                childIds.Length];
+
+        for (int i = 0;
+             i < childIds.Length;
+             i++)
+        {
+            result[i] =
+                _nodes[
+                    childIds[i]];
+        }
+
+        return result;
+    }
+
+
+    public bool TryGetNode(
+        long nodeId,
+        out StorageAnalysisTreeNode? node)
+    {
+        return _nodes.TryGetValue(
+            nodeId,
+            out node);
+    }
+
+
+    public string GetPath(
+        long nodeId)
+    {
+        if (!_nodes.TryGetValue(
+                nodeId,
+                out StorageAnalysisTreeNode? node))
+        {
+            return DriveName;
+        }
+
+        if (node.Id == RootNodeId)
+            return DriveName;
+
+        if (node.Kind ==
+                StorageAnalysisTreeNodeKind.FileSystemData ||
+            node.Kind ==
+                StorageAnalysisTreeNodeKind.UnresolvedData)
+        {
+            return DriveName;
+        }
+
+        List<string> parts =
+            new();
+
+        HashSet<long> visited =
+            new();
+
+        StorageAnalysisTreeNode current =
+            node;
+
+        while (current.Id !=
+               RootNodeId)
+        {
+            if (!visited.Add(
+                    current.Id))
+            {
+                break;
+            }
+
+            if (!string.IsNullOrWhiteSpace(
+                    current.Name))
+            {
+                parts.Add(
+                    current.Name);
+            }
+
+            if (!_nodes.TryGetValue(
+                    current.ParentId,
+                    out StorageAnalysisTreeNode? parent))
+            {
+                break;
+            }
+
+            current =
+                parent;
+        }
+
+        parts.Reverse();
+
+        if (parts.Count == 0)
+            return DriveName;
+
+        return DriveName.TrimEnd(
+                   Path.DirectorySeparatorChar,
+                   Path.AltDirectorySeparatorChar) +
+               Path.DirectorySeparatorChar +
+               string.Join(
+                   Path.DirectorySeparatorChar.ToString(),
+                   parts);
+    }
+
+
+    public IReadOnlyList<StorageAnalysisTreeNode> GetLargestBranch(
+        int maxDepth = 8)
+    {
+        if (maxDepth < 1)
+            maxDepth = 1;
+
+        List<StorageAnalysisTreeNode> branch =
+            new()
+            {
+                RootNode
+            };
+
+        StorageAnalysisTreeNode current =
+            RootNode;
+
+        for (int depth = 0;
+             depth < maxDepth;
+             depth++)
+        {
+            IReadOnlyList<StorageAnalysisTreeNode> children =
+                GetChildren(
+                    current.Id);
+
+            StorageAnalysisTreeNode? largest =
+                children
+                    .FirstOrDefault(
+                        child =>
+                            child.Kind ==
+                                StorageAnalysisTreeNodeKind.Directory ||
+                            child.Kind ==
+                                StorageAnalysisTreeNodeKind.File);
+
+            if (largest == null)
+                break;
+
+            branch.Add(
+                largest);
+
+            if (!largest.IsDirectory)
+                break;
+
+            current =
+                largest;
+        }
+
+        return branch;
+    }
+}
+
 
 public sealed record StorageAnalysisItem(
     string Path,

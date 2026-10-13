@@ -89,6 +89,10 @@ public sealed class StatisticsService
             }
         }
 
+        BenchmarkWorkloadKind benchmarkWorkload =
+            BenchmarkDetectionService.Detect(
+                snapshot);
+
         using SqliteConnection connection =
             OpenConnection();
 
@@ -100,7 +104,8 @@ public sealed class StatisticsService
                 connection,
                 transaction,
                 snapshot,
-                timestampUtc);
+                timestampUtc,
+                benchmarkWorkload);
 
         InsertGpuSamples(
             connection,
@@ -113,6 +118,13 @@ public sealed class StatisticsService
             transaction,
             sampleId,
             snapshot);
+
+        UpdateAdvisorDailyEvidence(
+            connection,
+            transaction,
+            snapshot,
+            timestampUtc,
+            benchmarkWorkload);
 
         UpdateAllTimeRecords(
             connection,
@@ -129,6 +141,342 @@ public sealed class StatisticsService
             timestampUtc);
 
         return true;
+    }
+
+
+    public StatisticsChartSeries GetAdvisorRamLoadSeries(
+        StatisticsPeriod period,
+        int maxPoints = 1200)
+    {
+        maxPoints =
+            Math.Clamp(
+                maxPoints,
+                60,
+                1200);
+
+        DateTimeOffset endUtc =
+            DateTimeOffset.UtcNow;
+
+        DateTimeOffset startUtc =
+            GetPeriodStartUtc(
+                period,
+                endUtc);
+
+        using SqliteConnection connection =
+            OpenConnection();
+
+        using SqliteCommand command =
+            connection.CreateCommand();
+
+        command.CommandText =
+            """
+            SELECT
+                TimestampUtc,
+                RamLoad
+            FROM MonitoringSamples
+            WHERE TimestampUtc >= $startUtc
+              AND TimestampUtc <= $endUtc
+              AND RamLoad IS NOT NULL
+              AND BenchmarkClassified = 1
+              AND (BenchmarkMask & $benchmarkMask) = 0
+            ORDER BY TimestampUtc;
+            """;
+
+        AddRangeParameters(
+            command,
+            startUtc,
+            endUtc);
+
+        command.Parameters.AddWithValue(
+            "$benchmarkMask",
+            (int)BenchmarkWorkloadKind.Memory);
+
+        List<StatisticsChartPoint> points =
+            new();
+
+        using SqliteDataReader reader =
+            command.ExecuteReader();
+
+        while (reader.Read())
+        {
+            points.Add(
+                new StatisticsChartPoint
+                {
+                    TimestampUtc =
+                        DateTimeOffset.FromUnixTimeSeconds(
+                            reader.GetInt64(0)),
+
+                    Value =
+                        reader.GetDouble(1)
+                });
+        }
+
+        StatisticsChartSeries series =
+            new()
+            {
+                Metric =
+                    StatisticsChartMetric.RamLoad,
+
+                StartUtc =
+                    startUtc,
+
+                EndUtc =
+                    endUtc
+            };
+
+        series.Points.AddRange(
+            DownsampleChartPoints(
+                points,
+                maxPoints));
+
+        return series;
+    }
+
+
+    public AdvisorPerformanceHistory
+        GetAdvisorPerformanceHistory(
+            StatisticsPeriod period)
+    {
+        DateTimeOffset endUtc =
+            DateTimeOffset.UtcNow;
+
+        DateTimeOffset startUtc =
+            GetPeriodStartUtc(
+                period,
+                endUtc);
+
+        AdvisorPerformanceHistory result =
+            new()
+            {
+                StartUtc =
+                    startUtc,
+
+                EndUtc =
+                    endUtc
+            };
+
+        using SqliteConnection connection =
+            OpenConnection();
+
+        using SqliteCommand command =
+            connection.CreateCommand();
+
+        command.CommandText =
+            """
+            SELECT
+                m.TimestampUtc,
+                m.CpuLoad,
+                m.CpuTemperature,
+                g.DeviceId,
+                g.DeviceName,
+                g.Load,
+                g.Temperature
+            FROM MonitoringSamples m
+            INNER JOIN GpuSamples g
+                ON g.SampleId = m.Id
+            WHERE m.TimestampUtc >= $startUtc
+              AND m.TimestampUtc <= $endUtc
+              AND m.CpuLoad IS NOT NULL
+              AND g.Load IS NOT NULL
+              AND m.BenchmarkClassified = 1
+              AND (m.BenchmarkMask & $benchmarkMask) = 0
+            ORDER BY
+                g.DeviceId,
+                m.TimestampUtc;
+            """;
+
+        AddRangeParameters(
+            command,
+            startUtc,
+            endUtc);
+
+        command.Parameters.AddWithValue(
+            "$benchmarkMask",
+            (int)(
+                BenchmarkWorkloadKind.Cpu |
+                BenchmarkWorkloadKind.Gpu));
+
+        Dictionary<string, AdvisorGpuPerformanceSeries>
+            seriesByDevice =
+                new(
+                    StringComparer.OrdinalIgnoreCase);
+
+        using SqliteDataReader reader =
+            command.ExecuteReader();
+
+        while (reader.Read())
+        {
+            string deviceId =
+                reader.GetString(3);
+
+            string deviceName =
+                reader.GetString(4);
+
+            if (!seriesByDevice.TryGetValue(
+                    deviceId,
+                    out AdvisorGpuPerformanceSeries? series))
+            {
+                series =
+                    new AdvisorGpuPerformanceSeries
+                    {
+                        DeviceId =
+                            deviceId,
+
+                        DeviceName =
+                            deviceName
+                    };
+
+                seriesByDevice.Add(
+                    deviceId,
+                    series);
+
+                result.Gpus.Add(
+                    series);
+            }
+
+            series.Points.Add(
+                new AdvisorPerformancePoint
+                {
+                    TimestampUtc =
+                        DateTimeOffset.FromUnixTimeSeconds(
+                            reader.GetInt64(0)),
+
+                    CpuLoad =
+                        reader.GetDouble(1),
+
+                    CpuTemperature =
+                        reader.IsDBNull(2)
+                            ? null
+                            : reader.GetDouble(2),
+
+                    GpuLoad =
+                        reader.GetDouble(5),
+
+                    GpuTemperature =
+                        reader.IsDBNull(6)
+                            ? null
+                            : reader.GetDouble(6)
+                });
+        }
+
+        return result;
+    }
+
+
+    public AdvisorEvidenceSpan GetAdvisorEvidenceSpan(
+        string deviceId,
+        AdvisorEvidenceKind kind,
+        double warningTemperature)
+    {
+        if (string.IsNullOrWhiteSpace(deviceId))
+        {
+            return new AdvisorEvidenceSpan();
+        }
+
+        using SqliteConnection connection =
+            OpenConnection();
+
+        using SqliteCommand command =
+            connection.CreateCommand();
+
+        string whereCondition =
+            kind switch
+            {
+                AdvisorEvidenceKind.CpuLimited =>
+                    "CpuLimitedSamples >= 5",
+
+                AdvisorEvidenceKind.CpuCooling =>
+                    "CpuLimitedSamples >= 5 AND " +
+                    "CpuMaxTemperature IS NOT NULL AND " +
+                    "CpuMaxTemperature >= $warningTemperature",
+
+                AdvisorEvidenceKind.GpuCooling =>
+                    "GpuLimitedSamples >= 5 AND " +
+                    "GpuMaxTemperature IS NOT NULL AND " +
+                    "GpuMaxTemperature >= $warningTemperature",
+
+                _ =>
+                    "1 = 0"
+            };
+
+        command.CommandText =
+            $"""
+            SELECT
+                MIN(LocalDate),
+                MAX(LocalDate),
+                COUNT(*)
+            FROM AdvisorDailyEvidence
+            WHERE DeviceId = $deviceId
+              AND {whereCondition};
+            """;
+
+        command.Parameters.AddWithValue(
+            "$deviceId",
+            deviceId);
+
+        command.Parameters.AddWithValue(
+            "$warningTemperature",
+            warningTemperature);
+
+        using SqliteDataReader reader =
+            command.ExecuteReader();
+
+        if (!reader.Read() ||
+            reader.IsDBNull(0) ||
+            reader.IsDBNull(1))
+        {
+            return new AdvisorEvidenceSpan();
+        }
+
+        string firstText =
+            reader.GetString(0);
+
+        string lastText =
+            reader.GetString(1);
+
+        int daysWithEvidence =
+            reader.GetInt32(2);
+
+        if (!DateTime.TryParseExact(
+                firstText,
+                "yyyy-MM-dd",
+                System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.None,
+                out DateTime firstDate) ||
+            !DateTime.TryParseExact(
+                lastText,
+                "yyyy-MM-dd",
+                System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.None,
+                out DateTime lastDate))
+        {
+            return new AdvisorEvidenceSpan();
+        }
+
+        int calendarSpanDays =
+            Math.Max(
+                1,
+                (lastDate.Date -
+                 firstDate.Date).Days +
+                1);
+
+        return new AdvisorEvidenceSpan
+        {
+            HasEvidence =
+                true,
+
+            FirstDate =
+                firstDate.Date,
+
+            LastDate =
+                lastDate.Date,
+
+            CalendarSpanDays =
+                calendarSpanDays,
+
+            DaysWithEvidence =
+                daysWithEvidence
+        };
     }
 
 
@@ -1092,6 +1440,7 @@ public sealed class StatisticsService
             """
             DELETE FROM AlertEvents;
             DELETE FROM AllTimeRecords;
+            DELETE FROM AdvisorDailyEvidence;
             DELETE FROM MonitoringSamples;
             """;
 
@@ -1124,7 +1473,9 @@ public sealed class StatisticsService
                 TimestampUtc INTEGER NOT NULL,
                 CpuTemperature REAL NULL,
                 CpuLoad REAL NULL,
-                RamLoad REAL NULL
+                RamLoad REAL NULL,
+                BenchmarkMask INTEGER NOT NULL DEFAULT 0,
+                BenchmarkClassified INTEGER NOT NULL DEFAULT 0
             );
 
             CREATE INDEX IF NOT EXISTS IX_MonitoringSamples_TimestampUtc
@@ -1189,9 +1540,94 @@ public sealed class StatisticsService
                 TimestampUtc INTEGER NOT NULL,
                 Unit TEXT NOT NULL
             );
+
+            CREATE TABLE IF NOT EXISTS AdvisorDailyEvidence
+            (
+                LocalDate TEXT NOT NULL,
+                DeviceId TEXT NOT NULL,
+                DeviceName TEXT NOT NULL,
+
+                CpuLimitedSamples INTEGER NOT NULL DEFAULT 0,
+                CpuMaxLoad REAL NULL,
+                CpuMaxTemperature REAL NULL,
+                CpuGpuLoadSum REAL NOT NULL DEFAULT 0,
+
+                GpuLimitedSamples INTEGER NOT NULL DEFAULT 0,
+                GpuMaxLoad REAL NULL,
+                GpuMaxTemperature REAL NULL,
+                GpuCpuLoadSum REAL NOT NULL DEFAULT 0,
+
+                BothHighSamples INTEGER NOT NULL DEFAULT 0,
+
+                PRIMARY KEY (LocalDate, DeviceId)
+            );
+
+            CREATE INDEX IF NOT EXISTS IX_AdvisorDailyEvidence_DeviceId
+                ON AdvisorDailyEvidence(DeviceId);
             """;
 
         command.ExecuteNonQuery();
+
+        EnsureColumnExists(
+            connection,
+            "MonitoringSamples",
+            "BenchmarkMask",
+            "INTEGER NOT NULL DEFAULT 0");
+
+        EnsureColumnExists(
+            connection,
+            "MonitoringSamples",
+            "BenchmarkClassified",
+            "INTEGER NOT NULL DEFAULT 0");
+    }
+
+    private static void EnsureColumnExists(
+        SqliteConnection connection,
+        string tableName,
+        string columnName,
+        string columnDefinition)
+    {
+        using SqliteCommand checkCommand =
+            connection.CreateCommand();
+
+        checkCommand.CommandText =
+            $"PRAGMA table_info({tableName});";
+
+        bool exists =
+            false;
+
+        using (SqliteDataReader reader =
+               checkCommand.ExecuteReader())
+        {
+            while (reader.Read())
+            {
+                string existingColumn =
+                    reader.GetString(1);
+
+                if (string.Equals(
+                        existingColumn,
+                        columnName,
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    exists =
+                        true;
+
+                    break;
+                }
+            }
+        }
+
+        if (exists)
+            return;
+
+        using SqliteCommand alterCommand =
+            connection.CreateCommand();
+
+        alterCommand.CommandText =
+            $"ALTER TABLE {tableName} " +
+            $"ADD COLUMN {columnName} {columnDefinition};";
+
+        alterCommand.ExecuteNonQuery();
     }
 
     private DateTimeOffset? LoadLastSampleTimestamp()
@@ -1226,7 +1662,8 @@ public sealed class StatisticsService
         SqliteConnection connection,
         SqliteTransaction transaction,
         HardwareSnapshot snapshot,
-        DateTimeOffset timestampUtc)
+        DateTimeOffset timestampUtc,
+        BenchmarkWorkloadKind benchmarkWorkload)
     {
         using SqliteCommand command =
             connection.CreateCommand();
@@ -1240,14 +1677,18 @@ public sealed class StatisticsService
                 TimestampUtc,
                 CpuTemperature,
                 CpuLoad,
-                RamLoad
+                RamLoad,
+                BenchmarkMask,
+                BenchmarkClassified
             )
             VALUES
             (
                 $timestampUtc,
                 $cpuTemperature,
                 $cpuLoad,
-                $ramLoad
+                $ramLoad,
+                $benchmarkMask,
+                1
             );
 
             SELECT last_insert_rowid();
@@ -1271,6 +1712,10 @@ public sealed class StatisticsService
             command,
             "$ramLoad",
             snapshot.Memory.Load);
+
+        command.Parameters.AddWithValue(
+            "$benchmarkMask",
+            (int)benchmarkWorkload);
 
         object? result =
             command.ExecuteScalar();
@@ -1410,6 +1855,251 @@ public sealed class StatisticsService
                 command,
                 "$temperature",
                 storage.Temperature);
+
+            command.ExecuteNonQuery();
+        }
+    }
+
+
+    private static void UpdateAdvisorDailyEvidence(
+        SqliteConnection connection,
+        SqliteTransaction transaction,
+        HardwareSnapshot snapshot,
+        DateTimeOffset timestampUtc,
+        BenchmarkWorkloadKind benchmarkWorkload)
+    {
+        if ((benchmarkWorkload &
+             (BenchmarkWorkloadKind.Cpu |
+              BenchmarkWorkloadKind.Gpu)) != 0)
+        {
+            return;
+        }
+
+        if (!snapshot.Cpu.Load.HasValue)
+            return;
+
+        double cpuLoad =
+            snapshot.Cpu.Load.Value;
+
+        string localDate =
+            timestampUtc
+                .ToLocalTime()
+                .ToString(
+                    "yyyy-MM-dd",
+                    System.Globalization.CultureInfo.InvariantCulture);
+
+        foreach (GpuInfo gpu in snapshot.Gpus)
+        {
+            if (!gpu.Load.HasValue)
+                continue;
+
+            double gpuLoad =
+                gpu.Load.Value;
+
+            bool cpuLimited =
+                cpuLoad >= 90 &&
+                gpuLoad <= 70;
+
+            bool gpuLimited =
+                gpuLoad >= 95 &&
+                cpuLoad <= 80;
+
+            bool bothHigh =
+                cpuLoad >= 90 &&
+                gpuLoad >= 90;
+
+            if (!cpuLimited &&
+                !gpuLimited &&
+                !bothHigh)
+            {
+                continue;
+            }
+
+            string deviceId =
+                NormalizeDeviceId(
+                    gpu.Id,
+                    gpu.Name);
+
+            using SqliteCommand command =
+                connection.CreateCommand();
+
+            command.Transaction =
+                transaction;
+
+            command.CommandText =
+                """
+                INSERT INTO AdvisorDailyEvidence
+                (
+                    LocalDate,
+                    DeviceId,
+                    DeviceName,
+
+                    CpuLimitedSamples,
+                    CpuMaxLoad,
+                    CpuMaxTemperature,
+                    CpuGpuLoadSum,
+
+                    GpuLimitedSamples,
+                    GpuMaxLoad,
+                    GpuMaxTemperature,
+                    GpuCpuLoadSum,
+
+                    BothHighSamples
+                )
+                VALUES
+                (
+                    $localDate,
+                    $deviceId,
+                    $deviceName,
+
+                    $cpuLimitedSamples,
+                    $cpuMaxLoad,
+                    $cpuMaxTemperature,
+                    $cpuGpuLoadSum,
+
+                    $gpuLimitedSamples,
+                    $gpuMaxLoad,
+                    $gpuMaxTemperature,
+                    $gpuCpuLoadSum,
+
+                    $bothHighSamples
+                )
+                ON CONFLICT(LocalDate, DeviceId) DO UPDATE SET
+                    DeviceName =
+                        excluded.DeviceName,
+
+                    CpuLimitedSamples =
+                        AdvisorDailyEvidence.CpuLimitedSamples +
+                        excluded.CpuLimitedSamples,
+
+                    CpuMaxLoad =
+                        CASE
+                            WHEN excluded.CpuMaxLoad IS NULL
+                                THEN AdvisorDailyEvidence.CpuMaxLoad
+                            WHEN AdvisorDailyEvidence.CpuMaxLoad IS NULL
+                                THEN excluded.CpuMaxLoad
+                            ELSE MAX(
+                                AdvisorDailyEvidence.CpuMaxLoad,
+                                excluded.CpuMaxLoad)
+                        END,
+
+                    CpuMaxTemperature =
+                        CASE
+                            WHEN excluded.CpuMaxTemperature IS NULL
+                                THEN AdvisorDailyEvidence.CpuMaxTemperature
+                            WHEN AdvisorDailyEvidence.CpuMaxTemperature IS NULL
+                                THEN excluded.CpuMaxTemperature
+                            ELSE MAX(
+                                AdvisorDailyEvidence.CpuMaxTemperature,
+                                excluded.CpuMaxTemperature)
+                        END,
+
+                    CpuGpuLoadSum =
+                        AdvisorDailyEvidence.CpuGpuLoadSum +
+                        excluded.CpuGpuLoadSum,
+
+                    GpuLimitedSamples =
+                        AdvisorDailyEvidence.GpuLimitedSamples +
+                        excluded.GpuLimitedSamples,
+
+                    GpuMaxLoad =
+                        CASE
+                            WHEN excluded.GpuMaxLoad IS NULL
+                                THEN AdvisorDailyEvidence.GpuMaxLoad
+                            WHEN AdvisorDailyEvidence.GpuMaxLoad IS NULL
+                                THEN excluded.GpuMaxLoad
+                            ELSE MAX(
+                                AdvisorDailyEvidence.GpuMaxLoad,
+                                excluded.GpuMaxLoad)
+                        END,
+
+                    GpuMaxTemperature =
+                        CASE
+                            WHEN excluded.GpuMaxTemperature IS NULL
+                                THEN AdvisorDailyEvidence.GpuMaxTemperature
+                            WHEN AdvisorDailyEvidence.GpuMaxTemperature IS NULL
+                                THEN excluded.GpuMaxTemperature
+                            ELSE MAX(
+                                AdvisorDailyEvidence.GpuMaxTemperature,
+                                excluded.GpuMaxTemperature)
+                        END,
+
+                    GpuCpuLoadSum =
+                        AdvisorDailyEvidence.GpuCpuLoadSum +
+                        excluded.GpuCpuLoadSum,
+
+                    BothHighSamples =
+                        AdvisorDailyEvidence.BothHighSamples +
+                        excluded.BothHighSamples;
+                """;
+
+            command.Parameters.AddWithValue(
+                "$localDate",
+                localDate);
+
+            command.Parameters.AddWithValue(
+                "$deviceId",
+                deviceId);
+
+            command.Parameters.AddWithValue(
+                "$deviceName",
+                gpu.Name);
+
+            command.Parameters.AddWithValue(
+                "$cpuLimitedSamples",
+                cpuLimited
+                    ? 1
+                    : 0);
+
+            command.Parameters.AddWithValue(
+                "$cpuMaxLoad",
+                cpuLimited
+                    ? cpuLoad
+                    : DBNull.Value);
+
+            command.Parameters.AddWithValue(
+                "$cpuMaxTemperature",
+                cpuLimited &&
+                snapshot.Cpu.Temperature.HasValue
+                    ? snapshot.Cpu.Temperature.Value
+                    : DBNull.Value);
+
+            command.Parameters.AddWithValue(
+                "$cpuGpuLoadSum",
+                cpuLimited
+                    ? gpuLoad
+                    : 0);
+
+            command.Parameters.AddWithValue(
+                "$gpuLimitedSamples",
+                gpuLimited
+                    ? 1
+                    : 0);
+
+            command.Parameters.AddWithValue(
+                "$gpuMaxLoad",
+                gpuLimited
+                    ? gpuLoad
+                    : DBNull.Value);
+
+            command.Parameters.AddWithValue(
+                "$gpuMaxTemperature",
+                gpuLimited &&
+                gpu.Temperature.HasValue
+                    ? gpu.Temperature.Value
+                    : DBNull.Value);
+
+            command.Parameters.AddWithValue(
+                "$gpuCpuLoadSum",
+                gpuLimited
+                    ? cpuLoad
+                    : 0);
+
+            command.Parameters.AddWithValue(
+                "$bothHighSamples",
+                bothHigh
+                    ? 1
+                    : 0);
 
             command.ExecuteNonQuery();
         }
@@ -2746,6 +3436,64 @@ public sealed class AllTimeRecord
     public DateTimeOffset TimestampUtc { get; set; }
 
     public string Unit { get; set; } = "";
+}
+
+
+public sealed class AdvisorPerformanceHistory
+{
+    public DateTimeOffset StartUtc { get; set; }
+
+    public DateTimeOffset EndUtc { get; set; }
+
+    public List<AdvisorGpuPerformanceSeries> Gpus { get; } =
+        new();
+}
+
+
+public sealed class AdvisorGpuPerformanceSeries
+{
+    public string DeviceId { get; set; } = "";
+
+    public string DeviceName { get; set; } = "";
+
+    public List<AdvisorPerformancePoint> Points { get; } =
+        new();
+}
+
+
+public sealed class AdvisorPerformancePoint
+{
+    public DateTimeOffset TimestampUtc { get; set; }
+
+    public double CpuLoad { get; set; }
+
+    public double? CpuTemperature { get; set; }
+
+    public double GpuLoad { get; set; }
+
+    public double? GpuTemperature { get; set; }
+}
+
+
+public enum AdvisorEvidenceKind
+{
+    CpuLimited,
+    CpuCooling,
+    GpuCooling
+}
+
+
+public sealed class AdvisorEvidenceSpan
+{
+    public bool HasEvidence { get; set; }
+
+    public DateTime FirstDate { get; set; }
+
+    public DateTime LastDate { get; set; }
+
+    public int CalendarSpanDays { get; set; }
+
+    public int DaysWithEvidence { get; set; }
 }
 
 

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Threading;
@@ -18,7 +17,8 @@ public enum NotificationType
 
 public sealed class NotificationService : IDisposable
 {
-    private const int MaxVisibleNotifications = 4;
+    private const int MaxPendingNotifications =
+        8;
 
     private const uint SndAsync = 0x0001;
 
@@ -29,11 +29,11 @@ public sealed class NotificationService : IDisposable
     private const double ScreenMargin =
         18;
 
-    private const double NotificationGap =
-        10;
+    private readonly Queue<PendingNotification>
+        _pendingNotifications =
+            new();
 
-    private readonly List<NotificationWindow> _windows =
-        new();
+    private NotificationWindow? _activeWindow;
 
     private bool _disposed;
 
@@ -55,7 +55,7 @@ public sealed class NotificationService : IDisposable
 
         if (dispatcher.CheckAccess())
         {
-            ShowCore(
+            EnqueueNotification(
                 type,
                 title,
                 message,
@@ -66,7 +66,7 @@ public sealed class NotificationService : IDisposable
 
         dispatcher.BeginInvoke(
             () =>
-                ShowCore(
+                EnqueueNotification(
                     type,
                     title,
                     message,
@@ -99,7 +99,7 @@ public sealed class NotificationService : IDisposable
     }
 
 
-    private void ShowCore(
+    private void EnqueueNotification(
         NotificationType type,
         string title,
         string message,
@@ -110,46 +110,92 @@ public sealed class NotificationService : IDisposable
             return;
         }
 
+        while (_pendingNotifications.Count >=
+               MaxPendingNotifications)
+        {
+            _pendingNotifications.Dequeue();
+        }
+
+        _pendingNotifications.Enqueue(
+            new PendingNotification
+            {
+                Type =
+                    type,
+
+                Title =
+                    title,
+
+                Message =
+                    message,
+
+                ClickAction =
+                    clickAction
+            });
+
+        ShowNextNotification();
+    }
+
+
+    private void ShowNextNotification()
+    {
+        if (_disposed ||
+            _activeWindow != null ||
+            _pendingNotifications.Count == 0)
+        {
+            return;
+        }
+
+        PendingNotification pending =
+            _pendingNotifications.Dequeue();
+
         bool topmostWithoutActivation =
-            type ==
+            pending.Type ==
             NotificationType.Critical &&
             SettingsService.Current.CriticalNotificationsTopmost;
 
         NotificationWindow window =
             new(
-                type,
-                title,
-                message,
+                pending.Type,
+                pending.Title,
+                pending.Message,
                 topmostWithoutActivation,
-                clickAction);
+                pending.ClickAction);
+
+        _activeWindow =
+            window;
 
         window.Closed +=
             NotificationWindow_Closed;
 
-        _windows.Add(
+        PositionAtBottomRight(
             window);
-
-        while (_windows.Count >
-               MaxVisibleNotifications)
-        {
-            NotificationWindow oldest =
-                _windows[0];
-
-            _windows.RemoveAt(
-                0);
-
-            oldest.Closed -=
-                NotificationWindow_Closed;
-
-            oldest.Close();
-        }
-
-        RepositionWindows();
 
         window.Show();
 
         PlayNotificationSound(
-            type);
+            pending.Type);
+    }
+
+
+    private static void PositionAtBottomRight(
+        NotificationWindow window)
+    {
+        Rect workArea =
+            SystemParameters.WorkArea;
+
+        double left =
+            workArea.Right -
+            window.Width -
+            ScreenMargin;
+
+        double top =
+            workArea.Bottom -
+            window.Height -
+            ScreenMargin;
+
+        window.SetPosition(
+            left,
+            top);
     }
 
 
@@ -165,49 +211,17 @@ public sealed class NotificationService : IDisposable
         window.Closed -=
             NotificationWindow_Closed;
 
-        _windows.Remove(
-            window);
-
-        RepositionWindows();
-    }
-
-
-    private void RepositionWindows()
-    {
-        if (_windows.Count ==
-            0)
+        if (ReferenceEquals(
+                _activeWindow,
+                window))
         {
-            return;
+            _activeWindow =
+                null;
         }
 
-        Rect workArea =
-            SystemParameters.WorkArea;
-
-        double nextBottom =
-            workArea.Bottom -
-            ScreenMargin;
-
-        foreach (NotificationWindow window
-                 in _windows
-                     .AsEnumerable()
-                     .Reverse())
+        if (!_disposed)
         {
-            double left =
-                workArea.Right -
-                window.Width -
-                ScreenMargin;
-
-            double top =
-                nextBottom -
-                window.Height;
-
-            window.SetPosition(
-                left,
-                top);
-
-            nextBottom =
-                top -
-                NotificationGap;
+            ShowNextNotification();
         }
     }
 
@@ -330,20 +344,37 @@ public sealed class NotificationService : IDisposable
 
     private void CloseAll()
     {
-        NotificationWindow[] windows =
-            _windows.ToArray();
+        _pendingNotifications.Clear();
 
-        _windows.Clear();
-
-        foreach (NotificationWindow window
-                 in windows)
+        if (_activeWindow == null)
         {
-            window.Closed -=
-                NotificationWindow_Closed;
-
-            window.Close();
+            return;
         }
+
+        NotificationWindow window =
+            _activeWindow;
+
+        _activeWindow =
+            null;
+
+        window.Closed -=
+            NotificationWindow_Closed;
+
+        window.Close();
     }
+
+
+    private sealed class PendingNotification
+    {
+        public NotificationType Type { get; init; }
+
+        public string Title { get; init; } = "";
+
+        public string Message { get; init; } = "";
+
+        public Action? ClickAction { get; init; }
+    }
+
 
     [DllImport(
         "winmm.dll",
@@ -353,5 +384,4 @@ public sealed class NotificationService : IDisposable
         string? soundName,
         IntPtr moduleHandle,
         uint flags);
-
 }
