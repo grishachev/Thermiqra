@@ -1,4 +1,4 @@
-﻿﻿using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -22,6 +22,11 @@ public sealed class AppSettings
     public string ThemeName { get; set; } = "SteelBlue";
 
     public string LanguageName { get; set; } = "System";
+
+    // Размер и положение окон, которые пользователь может менять.
+    // Анализатор дисков намеренно не использует это сохранение.
+    public Dictionary<string, WindowPlacementSettings> WindowPlacements { get; set; } =
+        new(StringComparer.Ordinal);
 
 
     // ============================================================
@@ -112,6 +117,16 @@ public sealed class AppSettings
     public double DiskWarningPercent { get; set; } = 90;
 
     public double DiskCriticalPercent { get; set; } = 95;
+}
+
+
+public sealed class WindowPlacementSettings
+{
+    public double Left { get; set; }
+    public double Top { get; set; }
+    public double Width { get; set; }
+    public double Height { get; set; }
+    public bool IsMaximized { get; set; }
 }
 
 
@@ -564,6 +579,11 @@ public static class SettingsService
     {
         if (window == null)
             return;
+
+        // Attach before SourceInitialized so restored geometry is applied
+        // before the window becomes visible. Other windows use the global
+        // Loaded fallback registered by the App.
+        WindowPlacementService.Attach(window);
 
         window.Title =
             TranslateKnown(
