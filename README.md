@@ -1,7 +1,9 @@
 # Thermiqra
 
 <p align="center">
-  <strong>Real-time PC hardware monitoring, diagnostics, guidance, statistics and storage analysis for Windows 10/11.</strong>
+  <strong>Thermiqra 1.0.0 — hardware monitoring, SMART drive diagnostics and storage analysis for Windows 10/11.</strong>
+  <br>
+  <strong>Thermiqra 1.0.0 — мониторинг оборудования, SMART-диагностика накопителей и анализ дисков для Windows 10/11.</strong>
 </p>
 
 <p align="center">
@@ -18,7 +20,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/grishachev/Thermiqra/releases/latest"><strong>Download the latest Thermiqra release</strong></a>
+  <a href="https://github.com/grishachev/Thermiqra/releases/download/v1.0.0/Thermiqra_Setup_1.0.0.exe"><strong>Download Thermiqra 1.0.0 / Скачать Thermiqra 1.0.0</strong></a>
 </p>
 
 Thermiqra is a native Windows desktop application for monitoring PC hardware in real time. It combines live CPU/GPU/RAM/storage data, detailed system information, memory diagnostics, local statistics, alerts, storage analysis, practical explanations, upgrade guidance, reporting and built-in updates in one application.
@@ -31,6 +33,7 @@ Thermiqra is a native Windows desktop application for monitoring PC hardware in 
 | **CPU threads** | Live load view for individual logical processors directly from the CPU monitor |
 | **System information** | Detailed hardware and Windows information in a dedicated system view |
 | **Memory diagnostics** | RAM module information, SPD data, JEDEC information, XMP 2.0 profiles, timings and upgrade information |
+| **SMART drive diagnostics** | ATA SMART attributes and firmware thresholds for supported SATA drives, standard NVMe SMART/Health counters, and clear evidence-based drive statuses |
 | **Smart Guidance** | Plain-language explanations of important hardware states without hiding the underlying technical values |
 | **Upgrade Advisor** | Conservative upgrade suggestions based on installed hardware and repeated real usage, with benchmark periods excluded from recommendations |
 | **Storage analyzer** | Fast NTFS/MFT analysis, full folder hierarchy, contextual explanations, safe cleanup, Downloads/Recycle Bin actions and user-confirmed deletion |
@@ -64,37 +67,37 @@ Thermiqra includes four complete interface skins. The screenshot below shows the
   <img src="thermiqra-steampunk.png" alt="Thermiqra SteamPunk theme" width="820">
 </p>
 
-## Current release — 0.9.0
+## Current release — 1.0.0
 
-Thermiqra 0.9.0 focuses on making hardware information easier to understand and the storage analyzer much more useful without turning the application into an intrusive assistant.
+**Thermiqra 1.0.0 is the first stable release.** The main addition is evidence-based storage health diagnostics, while the existing monitoring, storage analysis, history and updater remain part of the application.
 
-### What's new
+**[Download Thermiqra_Setup_1.0.0.exe](https://github.com/grishachev/Thermiqra/releases/download/v1.0.0/Thermiqra_Setup_1.0.0.exe)** · [Full release notes / Полный список изменений](https://github.com/grishachev/Thermiqra/releases/tag/v1.0.0)
 
-- new first-run introduction explaining the main Thermiqra areas and concepts
-- Smart Guidance with short, plain-language explanations alongside technical data
-- **What can be improved** Upgrade Advisor with conservative recommendations based on available hardware data and monitoring history
-- benchmark detection so benchmark sessions do not distort Upgrade Advisor recommendations
-- clearer CPU/GPU naming and additional interface polish
-- redesigned Storage Analyzer with an expandable **drive → folders → subfolders → files** hierarchy
-- folders are shown before files, with size sorting inside each group
-- automatic focus on the heaviest storage branch without flooding the view with every nested file
-- contextual explanations and safety notes for selected storage items
-- **Safe Cleanup** preview with checkboxes before anything is removed
-- verified cleanup rules for known temporary data and NVIDIA shader cache locations; folder containers are preserved where required
-- dedicated **Downloads** and **Recycle Bin** cards with view and cleanup actions
-- user-confirmed deletion of selected files and folders, with Recycle Bin and permanent-delete choices
-- automatic storage re-analysis after cleanup or deletion
-- manual **Check for updates** command in the system tray
-- update prompts now show release notes from the GitHub Release description
-- additional notification, Settings, Statistics and System Information UI refinements
+### Русский — что нового в 1.0.0
 
-Thermiqra intentionally keeps Safe Cleanup conservative: unknown folders are not treated as safe to remove merely because their names look like cache or temporary data.
+- Расширена SMART-диагностика HDD, SATA SSD и NVMe SSD с использованием данных, действительно полученных от накопителей.
+- Для поддерживаемых ATA-накопителей доступны атрибуты SMART, пороги производителя и раскрываемые технические подробности.
+- Для NVMe отображаются доступные показатели SMART/Health: предупреждения контроллера, износ, ошибки, температура, объёмы чтения/записи и циклы питания.
+- Состояние накопителя сопровождается объяснением: норма, требуется внимание, критично или недостаточно данных. Thermiqra не придумывает «процент здоровья».
+- Добавлено запоминание положения и размеров изменяемых окон. Анализатор дисков сохраняет предусмотренное поведение открытия по размеру главного окна.
+- Улучшено представление системной информации и технических параметров накопителей.
+- Сохранены русский и английский интерфейсы и четыре темы оформления.
 
-See the [Thermiqra releases](https://github.com/grishachev/Thermiqra/releases) page for version-specific notes and downloads.
+### English — what's new in 1.0.0
+
+- Expanded HDD, SATA SSD and NVMe SSD diagnostics using actual SMART/Health data returned by the devices.
+- Added ATA SMART attribute details and drive-reported thresholds where supported.
+- Expanded available NVMe health metrics: controller warnings, wear, errors, temperature, read/write totals and power cycles.
+- Added understandable drive status explanations: normal, attention required, critical or insufficient data. Thermiqra does not invent a health percentage.
+- Added persistence of positions and sizes for resizable windows. Storage Analyzer continues to open with the main window's geometry as designed.
+- Improved the System Information presentation and detailed storage diagnostics.
+- Retained Russian and English localization and four interface themes.
+
+Detailed historical changes, including the 0.9.0 storage analyzer redesign, are available on the [Releases](https://github.com/grishachev/Thermiqra/releases) page.
 
 ## First-run introduction and guidance
 
-Thermiqra 0.9.0 includes a short introduction for new users. It explains the main monitoring areas, where to find additional information and how Thermiqra works in the background.
+Thermiqra includes a short introduction for new users. It explains the main monitoring areas, where to find additional information and how Thermiqra works in the background.
 
 The introduction can be skipped and opened again later from Settings.
 
@@ -124,6 +127,17 @@ Thermiqra's System Information view includes detailed RAM diagnostics where supp
 - occupied and available slot information for upgrades
 
 > Thermiqra reports XMP profiles stored in SPD data. It does not claim that a specific XMP profile is currently active unless that state can be determined reliably.
+
+## Drive health: ATA SMART and NVMe SMART/Health
+
+Thermiqra reads supported storage health information **on demand**, rather than running an expensive continuous SMART scan.
+
+- **HDD / SATA SSD:** ATA SMART attributes, normalized values and firmware-reported failure thresholds where Windows and the drive expose them; relevant disk error indicators are explained when available.
+- **NVMe SSD:** standard SMART/Health information, including critical warning flags, available spare, percentage used, power-on hours, error counters, unsafe shutdowns, data read/written and power cycles where accessible.
+- **Health status:** clear normal / attention / critical / insufficient-data indicators based on observed information. A percentage is displayed only when it is a meaningful device-provided measurement, not a fabricated overall score.
+- **Technical details:** expandable information remains available for experienced users without overwhelming less technical users.
+
+Not every controller or USB bridge exposes SMART information. Missing fields remain unavailable rather than being treated as zero or as proof that a device is healthy.
 
 ## Statistics and history
 
