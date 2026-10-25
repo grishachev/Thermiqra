@@ -107,6 +107,10 @@ public partial class App : Application
                 .Current
                 .ThemeName);
 
+        // Attach placement persistence to all resizable windows centrally.
+        // MainWindow and StorageAnalyzerWindow keep their custom behavior.
+        WindowPlacementService.RegisterForApplication();
+
         IntroductionFeature.Initialize();
 
         _mainWindow =

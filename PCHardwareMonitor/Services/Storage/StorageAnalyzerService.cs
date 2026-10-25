@@ -38,19 +38,21 @@ public sealed class StorageAnalyzerService
 
     public Task<StorageAnalysisResult> AnalyzeAsync(
         string driveName,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        IProgress<StorageAnalysisProgress>? progress = null)
     {
         if (string.IsNullOrWhiteSpace(driveName))
             throw new ArgumentException("Drive name is required.", nameof(driveName));
 
         return Task.Run(
-            () => AnalyzeCore(driveName, cancellationToken),
+            () => AnalyzeCore(driveName, cancellationToken, progress),
             cancellationToken);
     }
 
     private static StorageAnalysisResult AnalyzeCore(
         string driveName,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        IProgress<StorageAnalysisProgress>? progress)
     {
         string normalizedDrive = NormalizeDriveName(driveName);
         DriveInfo drive = new(normalizedDrive);
@@ -69,7 +71,8 @@ public sealed class StorageAnalyzerService
                 drive,
                 normalizedDrive,
                 fileSystem,
-                cancellationToken);
+                cancellationToken,
+                progress);
         }
 
         char driveLetter = char.ToUpperInvariant(normalizedDrive[0]);
@@ -128,6 +131,28 @@ public sealed class StorageAnalyzerService
 
         MftDataInfo mftData =
             GetMftRunList(mftBaseRecord);
+
+        // The known amount of MFT data to read, not an estimate of
+        // the duration of the entire analysis. Sparse runs contain no records.
+        long totalRecordsToRead = 0;
+
+        foreach (DataRun run in mftData.Runs)
+        {
+            if (!run.IsSparse)
+            {
+                totalRecordsToRead = SafeAdd(
+                    totalRecordsToRead,
+                    checked(run.ClusterCount * (long)bytesPerCluster) /
+                        bytesPerRecord);
+            }
+        }
+
+        long processedRecords = 0;
+        long lastProgressMs = -250;
+
+        progress?.Report(new StorageAnalysisProgress(
+            StorageAnalysisStage.NtfsRecords,
+            0, 0, 0, totalRecordsToRead));
 
         long expectedRecordCount =
             mftData.FileSize > 0
@@ -222,10 +247,32 @@ public sealed class StorageAnalyzerService
                 }
 
                 runOffset += completeBytes;
+                processedRecords = SafeAdd(
+                    processedRecords,
+                    completeBytes / bytesPerRecord);
+
+                long elapsedMs = totalTimer.ElapsedMilliseconds;
+                if (elapsedMs - lastProgressMs >= 150)
+                {
+                    progress?.Report(new StorageAnalysisProgress(
+                        StorageAnalysisStage.NtfsRecords,
+                        stats.FilesFound,
+                        stats.FoldersFound,
+                        processedRecords,
+                        totalRecordsToRead));
+                    lastProgressMs = elapsedMs;
+                }
             }
         }
 
         cancellationToken.ThrowIfCancellationRequested();
+
+        progress?.Report(new StorageAnalysisProgress(
+            StorageAnalysisStage.ProcessingEntries,
+            stats.FilesFound,
+            stats.FoldersFound,
+            processedRecords,
+            totalRecordsToRead));
 
         List<Entry> baseEntries =
             entries.Values
@@ -255,6 +302,13 @@ public sealed class StorageAnalyzerService
                 directories,
                 entries,
                 cancellationToken);
+
+        progress?.Report(new StorageAnalysisProgress(
+            StorageAnalysisStage.BuildingTree,
+            files.Count,
+            directories.Count,
+            processedRecords,
+            totalRecordsToRead));
 
         long logicalFileBytes =
             files
@@ -360,7 +414,8 @@ public sealed class StorageAnalyzerService
         DriveInfo drive,
         string normalizedDrive,
         string fileSystem,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        IProgress<StorageAnalysisProgress>? progress)
     {
         long totalBytes =
             drive.TotalSize;
@@ -409,6 +464,11 @@ public sealed class StorageAnalyzerService
         int fileCount = 0;
         int directoryCount = 0;
         int skippedEntries = 0;
+        long lastProgressMs = -250;
+
+        progress?.Report(new StorageAnalysisProgress(
+            StorageAnalysisStage.Traversal,
+            0, 0, 0, null));
 
         while (work.Count > 0)
         {
@@ -463,6 +523,17 @@ public sealed class StorageAnalyzerService
                 folder;
 
             directoryCount++;
+
+            long folderReportMs = totalTimer.ElapsedMilliseconds;
+            if (folderReportMs - lastProgressMs >= 150)
+            {
+                progress?.Report(new StorageAnalysisProgress(
+                    StorageAnalysisStage.Traversal,
+                    fileCount,
+                    directoryCount,
+                    0, null));
+                lastProgressMs = folderReportMs;
+            }
 
             work.Push(
                 new FallbackWorkItem(
@@ -556,6 +627,17 @@ public sealed class StorageAnalyzerService
 
                     fileCount++;
 
+                    long fileReportMs = totalTimer.ElapsedMilliseconds;
+                    if (fileReportMs - lastProgressMs >= 150)
+                    {
+                        progress?.Report(new StorageAnalysisProgress(
+                            StorageAnalysisStage.Traversal,
+                            fileCount,
+                            directoryCount,
+                            0, null));
+                        lastProgressMs = fileReportMs;
+                    }
+
                     logicalFileBytes =
                         SafeAdd(
                             logicalFileBytes,
@@ -617,6 +699,12 @@ public sealed class StorageAnalyzerService
         }
 
         cancellationToken.ThrowIfCancellationRequested();
+
+        progress?.Report(new StorageAnalysisProgress(
+            StorageAnalysisStage.BuildingTree,
+            fileCount,
+            directoryCount,
+            0, null));
 
         List<StorageAnalysisItem> rootFolders =
             folders.Values
@@ -1118,6 +1206,14 @@ public sealed class StorageAnalyzerService
 
         if (!isExtension)
         {
+            if (!entry.HasBaseRecord)
+            {
+                if ((flags & FileRecordDirectory) != 0)
+                    stats.FoldersFound++;
+                else
+                    stats.FilesFound++;
+            }
+
             entry.HasBaseRecord = true;
             entry.IsDirectory =
                 (flags & FileRecordDirectory) != 0;
@@ -2141,6 +2237,8 @@ public sealed class StorageAnalyzerService
     private sealed class ParseStats
     {
         public long FixupErrors;
+        public long FilesFound;
+        public long FoldersFound;
     }
 
     private readonly record struct FolderAggregation(
@@ -2238,6 +2336,23 @@ public sealed class StorageAnalyzerService
         out uint lpNumberOfFreeClusters,
         out uint lpTotalNumberOfClusters);
 }
+
+// The percentage applies only to reading the known NTFS MFT records.
+// Traversal and post-processing have no reliable total and remain indeterminate.
+public enum StorageAnalysisStage
+{
+    NtfsRecords,
+    Traversal,
+    ProcessingEntries,
+    BuildingTree
+}
+
+public sealed record StorageAnalysisProgress(
+    StorageAnalysisStage Stage,
+    long FilesFound,
+    long FoldersFound,
+    long ProcessedUnits,
+    long? TotalUnits);
 
 public sealed record StorageAnalysisResult(
     string DriveName,

@@ -227,12 +227,11 @@ public sealed class TrayService : IDisposable
         Color accent =
             GetThemeColor(
                 "AccentBrush",
-                Color.DeepSkyBlue);
+                border);
 
-        Color selectedText =
-            GetThemeColor(
-                "WindowBackgroundBrush",
-                Color.Black);
+        // A muted tint keeps menu text readable in every theme, while
+        // the outline still uses the theme's actual accent color.
+        Color selectedBackground = BlendColors(background, accent, 0.36);
 
         _menu.BackColor =
             background;
@@ -246,7 +245,7 @@ public sealed class TrayService : IDisposable
                 border,
                 text,
                 accent,
-                selectedText);
+                selectedBackground);
 
         _openItem.ForeColor =
             text;
@@ -292,25 +291,48 @@ public sealed class TrayService : IDisposable
         string resourceKey,
         Color fallback)
     {
+        // Theme dictionaries may be attached to the main window rather
+        // than directly to Application.Resources.
         object? resource =
-            Application.Current?
-                .TryFindResource(
-                    resourceKey);
+            Application.Current?.MainWindow?.TryFindResource(resourceKey)
+            ?? Application.Current?.TryFindResource(resourceKey);
 
-        if (resource is
-            System.Windows.Media.SolidColorBrush brush)
+        if (resource is System.Windows.Media.SolidColorBrush solid)
+            return ToOpaqueColor(solid.Color);
+
+        // AccentBrush may be a gradient in some themes. Previously that
+        // fell back to Windows-like blue regardless of the selected skin.
+        if (resource is System.Windows.Media.GradientBrush gradient &&
+            gradient.GradientStops.Count > 0)
         {
-            System.Windows.Media.Color color =
-                brush.Color;
+            System.Windows.Media.GradientStop nearest = gradient.GradientStops[0];
+            double distance = Math.Abs(nearest.Offset - 0.5);
+            foreach (System.Windows.Media.GradientStop stop in gradient.GradientStops)
+            {
+                double candidate = Math.Abs(stop.Offset - 0.5);
+                if (candidate < distance)
+                {
+                    nearest = stop;
+                    distance = candidate;
+                }
+            }
 
-            return Color.FromArgb(
-                color.A,
-                color.R,
-                color.G,
-                color.B);
+            return ToOpaqueColor(nearest.Color);
         }
 
         return fallback;
+    }
+
+    private static Color ToOpaqueColor(System.Windows.Media.Color color) =>
+        Color.FromArgb(color.R, color.G, color.B);
+
+    private static Color BlendColors(Color background, Color accent, double amount)
+    {
+        amount = Math.Clamp(amount, 0d, 1d);
+        return Color.FromArgb(
+            (int)Math.Round(background.R * (1 - amount) + accent.R * amount),
+            (int)Math.Round(background.G * (1 - amount) + accent.G * amount),
+            (int)Math.Round(background.B * (1 - amount) + accent.B * amount));
     }
 
 
@@ -342,43 +364,54 @@ public sealed class TrayService : IDisposable
         Forms.ToolStripProfessionalRenderer
     {
         private readonly Color _textColor;
-
-        private readonly Color _selectedTextColor;
-
+        private readonly Color _accent;
+        private readonly Color _selectedBackground;
 
         public TrayMenuRenderer(
             Color background,
             Color border,
             Color textColor,
             Color accent,
-            Color selectedTextColor)
+            Color selectedBackground)
             : base(
                 new TrayMenuColorTable(
                     background,
                     border,
                     accent))
         {
-            _textColor =
-                textColor;
-
-            _selectedTextColor =
-                selectedTextColor;
-
-            RoundedEdges =
-                false;
+            _textColor = textColor;
+            _accent = accent;
+            _selectedBackground = selectedBackground;
+            RoundedEdges = false;
         }
 
+        // Paint selection explicitly so WinForms cannot substitute its
+        // usual blue hover highlight for the current Thermiqra palette.
+        protected override void OnRenderMenuItemBackground(
+            Forms.ToolStripItemRenderEventArgs e)
+        {
+            if (!e.Item.Selected || !e.Item.Enabled)
+            {
+                base.OnRenderMenuItemBackground(e);
+                return;
+            }
+
+            System.Drawing.Rectangle rectangle = new(
+                0, 0,
+                Math.Max(1, e.Item.Width - 1),
+                Math.Max(1, e.Item.Height - 1));
+
+            using System.Drawing.SolidBrush fill = new(_selectedBackground);
+            using System.Drawing.Pen outline = new(_accent);
+            e.Graphics.FillRectangle(fill, rectangle);
+            e.Graphics.DrawRectangle(outline, rectangle);
+        }
 
         protected override void OnRenderItemText(
             Forms.ToolStripItemTextRenderEventArgs e)
         {
-            e.TextColor =
-                e.Item.Selected
-                    ? _selectedTextColor
-                    : _textColor;
-
-            base.OnRenderItemText(
-                e);
+            e.TextColor = _textColor;
+            base.OnRenderItemText(e);
         }
     }
 

@@ -1,6 +1,7 @@
 ﻿<Window x:Class="PCHardwareMonitor.StorageAnalyzerWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:sys="clr-namespace:System;assembly=System.Runtime"
         Title="Thermiqra — Анализ диска"
         Width="1240"
         Height="800"
@@ -12,6 +13,10 @@
         FontFamily="Segoe UI">
 
     <Window.Resources>
+
+        <!-- Static vector artwork shared by the SteamPunk loading scene. -->
+        <PathGeometry x:Key="StorageLoadingGearGeometry" Figures="M 300.0,73.0 L 312.3,73.5 L 320.6,49.2 L 357.7,57.7 L 354.7,83.2 L 366.0,88.1 L 376.8,93.8 L 394.8,75.6 L 424.6,99.3 L 410.8,120.9 L 418.8,130.2 L 426.1,140.1 L 450.3,131.5 L 466.8,165.8 L 445.0,179.3 L 448.2,191.2 L 450.4,203.2 L 476.0,206.0 L 476.0,244.0 L 450.4,246.8 L 448.2,258.8 L 445.0,270.7 L 466.8,284.2 L 450.3,318.5 L 426.1,309.9 L 418.8,319.8 L 410.8,329.1 L 424.6,350.7 L 394.8,374.4 L 376.8,356.2 L 366.0,361.9 L 354.7,366.8 L 357.7,392.3 L 320.6,400.8 L 312.3,376.5 L 300.0,377.0 L 287.7,376.5 L 279.4,400.8 L 242.3,392.3 L 245.3,366.8 L 234.0,361.9 L 223.2,356.2 L 205.2,374.4 L 175.4,350.7 L 189.2,329.1 L 181.2,319.8 L 173.9,309.9 L 149.7,318.5 L 133.2,284.2 L 155.0,270.7 L 151.8,258.8 L 149.6,246.8 L 124.0,244.0 L 124.0,206.0 L 149.6,203.2 L 151.8,191.2 L 155.0,179.3 L 133.2,165.8 L 149.7,131.5 L 173.9,140.1 L 181.2,130.2 L 189.2,120.9 L 175.4,99.3 L 205.2,75.6 L 223.2,93.8 L 234.0,88.1 L 245.3,83.2 L 242.3,57.7 L 279.4,49.2 L 287.7,73.5 Z"/>
+
 
         <Style x:Key="PanelBorderStyle"
                TargetType="Border">
@@ -53,9 +58,7 @@
         <Style x:Key="StorageScrollThumbStyle"
                TargetType="Thumb">
             <Setter Property="Background"
-                    Value="{DynamicResource BorderBrush}"/>
-            <Setter Property="MinHeight"
-                    Value="34"/>
+                    Value="{DynamicResource AccentBrush}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Thumb">
@@ -68,13 +71,13 @@
                                      Value="True">
                                 <Setter TargetName="ThumbBorder"
                                         Property="Background"
-                                        Value="{DynamicResource AccentBrush}"/>
+                                        Value="{DynamicResource PrimaryTextBrush}"/>
                             </Trigger>
                             <Trigger Property="IsDragging"
                                      Value="True">
                                 <Setter TargetName="ThumbBorder"
                                         Property="Background"
-                                        Value="{DynamicResource AccentBrush}"/>
+                                        Value="{DynamicResource PrimaryTextBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -84,18 +87,29 @@
 
         <Style TargetType="ScrollBar">
             <Setter Property="Width"
-                    Value="9"/>
+                    Value="13"/>
             <Setter Property="Background"
-                    Value="{DynamicResource CardBackgroundBrush}"/>
+                    Value="{DynamicResource GaugeTrackBrush}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ScrollBar">
                         <Grid Background="{TemplateBinding Background}">
                             <Track x:Name="PART_Track"
+                                   Orientation="{TemplateBinding Orientation}"
+                                   Minimum="{TemplateBinding Minimum}"
+                                   Maximum="{TemplateBinding Maximum}"
+                                   Value="{Binding Value, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
+                                   ViewportSize="{TemplateBinding ViewportSize}"
                                    IsDirectionReversed="True"
                                    Focusable="False">
+                                <Track.Resources>
+                                    <!-- WPF Track uses this system key (halved) for the thumb's minimum length.
+                                         Thumb.MinHeight alone does not control scroll-bar auto sizing. -->
+                                    <sys:Double x:Key="{x:Static SystemParameters.VerticalScrollBarButtonHeightKey}">100</sys:Double>
+                                </Track.Resources>
                                 <Track.DecreaseRepeatButton>
-                                    <RepeatButton Command="{x:Static ScrollBar.PageUpCommand}"
+                                    <RepeatButton x:Name="PageDecreaseButton"
+                                                  Command="{x:Static ScrollBar.PageUpCommand}"
                                                   Opacity="0"
                                                   Focusable="False"/>
                                 </Track.DecreaseRepeatButton>
@@ -103,7 +117,8 @@
                                     <Thumb Style="{StaticResource StorageScrollThumbStyle}"/>
                                 </Track.Thumb>
                                 <Track.IncreaseRepeatButton>
-                                    <RepeatButton Command="{x:Static ScrollBar.PageDownCommand}"
+                                    <RepeatButton x:Name="PageIncreaseButton"
+                                                  Command="{x:Static ScrollBar.PageDownCommand}"
                                                   Opacity="0"
                                                   Focusable="False"/>
                                 </Track.IncreaseRepeatButton>
@@ -119,6 +134,12 @@
                                 <Setter TargetName="PART_Track"
                                         Property="IsDirectionReversed"
                                         Value="False"/>
+                                <Setter TargetName="PageDecreaseButton"
+                                        Property="Command"
+                                        Value="{x:Static ScrollBar.PageLeftCommand}"/>
+                                <Setter TargetName="PageIncreaseButton"
+                                        Property="Command"
+                                        Value="{x:Static ScrollBar.PageRightCommand}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -127,6 +148,7 @@
         </Style>
 
         <Style TargetType="Button">
+            <Setter Property="FontSize" Value="13"/>
             <Setter Property="Foreground"
                     Value="{DynamicResource PrimaryTextBrush}"/>
             <Setter Property="Background"
@@ -150,8 +172,8 @@
                                 BorderThickness="{TemplateBinding BorderThickness}"
                                 CornerRadius="{DynamicResource ButtonCornerRadius}"
                                 Padding="{TemplateBinding Padding}">
-                            <ContentPresenter HorizontalAlignment="Center"
-                                              VerticalAlignment="Center"
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                               RecognizesAccessKey="True"/>
                         </Border>
 
@@ -200,7 +222,7 @@
                         <Grid Background="Transparent">
                             <TextBlock x:Name="Arrow"
                                        Text="▶"
-                                       FontSize="9"
+                                       FontSize="11"
                                        Foreground="{DynamicResource SecondaryTextBrush}"
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center"/>
@@ -387,7 +409,7 @@
                             <TextBlock x:Name="CyberMetaText"
                                        Text="THERMIQRA / STORAGE NAVIGATOR"
                                        Foreground="{DynamicResource AccentBrush}"
-                                       FontSize="8"
+                                       FontSize="10"
                                        FontWeight="Bold"/>
 
                             <TextBlock x:Name="CyberTitleText"
@@ -400,7 +422,7 @@
                             <TextBlock x:Name="CyberSubtitleText"
                                        Text="Быстрый путь к самым тяжёлым папкам и файлам"
                                        Foreground="{DynamicResource SecondaryTextBrush}"
-                                       FontSize="11"
+                                       FontSize="13"
                                        Margin="0,4,0,0"/>
                         </StackPanel>
 
@@ -415,7 +437,7 @@
                                 <TextBlock x:Name="CyberDriveCaptionText"
                                            Text="ДИСК"
                                            Foreground="{DynamicResource SecondaryTextBrush}"
-                                           FontSize="8"
+                                           FontSize="10"
                                            FontWeight="Bold"
                                            HorizontalAlignment="Right"/>
 
@@ -473,7 +495,7 @@
                                      StrokeThickness="2"/>
                             <TextBlock Text="D"
                                        Foreground="{DynamicResource AccentBrush}"
-                                       FontSize="9"
+                                       FontSize="11"
                                        FontWeight="Bold"
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center"/>
@@ -484,7 +506,7 @@
                             <TextBlock x:Name="SteamMetaText"
                                        Text="THERMIQRA / МЕХАНИЧЕСКИЙ НАВИГАТОР НАКОПИТЕЛЯ"
                                        Foreground="{DynamicResource SecondaryTextBrush}"
-                                       FontSize="8"
+                                       FontSize="10"
                                        FontWeight="Bold"/>
 
                             <TextBlock x:Name="SteamTitleText"
@@ -497,7 +519,7 @@
                             <TextBlock x:Name="SteamSubtitleText"
                                        Text="Thermiqra показывает путь от диска до самых тяжёлых данных"
                                        Foreground="{DynamicResource SecondaryTextBrush}"
-                                       FontSize="11"
+                                       FontSize="13"
                                        Margin="0,4,0,0"/>
                         </StackPanel>
 
@@ -512,7 +534,7 @@
                                 <TextBlock x:Name="SteamDriveCaptionText"
                                            Text="НАКОПИТЕЛЬ"
                                            Foreground="{DynamicResource SecondaryTextBrush}"
-                                           FontSize="8"
+                                           FontSize="10"
                                            FontWeight="Bold"
                                            HorizontalAlignment="Right"/>
 
@@ -579,7 +601,7 @@
                             <TextBlock x:Name="FrostMetaText"
                                        Text="THERMIQRA / CRYO STORAGE NAVIGATOR"
                                        Foreground="{DynamicResource SecondaryTextBrush}"
-                                       FontSize="8"
+                                       FontSize="10"
                                        FontWeight="Bold"/>
 
                             <TextBlock x:Name="FrostTitleText"
@@ -592,7 +614,7 @@
                             <TextBlock x:Name="FrostSubtitleText"
                                        Text="Крупные ветки накопителя видны сразу"
                                        Foreground="{DynamicResource SecondaryTextBrush}"
-                                       FontSize="11"
+                                       FontSize="13"
                                        Margin="0,4,0,0"/>
                         </StackPanel>
 
@@ -607,7 +629,7 @@
                                 <TextBlock x:Name="FrostDriveCaptionText"
                                            Text="ДИСК"
                                            Foreground="{DynamicResource SecondaryTextBrush}"
-                                           FontSize="8"
+                                           FontSize="10"
                                            FontWeight="Bold"
                                            HorizontalAlignment="Right"/>
 
@@ -673,7 +695,7 @@
                             <TextBlock x:Name="MilitaryMetaText"
                                        Text="THERMIQRA / TACTICAL STORAGE NAVIGATOR"
                                        Foreground="{DynamicResource MilitaryKhakiBrush}"
-                                       FontSize="8"
+                                       FontSize="10"
                                        FontWeight="Bold"/>
 
                             <TextBlock x:Name="MilitaryTitleText"
@@ -686,7 +708,7 @@
                             <TextBlock x:Name="MilitarySubtitleText"
                                        Text="Тактический маршрут к самым тяжёлым данным"
                                        Foreground="{DynamicResource SecondaryTextBrush}"
-                                       FontSize="11"
+                                       FontSize="13"
                                        Margin="0,4,0,0"/>
                         </StackPanel>
 
@@ -701,7 +723,7 @@
                                 <TextBlock x:Name="MilitaryDriveCaptionText"
                                            Text="ДИСК"
                                            Foreground="{DynamicResource SecondaryTextBrush}"
-                                           FontSize="8"
+                                           FontSize="10"
                                            FontWeight="Bold"
                                            HorizontalAlignment="Right"/>
 
@@ -729,6 +751,204 @@
 
         <Grid Grid.Row="1">
 
+            <!-- The scan-only illustration has no timers, animations or input handling.
+                 It disappears with LoadingCard on completion, cancellation or error. -->
+            <Border x:Name="LoadingVisualPanel"
+                    Visibility="{Binding Visibility, ElementName=LoadingCard}"
+                    Margin="0,170,0,0"
+                    Background="{DynamicResource CardBackgroundBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="{DynamicResource PanelCornerRadius}"
+                    ClipToBounds="True"
+                    IsHitTestVisible="False">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="11*"/>
+                        <ColumnDefinition Width="14*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Brief explanation of the result the user will get. -->
+                    <StackPanel Grid.Column="0"
+                                Margin="36,24,10,24"
+                                VerticalAlignment="Center">
+                        <TextBlock x:Name="LoadingArtworkEyebrowText"
+                                   Text="СТРУКТУРА ДИСКА"
+                                   FontSize="12"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource AccentBrush}"/>
+                        <TextBlock x:Name="LoadingArtworkTitleText"
+                                   Text="Скоро покажем, куда ушло место"
+                                   FontSize="23"
+                                   FontWeight="Bold"
+                                   TextWrapping="Wrap"
+                                   Margin="0,12,0,0"
+                                   Foreground="{DynamicResource PrimaryTextBrush}"/>
+                        <TextBlock x:Name="LoadingArtworkDescriptionText"
+                                   Text="После анализа вы увидите самые большие папки и файлы и сможете перейти прямо к ним."
+                                   FontSize="15"
+                                   TextWrapping="Wrap"
+                                   Margin="0,15,0,0"
+                                   Foreground="{DynamicResource SecondaryTextBrush}"/>
+                        <Border Margin="0,24,0,0"
+                                Padding="14,12"
+                                BorderThickness="1"
+                                BorderBrush="{DynamicResource BorderBrush}"
+                                Background="{DynamicResource InputBackgroundBrush}"
+                                CornerRadius="{DynamicResource MiniCardCornerRadius}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="✓"
+                                           FontSize="18"
+                                           Foreground="{DynamicResource AccentBrush}"
+                                           VerticalAlignment="Top"
+                                           Margin="0,0,12,0"/>
+                                <TextBlock Grid.Column="1"
+                                           x:Name="LoadingArtworkSafetyText"
+                                           Text="Thermiqra только читает сведения о файлах. Ничего не удаляется и не меняется."
+                                           TextWrapping="Wrap"
+                                           FontSize="13"
+                                           Foreground="{DynamicResource PrimaryTextBrush}"/>
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Theme-specific decorations, vector only. -->
+                    <Viewbox Grid.Column="1"
+                             Stretch="Uniform"
+                             StretchDirection="DownOnly"
+                             HorizontalAlignment="Stretch"
+                             VerticalAlignment="Center"
+                             Margin="0,6,16,6">
+                        <Grid Width="600" Height="450">
+                            <!-- CYBER TECH: segmented scanner rings and circuit traces. -->
+                            <Canvas Visibility="{DynamicResource CyberTechVisibility}"
+                                    Width="600" Height="450">
+                                <Ellipse Width="380" Height="380" Canvas.Left="110" Canvas.Top="35"
+                                         Stroke="{DynamicResource AccentBrush}" StrokeThickness="1.5"
+                                         StrokeDashArray="3,10" Opacity="0.45"/>
+                                <Ellipse Width="318" Height="318" Canvas.Left="141" Canvas.Top="66"
+                                         Stroke="{DynamicResource AccentBrush}" StrokeThickness="2"
+                                         Opacity="0.25"/>
+                                <Ellipse Width="220" Height="220" Canvas.Left="190" Canvas.Top="115"
+                                         Stroke="{DynamicResource AccentBrush}" StrokeThickness="1"
+                                         Opacity="0.40"/>
+                                <Path Data="M 300,58 A 167,167 0 0 1 467,225 M 300,392 A 167,167 0 0 1 133,225"
+                                      Stroke="{DynamicResource AccentBrush}" StrokeThickness="8"
+                                      StrokeStartLineCap="Square" StrokeEndLineCap="Square" Opacity="0.29"/>
+                                <Path Data="M 174,98 L 214,139 M 426,98 L 386,139 M 174,352 L 214,311 M 426,352 L 386,311"
+                                      Stroke="{DynamicResource AccentBrush}" StrokeThickness="2" Opacity="0.35"/>
+                                <Polygon Points="300,146 369,185 369,265 300,304 231,265 231,185"
+                                         Stroke="{DynamicResource AccentBrush}" StrokeThickness="3"
+                                         Fill="{DynamicResource AccentBrush}" Opacity="0.20"/>
+                                <Polygon Points="300,177 342,201 342,249 300,273 258,249 258,201"
+                                         Stroke="{DynamicResource AccentBrush}" StrokeThickness="2"
+                                         Fill="{DynamicResource CardBackgroundBrush}" Opacity="0.55"/>
+                                <Path Data="M 44,160 L 108,160 L 156,208 M 444,208 L 504,150 L 576,150 M 42,298 L 111,298 L 161,248 M 446,249 L 513,316 L 573,316"
+                                      Stroke="{DynamicResource AccentBrush}" StrokeThickness="2" Opacity="0.35"/>
+                                <Ellipse Width="9" Height="9" Canvas.Left="39" Canvas.Top="155" Fill="{DynamicResource AccentBrush}" Opacity="0.55"/>
+                                <Ellipse Width="9" Height="9" Canvas.Left="571" Canvas.Top="145" Fill="{DynamicResource AccentBrush}" Opacity="0.55"/>
+                                <Ellipse Width="9" Height="9" Canvas.Left="37" Canvas.Top="293" Fill="{DynamicResource AccentBrush}" Opacity="0.55"/>
+                                <Ellipse Width="9" Height="9" Canvas.Left="568" Canvas.Top="311" Fill="{DynamicResource AccentBrush}" Opacity="0.55"/>
+                                <Path Data="M 300,129 L 300,107 M 300,343 L 300,320 M 181,225 L 160,225 M 440,225 L 419,225"
+                                      Stroke="{DynamicResource PrimaryTextBrush}" StrokeThickness="3" Opacity="0.35"/>
+                            </Canvas>
+
+                            <!-- STEAMPUNK: paired brass cogwheels, dial and rivets. -->
+                            <Canvas Visibility="{DynamicResource SteamPunkVisibility}"
+                                    Width="600" Height="450">
+                                <Path Data="{StaticResource StorageLoadingGearGeometry}"
+                                      Fill="{DynamicResource SteamMetalBrush}"
+                                      Stroke="{DynamicResource AccentBrush}"
+                                      StrokeThickness="2" Opacity="0.27"/>
+                                <Ellipse Width="260" Height="260" Canvas.Left="170" Canvas.Top="95"
+                                         Stroke="{DynamicResource AccentBrush}" StrokeThickness="8" Opacity="0.32"/>
+                                <Ellipse Width="195" Height="195" Canvas.Left="202.5" Canvas.Top="127.5"
+                                         Fill="{DynamicResource SteamPanelBrush}"
+                                         Stroke="{DynamicResource SteamMetalBrush}" StrokeThickness="5" Opacity="0.82"/>
+                                <Ellipse Width="150" Height="150" Canvas.Left="225" Canvas.Top="150"
+                                         Stroke="{DynamicResource AccentBrush}" StrokeThickness="2"
+                                         StrokeDashArray="2,5" Opacity="0.57"/>
+                                <Ellipse Width="76" Height="76" Canvas.Left="262" Canvas.Top="187"
+                                         Fill="{DynamicResource SteamDarkMetalBrush}"
+                                         Stroke="{DynamicResource AccentBrush}" StrokeThickness="4" Opacity="0.76"/>
+                                <Ellipse Width="24" Height="24" Canvas.Left="288" Canvas.Top="213"
+                                         Fill="{DynamicResource AccentBrush}" Opacity="0.55"/>
+                                <Path Data="{StaticResource StorageLoadingGearGeometry}"
+                                      Fill="{DynamicResource SteamMetalBrush}"
+                                      Stroke="{DynamicResource AccentBrush}" StrokeThickness="2" Opacity="0.35">
+                                    <Path.RenderTransform>
+                                        <TransformGroup>
+                                            <ScaleTransform ScaleX="0.43" ScaleY="0.43" CenterX="300" CenterY="225"/>
+                                            <TranslateTransform X="184" Y="-122"/>
+                                        </TransformGroup>
+                                    </Path.RenderTransform>
+                                </Path>
+                                <Ellipse Width="36" Height="36" Canvas.Left="466" Canvas.Top="86"
+                                         Stroke="{DynamicResource AccentBrush}" StrokeThickness="4" Opacity="0.58"/>
+                                <Path Data="M 36,376 L 160,376 M 440,373 L 557,373 M 79,92 L 157,92"
+                                      Stroke="{DynamicResource SteamMetalBrush}" StrokeThickness="4" Opacity="0.36"/>
+                                <Ellipse Width="8" Height="8" Canvas.Left="68" Canvas.Top="88"
+                                         Fill="{DynamicResource AccentBrush}" Opacity="0.42"/>
+                                <Ellipse Width="8" Height="8" Canvas.Left="533" Canvas.Top="369"
+                                         Fill="{DynamicResource AccentBrush}" Opacity="0.42"/>
+                            </Canvas>
+
+                            <!-- FROST CORE: ice crystal with hexagonal technical rings. -->
+                            <Canvas Visibility="{DynamicResource FrostCoreVisibility}"
+                                    Width="600" Height="450">
+                                <Polygon Points="300,30 467,127 467,323 300,420 133,323 133,127"
+                                         Stroke="{DynamicResource FrostSteelBrush}" StrokeThickness="2"
+                                         Fill="{DynamicResource FrostGlassBrush}" Opacity="0.33"/>
+                                <Polygon Points="300,78 426,151 426,299 300,372 174,299 174,151"
+                                         Stroke="{DynamicResource FrostIceBrush}" StrokeThickness="3"
+                                         Fill="{DynamicResource FrostGlassBrush}" Opacity="0.32"/>
+                                <Polygon Points="300,126 386,175 386,275 300,324 214,275 214,175"
+                                         Stroke="{DynamicResource FrostIceBrush}" StrokeThickness="2"
+                                         Fill="{DynamicResource FrostPanelBrush}" Opacity="0.54"/>
+                                <Path Data="M 300,84 L 300,366 M 169,150 L 431,300 M 169,300 L 431,150"
+                                      Stroke="{DynamicResource FrostIceBrush}" StrokeThickness="5" Opacity="0.42"/>
+                                <Path Data="M 282,113 L 300,130 L 318,113 M 282,337 L 300,320 L 318,337 M 194,157 L 200,181 L 177,188 M 423,262 L 400,270 L 406,293 M 194,293 L 200,269 L 177,262 M 423,188 L 400,180 L 406,157"
+                                      Stroke="{DynamicResource FrostIceBrush}" StrokeThickness="4"
+                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" Opacity="0.60"/>
+                                <Polygon Points="300,185 335,205 335,245 300,265 265,245 265,205"
+                                         Stroke="{DynamicResource FrostIceBrush}" StrokeThickness="2"
+                                         Fill="{DynamicResource FrostIceBrush}" Opacity="0.30"/>
+                                <Ellipse Width="392" Height="392" Canvas.Left="104" Canvas.Top="29"
+                                         Stroke="{DynamicResource FrostSteelBrush}" StrokeThickness="1"
+                                         StrokeDashArray="2,12" Opacity="0.37"/>
+                            </Canvas>
+
+                            <!-- MILITARY OPS: static tactical radar and coordinate grid. -->
+                            <Canvas Visibility="{DynamicResource MilitaryOpsVisibility}"
+                                    Width="600" Height="450">
+                                <Path Data="M 78,65 L 78,385 M 151,65 L 151,385 M 225,65 L 225,385 M 375,65 L 375,385 M 449,65 L 449,385 M 522,65 L 522,385 M 61,88 L 539,88 M 61,156 L 539,156 M 61,294 L 539,294 M 61,362 L 539,362"
+                                      Stroke="{DynamicResource MilitaryGridBrush}" StrokeThickness="1"
+                                      Opacity="0.50"/>
+                                <Ellipse Width="340" Height="340" Canvas.Left="130" Canvas.Top="55"
+                                         Stroke="{DynamicResource MilitaryKhakiBrush}" StrokeThickness="3" Opacity="0.65"/>
+                                <Ellipse Width="255" Height="255" Canvas.Left="172.5" Canvas.Top="97.5"
+                                         Stroke="{DynamicResource AccentBrush}" StrokeThickness="2"
+                                         StrokeDashArray="7,5" Opacity="0.38"/>
+                                <Ellipse Width="125" Height="125" Canvas.Left="237.5" Canvas.Top="162.5"
+                                         Stroke="{DynamicResource MilitaryKhakiBrush}" StrokeThickness="2" Opacity="0.70"/>
+                                <Path Data="M 300,38 L 300,413 M 111,225 L 489,225"
+                                      Stroke="{DynamicResource MilitaryKhakiBrush}" StrokeThickness="2" Opacity="0.48"/>
+                                <Path Data="M 300,225 L 414,105 A 165,165 0 0 1 464,241 Z"
+                                      Fill="{DynamicResource AccentBrush}" Opacity="0.16"/>
+                                <Ellipse Width="22" Height="22" Canvas.Left="289" Canvas.Top="214"
+                                         Fill="{DynamicResource AccentBrush}" Opacity="0.70"/>
+                                <Path Data="M 50,55 L 50,88 L 81,88 M 550,55 L 550,88 L 519,88 M 50,395 L 50,362 L 81,362 M 550,395 L 550,362 L 519,362"
+                                      Stroke="{DynamicResource MilitaryKhakiBrush}" StrokeThickness="4" Opacity="0.66"/>
+                            </Canvas>
+                        </Grid>
+                    </Viewbox>
+                </Grid>
+            </Border>
+
             <Border x:Name="LoadingCard"
                     Style="{StaticResource SummaryCardStyle}"
                     VerticalAlignment="Top">
@@ -746,18 +966,59 @@
                             Margin="0,0,12,0"/>
 
                     <StackPanel Grid.Column="1">
-                        <TextBlock x:Name="LoadingTitleText"
-                                   Text="Анализ диска..."
-                                   Foreground="{DynamicResource PrimaryTextBrush}"
-                                   FontSize="15"
-                                   FontWeight="Bold"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock x:Name="LoadingTitleText"
+                                       Text="Анализ диска..."
+                                       Foreground="{DynamicResource PrimaryTextBrush}"
+                                       FontSize="17"
+                                       FontWeight="Bold"/>
+
+                            <TextBlock x:Name="LoadingPercentText"
+                                       Grid.Column="1"
+                                       Visibility="Collapsed"
+                                       Text="0 %"
+                                       Foreground="{DynamicResource AccentBrush}"
+                                       FontSize="17"
+                                       FontWeight="Bold"
+                                       Margin="16,0,0,0"/>
+                        </Grid>
 
                         <TextBlock x:Name="LoadingDescriptionText"
                                    Text="Thermiqra читает структуру накопителя. Главное окно продолжает работать."
                                    Foreground="{DynamicResource SecondaryTextBrush}"
-                                   FontSize="11"
+                                   FontSize="13"
                                    Margin="0,4,0,0"
                                    TextWrapping="Wrap"/>
+
+                        <TextBlock x:Name="LoadingStageText"
+                                   Text="Подготовка чтения данных..."
+                                   Foreground="{DynamicResource AccentBrush}"
+                                   FontSize="12"
+                                   FontWeight="SemiBold"
+                                   Margin="0,15,0,0"
+                                   TextWrapping="Wrap"/>
+
+                        <ProgressBar x:Name="LoadingProgressBar"
+                                     Height="9"
+                                     Margin="0,9,0,0"
+                                     Minimum="0"
+                                     Maximum="100"
+                                     Value="0"
+                                     IsIndeterminate="True"
+                                     BorderThickness="0"
+                                     Foreground="{DynamicResource AccentBrush}"
+                                     Background="{DynamicResource GaugeTrackBrush}"/>
+
+                        <TextBlock x:Name="LoadingCountsText"
+                                   Text="Найдено: 0 файлов, 0 папок"
+                                   Foreground="{DynamicResource SecondaryTextBrush}"
+                                   FontSize="12"
+                                   Margin="0,9,0,0"/>
                     </StackPanel>
                 </Grid>
             </Border>
@@ -766,6 +1027,7 @@
                   Visibility="Collapsed">
 
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
@@ -778,10 +1040,10 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
                     <Border x:Name="LargestBranchCard"
+                            Visibility="Collapsed"
                             Grid.Column="0"
                             Style="{StaticResource SummaryActionCardStyle}"
                             Margin="0,0,7,0"
@@ -803,19 +1065,19 @@
                                 <TextBlock x:Name="LargestBranchCaptionText"
                                            Text="САМАЯ БОЛЬШАЯ ВЕТКА"
                                            Foreground="{DynamicResource SecondaryTextBrush}"
-                                           FontSize="8"
+                                           FontSize="10"
                                            FontWeight="Bold"/>
                                 <TextBlock x:Name="LargestBranchNameText"
                                            Text="—"
                                            Foreground="{DynamicResource PrimaryTextBrush}"
-                                           FontSize="14"
+                                           FontSize="16"
                                            FontWeight="Bold"
                                            TextTrimming="CharacterEllipsis"
                                            Margin="0,3,0,0"/>
                                 <TextBlock x:Name="LargestBranchSizeText"
                                            Text="—"
                                            Foreground="{DynamicResource AccentBrush}"
-                                           FontSize="13"
+                                           FontSize="15"
                                            FontWeight="SemiBold"
                                            Margin="0,2,0,0"/>
                             </StackPanel>
@@ -823,6 +1085,7 @@
                     </Border>
 
                     <Border x:Name="LargestFileCard"
+                            Visibility="Collapsed"
                             Grid.Column="1"
                             Style="{StaticResource SummaryActionCardStyle}"
                             Margin="7,0"
@@ -844,19 +1107,19 @@
                                 <TextBlock x:Name="LargestFileCaptionText"
                                            Text="КРУПНЕЙШИЙ ФАЙЛ"
                                            Foreground="{DynamicResource SecondaryTextBrush}"
-                                           FontSize="8"
+                                           FontSize="10"
                                            FontWeight="Bold"/>
                                 <TextBlock x:Name="LargestFileNameText"
                                            Text="—"
                                            Foreground="{DynamicResource PrimaryTextBrush}"
-                                           FontSize="14"
+                                           FontSize="16"
                                            FontWeight="Bold"
                                            TextTrimming="CharacterEllipsis"
                                            Margin="0,3,0,0"/>
                                 <TextBlock x:Name="LargestFileSizeText"
                                            Text="—"
                                            Foreground="{DynamicResource AccentBrush}"
-                                           FontSize="13"
+                                           FontSize="15"
                                            FontWeight="SemiBold"
                                            Margin="0,2,0,0"/>
                             </StackPanel>
@@ -864,9 +1127,10 @@
                     </Border>
 
                     <Border x:Name="SafeCandidatesCard"
-                            Grid.Column="2"
+                            Grid.Column="0"
+                            Grid.ColumnSpan="1"
                             Style="{StaticResource SummaryActionCardStyle}"
-                            Margin="7,0,0,0"
+                            Margin="0,0,7,0"
                             ToolTip="Показать только безопасные кандидаты"
                             MouseLeftButtonUp="SafeCandidatesCard_MouseLeftButtonUp">
                         <Grid>
@@ -885,7 +1149,7 @@
                                 <TextBlock x:Name="PotentialCleanupCaptionText"
                                            Text="БЕЗОПАСНАЯ ОЧИСТКА"
                                            Foreground="{DynamicResource SecondaryTextBrush}"
-                                           FontSize="8"
+                                           FontSize="10"
                                            FontWeight="Bold"/>
                                 <TextBlock x:Name="PotentialCleanupValueText"
                                            Text="—"
@@ -896,7 +1160,44 @@
                                 <TextBlock x:Name="PotentialCleanupHintText"
                                            Text=""
                                            Foreground="{DynamicResource SecondaryTextBrush}"
-                                           FontSize="9"
+                                           FontSize="11"
+                                           TextWrapping="Wrap"
+                                           Margin="0,2,0,0"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <Border x:Name="AttentionCard"
+                            Grid.Column="1"
+                            Style="{StaticResource SummaryActionCardStyle}"
+                            Margin="7,0,0,0"
+                            Cursor="Hand"
+                            MouseLeftButtonUp="AttentionCard_MouseLeftButtonUp">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="✦"
+                                       Foreground="{DynamicResource AccentBrush}"
+                                       FontSize="27"
+                                       VerticalAlignment="Center"
+                                       Margin="0,0,13,0"/>
+
+                            <StackPanel Grid.Column="1">
+                                <TextBlock x:Name="AttentionCaptionText"
+                                           Foreground="{DynamicResource SecondaryTextBrush}"
+                                           FontSize="10"
+                                           FontWeight="Bold"/>
+                                <TextBlock x:Name="AttentionActionText"
+                                           Foreground="{DynamicResource AccentBrush}"
+                                           FontSize="16"
+                                           FontWeight="Bold"
+                                           Margin="0,3,0,0"/>
+                                <TextBlock x:Name="AttentionHintText"
+                                           Foreground="{DynamicResource SecondaryTextBrush}"
+                                           FontSize="11"
                                            TextWrapping="Wrap"
                                            Margin="0,2,0,0"/>
                             </StackPanel>
@@ -926,7 +1227,7 @@
                             <TextBlock x:Name="DownloadsCaptionText"
                                        Text="ЗАГРУЗКИ"
                                        Foreground="{DynamicResource SecondaryTextBrush}"
-                                       FontSize="8"
+                                       FontSize="10"
                                        FontWeight="Bold"/>
 
                             <TextBlock x:Name="DownloadsValueText"
@@ -939,7 +1240,7 @@
                             <TextBlock x:Name="DownloadsHintText"
                                        Text="Личные файлы пользователя. Решение об удалении принимает пользователь."
                                        Foreground="{DynamicResource SecondaryTextBrush}"
-                                       FontSize="9"
+                                       FontSize="11"
                                        TextWrapping="Wrap"
                                        Margin="0,2,0,0"/>
 
@@ -971,7 +1272,7 @@
                             <TextBlock x:Name="RecycleCaptionText"
                                        Text="КОРЗИНА"
                                        Foreground="{DynamicResource SecondaryTextBrush}"
-                                       FontSize="8"
+                                       FontSize="10"
                                        FontWeight="Bold"/>
 
                             <TextBlock x:Name="RecycleValueText"
@@ -984,7 +1285,7 @@
                             <TextBlock x:Name="RecycleHintText"
                                        Text="Удалённые файлы всё ещё занимают место и пока могут быть восстановлены."
                                        Foreground="{DynamicResource SecondaryTextBrush}"
-                                       FontSize="9"
+                                       FontSize="11"
                                        TextWrapping="Wrap"
                                        Margin="0,2,0,0"/>
 
@@ -1008,8 +1309,46 @@
                     </Border>
                 </Grid>
 
+                <!-- ОБЪЯСНЕНИЕ ЗАНЯТОГО МЕСТА -->
+                <Border Grid.Row="2"
+                        Style="{StaticResource PanelBorderStyle}"
+                        Padding="11,8"
+                        Margin="0,0,0,8">
+                    <StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock x:Name="StorageInsightsTitleText"
+                                       VerticalAlignment="Center"
+                                       Text="Что занимает место"
+                                       FontSize="15" FontWeight="Bold"
+                                       Foreground="{DynamicResource PrimaryTextBrush}"/>
+                            <Button x:Name="StorageInsightsMoreButton"
+                                    Grid.Column="1"
+                                    Visibility="Collapsed"
+                                    Content="Показать ещё"
+                                    FontSize="12"
+                                    Padding="10,3"
+                                    Margin="8,0,0,0"
+                                    Click="StorageInsightsMoreButton_Click"/>
+                        </Grid>
+                        <TextBlock x:Name="StorageInsightsHintText"
+                                   Text="Нажмите на категорию, чтобы увидеть её папку"
+                                   FontSize="12" TextWrapping="Wrap"
+                                   Foreground="{DynamicResource SecondaryTextBrush}"
+                                   Margin="0,1,0,5"/>
+                        <ScrollViewer MaxHeight="254"
+                                      VerticalScrollBarVisibility="Auto"
+                                      HorizontalScrollBarVisibility="Disabled">
+                            <UniformGrid x:Name="StorageInsightsItemsPanel" Columns="3"/>
+                        </ScrollViewer>
+                    </StackPanel>
+                </Border>
+
                 <!-- ДЕРЕВО + ПОЯСНЕНИЕ -->
-                <Grid Grid.Row="2">
+                <Grid Grid.Row="3">
 
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="1.55*"/>
@@ -1045,12 +1384,12 @@
                                         <TextBlock x:Name="SafeModeTitleText"
                                                    Text="Можно безопасно проверить"
                                                    Foreground="{DynamicResource PrimaryTextBrush}"
-                                                   FontSize="12"
+                                                   FontSize="14"
                                                    FontWeight="Bold"/>
                                         <TextBlock x:Name="SafeModeSubtitleText"
                                                    Text=""
                                                    Foreground="{DynamicResource SecondaryTextBrush}"
-                                                   FontSize="9"
+                                                   FontSize="11"
                                                    Margin="0,2,0,0"/>
                                     </StackPanel>
 
@@ -1075,14 +1414,14 @@
                                 <TextBlock x:Name="NameColumnText"
                                            Text="Имя"
                                            Foreground="{DynamicResource SecondaryTextBrush}"
-                                           FontSize="9"
+                                           FontSize="11"
                                            FontWeight="Bold"/>
 
                                 <TextBlock x:Name="SizeColumnText"
                                            Grid.Column="1"
                                            Text="Размер"
                                            Foreground="{DynamicResource SecondaryTextBrush}"
-                                           FontSize="9"
+                                           FontSize="11"
                                            FontWeight="Bold"
                                            HorizontalAlignment="Right"/>
 
@@ -1090,7 +1429,7 @@
                                            Grid.Column="2"
                                            Text="Доля"
                                            Foreground="{DynamicResource SecondaryTextBrush}"
-                                           FontSize="9"
+                                           FontSize="11"
                                            FontWeight="Bold"
                                            HorizontalAlignment="Center"/>
                             </Grid>
@@ -1107,7 +1446,9 @@
                                       Padding="7,6,7,8"
                                       ItemContainerStyle="{StaticResource StorageTreeItemStyle}"
                                       SelectedItemChanged="UsageTree_SelectedItemChanged"
-                                      ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                      RequestBringIntoView="UsageTree_RequestBringIntoView"
+                                      VirtualizingStackPanel.ScrollUnit="Pixel"
+                                      ScrollViewer.VerticalScrollBarVisibility="Visible"
                                       ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                       VirtualizingStackPanel.IsVirtualizing="True"
                                       VirtualizingStackPanel.VirtualizationMode="Recycling"/>
@@ -1116,7 +1457,8 @@
                     </Border>
 
                     <ScrollViewer Grid.Column="2"
-                                  VerticalScrollBarVisibility="Auto"
+                                  Margin="0"
+                                  VerticalScrollBarVisibility="Visible"
                                   HorizontalScrollBarVisibility="Disabled">
 
                         <StackPanel>
@@ -1136,7 +1478,7 @@
                                     <TextBlock x:Name="SelectedPathText"
                                                Text=""
                                                Foreground="{DynamicResource SecondaryTextBrush}"
-                                               FontSize="10"
+                                               FontSize="12"
                                                TextWrapping="Wrap"
                                                Margin="0,4,0,0"/>
 
@@ -1148,7 +1490,7 @@
                                     <TextBlock x:Name="SelectedDescriptionText"
                                                Text="Нажмите на строку слева, чтобы Thermiqra объяснила, что это и что с этим можно делать."
                                                Foreground="{DynamicResource PrimaryTextBrush}"
-                                               FontSize="10.5"
+                                               FontSize="13"
                                                TextWrapping="Wrap"
                                                LineHeight="17"/>
 
@@ -1163,13 +1505,13 @@
                                             <TextBlock x:Name="SafetyTitleText"
                                                        Text="Безопасность"
                                                        Foreground="{DynamicResource AccentBrush}"
-                                                       FontSize="11"
+                                                       FontSize="13"
                                                        FontWeight="Bold"/>
 
                                             <TextBlock x:Name="SafetyDescriptionText"
                                                        Text=""
                                                        Foreground="{DynamicResource SecondaryTextBrush}"
-                                                       FontSize="10"
+                                                       FontSize="12"
                                                        TextWrapping="Wrap"
                                                        LineHeight="16"
                                                        Margin="0,4,0,0"/>
@@ -1219,7 +1561,7 @@
                                     <TextBlock x:Name="DeleteStageHintText"
                                                Text="Выбранные файлы и папки можно отправить в Корзину или удалить безвозвратно."
                                                Foreground="{DynamicResource SecondaryTextBrush}"
-                                               FontSize="9"
+                                               FontSize="11"
                                                TextWrapping="Wrap"
                                                Margin="0,8,0,0"/>
                                 </StackPanel>
@@ -1232,7 +1574,7 @@
                                     <TextBlock x:Name="LargestFilesTitleText"
                                                Text="Крупнейшие файлы"
                                                Foreground="{DynamicResource PrimaryTextBrush}"
-                                               FontSize="15"
+                                               FontSize="17"
                                                FontWeight="Bold"
                                                Margin="0,0,0,7"/>
 
@@ -1262,7 +1604,7 @@
                     <TextBlock x:Name="ErrorDescriptionText"
                                Text=""
                                Foreground="{DynamicResource SecondaryTextBrush}"
-                               FontSize="12"
+                               FontSize="14"
                                TextWrapping="Wrap"
                                Margin="0,7,0,0"/>
                 </StackPanel>
