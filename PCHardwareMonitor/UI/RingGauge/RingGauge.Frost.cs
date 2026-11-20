@@ -879,6 +879,8 @@ public sealed partial class RingGauge
         cards.Children.Add(hotSpot);
         cards.Children.Add(vram);
 
+        AddGpuClockRow(cards, "Frost");
+
         return cards;
     }
 

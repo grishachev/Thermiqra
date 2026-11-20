@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <IsTestProject>true</IsTestProject><IsPackable>false</IsPackable>
+    <Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>Thermiqra.Tests</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="../docs/releases/1.1.0.md" Link="Fixtures/NextRelease.md" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Fixtures/Update-1.0.0.signature.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../PCHardwareMonitor/**/*.xaml" Exclude="../PCHardwareMonitor/obj/**;../PCHardwareMonitor/bin/**" Link="Fixtures/SourceXaml/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../PCHardwareMonitor/StorageAnalyzerWindow.xaml" Link="Fixtures/StorageAnalyzerWindow.xaml" CopyToOutputDirectory="PreserveNewest" />
+    <Compile Include="../Tools/RemovalLab/Matrix/Runner/GuestSafety.cs" Link="Matrix/GuestSafety.cs" />
+    <Compile Include="../Tools/RemovalLab/Matrix/Runner/MatrixReport.cs" Link="Matrix/MatrixReport.cs" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4"><PrivateAssets>all</PrivateAssets></PackageReference>
+    <ProjectReference Include="../PCHardwareMonitor/PCHardwareMonitor.csproj" />
+  </ItemGroup>
+</Project>

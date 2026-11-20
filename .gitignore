@@ -22,3 +22,10 @@ Desktop.ini
 *.tmp
 *.log
 /Thermiqra_256.png
+
+# Release signing secrets must never be committed (public SPKI is embedded in code).
+*.pk8
+*.pfx
+*.p12
+*private*.pem
+.thermiqra-signing/

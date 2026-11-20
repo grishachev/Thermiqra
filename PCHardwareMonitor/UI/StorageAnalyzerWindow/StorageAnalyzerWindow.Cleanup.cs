@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -82,12 +82,101 @@ public partial class StorageAnalyzerWindow
                 "Кэш NVIDIA. Будет очищено только содержимое, сама папка останется.",
                 "NVIDIA cache. Only the contents will be cleaned; the folder itself will remain."));
 
+        // Browser cache is opt-in through the SAME Safe Cleanup dialog.
+        // Never add a profile root, site storage, cookies or bookmarks.
+        AddBrowserCacheCandidates(result, seen, localAppData);
+
         result.Sort(
             (left, right) =>
                 right.AllocatedBytes.CompareTo(
                     left.AllocatedBytes));
 
+        // Preserve the full-width Safe Cleanup card.
+        // The lower sections stay unchanged.
+        ApplyCleanupSummaryLayout();
+
         return result;
+    }
+
+
+    private bool _cleanupSummaryLayoutApplied;
+
+    private void ApplyCleanupSummaryLayout()
+    {
+        if (_cleanupSummaryLayoutApplied)
+            return;
+
+        // The main layout is defined by the existing XAML. Do not create a
+        // second cleanup entry point, or move the Downloads / Recycle cards.
+        if (SafeCandidatesCard.Parent is not Grid summaryGrid)
+        {
+            return;
+        }
+        SafeCandidatesCard.Margin = new Thickness(0);
+        SafeCandidatesCard.MinHeight = 104;
+        SafeCandidatesCard.Cursor = Cursors.Hand;
+        Grid.SetColumn(SafeCandidatesCard, 0);
+        Grid.SetColumnSpan(SafeCandidatesCard, 2);
+
+        // Intentional right-side call-to-action to balance the wide card.
+        // It is display-only: clicking anywhere still uses the existing
+        // SafeCandidatesCard_MouseLeftButtonUp handler.
+        if (SafeCandidatesCard.Child is Grid content)
+        {
+            content.ColumnDefinitions.Add(new ColumnDefinition
+            {
+                Width = GridLength.Auto
+            });
+
+            StackPanel details = new()
+            {
+                VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(24, 0, 6, 0)
+            };
+
+            TextBlock title = new()
+            {
+                Text = SettingsService.L(
+                    "Открыть план очистки  ›",
+                    "Open cleanup plan  ›"),
+                FontSize = 13,
+                FontWeight = FontWeights.Bold,
+                TextAlignment = TextAlignment.Right
+            };
+            title.SetResourceReference(
+                TextBlock.ForegroundProperty, "AccentBrush");
+
+            TextBlock hint = new()
+            {
+                Text = SettingsService.L(
+                    "Вы выбираете, что удалять",
+                    "You choose what to remove"),
+                FontSize = 10.5,
+                Margin = new Thickness(0, 3, 0, 0),
+                TextAlignment = TextAlignment.Right
+            };
+            hint.SetResourceReference(
+                TextBlock.ForegroundProperty, "SecondaryTextBrush");
+
+            details.Children.Add(title);
+            details.Children.Add(hint);
+
+            Grid.SetColumn(details, 2);
+            content.Children.Add(details);
+
+            // Avoid clipping on smaller windows. No resize animations.
+            void UpdateDetailsVisibility()
+            {
+                details.Visibility = summaryGrid.ActualWidth < 680
+                    ? Visibility.Collapsed
+                    : Visibility.Visible;
+            }
+
+            summaryGrid.SizeChanged += (_, _) => UpdateDetailsVisibility();
+            UpdateDetailsVisibility();
+        }
+
+        _cleanupSummaryLayoutApplied = true;
     }
 
 
@@ -134,6 +223,410 @@ public partial class StorageAnalyzerWindow
                 description));
     }
 
+
+    // BROWSER CACHE: deliberately limited to Cache and Firefox cache2.
+    // The directories are discovered by exact vendor/profile locations;
+    // arbitrary cache-looking folders are never eligible for cleanup.
+    private void AddBrowserCacheCandidates(
+        List<CleanupPlanItem> result,
+        HashSet<string> seen,
+        string localAppData)
+    {
+        AddChromiumCacheCandidates(result, seen, localAppData,
+            Path.Combine("Google", "Chrome", "User Data"),
+            "Google Chrome");
+        AddChromiumCacheCandidates(result, seen, localAppData,
+            Path.Combine("Yandex", "YandexBrowser", "User Data"),
+            SettingsService.L("Яндекс Браузер", "Yandex Browser"));
+        AddChromiumCacheCandidates(result, seen, localAppData,
+            Path.Combine("Microsoft", "Edge", "User Data"),
+            "Microsoft Edge");
+
+        AddFirefoxCacheCandidates(result, seen,
+            Path.Combine(localAppData, "Mozilla", "Firefox", "Profiles"),
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "Mozilla", "Firefox", "Profiles"));
+
+        // Firefox from Microsoft Store (MSIX) has a separate sandboxed
+        // LocalCache\Local vs LocalCache\Roaming profile pair.
+        string packages = Path.Combine(localAppData, "Packages");
+        foreach (string package in SafeEnumerateDirectories(packages, "Mozilla.Firefox_*"))
+        {
+            if (!Path.GetFileName(package).StartsWith("Mozilla.Firefox_",
+                    StringComparison.OrdinalIgnoreCase))
+                continue;
+            AddFirefoxCacheCandidates(result, seen,
+                Path.Combine(package, "LocalCache", "Local", "Mozilla", "Firefox", "Profiles"),
+                Path.Combine(package, "LocalCache", "Roaming", "Mozilla", "Firefox", "Profiles"));
+        }
+    }
+
+    private void AddChromiumCacheCandidates(
+        List<CleanupPlanItem> result,
+        HashSet<string> seen,
+        string localAppData,
+        string vendorSubPath,
+        string browserTitle)
+    {
+        string root = Path.Combine(localAppData, vendorSubPath);
+        foreach (string profile in SafeEnumerateDirectories(root))
+        {
+            string profileName = Path.GetFileName(profile);
+            if (!IsStandardChromiumProfileName(profileName))
+                continue;
+
+            AddVerifiedBrowserCacheCandidate(result, seen,
+                Path.Combine(profile, "Cache"),
+                $"{browserTitle} — {profileName}");
+        }
+    }
+
+    private void AddFirefoxCacheCandidates(
+        List<CleanupPlanItem> result,
+        HashSet<string> seen,
+        string localProfiles,
+        string roamingProfiles)
+    {
+        foreach (string profile in SafeEnumerateDirectories(localProfiles))
+        {
+            // A matching regular/MSIX Roaming profile provides evidence this
+            // is a real Firefox profile, not an arbitrary folder called cache2.
+            if (!Directory.Exists(Path.Combine(roamingProfiles, Path.GetFileName(profile))))
+                continue;
+
+            AddVerifiedBrowserCacheCandidate(result, seen,
+                Path.Combine(profile, "cache2"),
+                $"Mozilla Firefox — {Path.GetFileName(profile)}");
+        }
+    }
+
+    private void AddVerifiedBrowserCacheCandidate(
+        List<CleanupPlanItem> result,
+        HashSet<string> seen,
+        string cachePath,
+        string title)
+    {
+        if (!IsVerifiedBrowserCacheRoot(cachePath))
+            return;
+
+        string? processName = GetBrowserProcessForCacheRoot(cachePath);
+        bool running = processName != null && IsBrowserProcessRunning(processName);
+        string description = SettingsService.L(
+            "Только дисковый кэш страниц. Закладки, пароли, история, вход на сайты и сохранённые данные сайтов не затрагиваются. Если браузер открыт, Thermiqra предложит закрыть его с вашего согласия. После очистки сайты могут открываться медленнее при первом посещении.",
+            "Disk page cache only. Bookmarks, passwords, history, sign-ins and saved site data are untouched. If the browser is running, Thermiqra will ask for permission to close it. Websites may load more slowly on the first visit afterward.");
+        if (running)
+            description += SettingsService.L(
+                " Браузер запущен. Перед очисткой Thermiqra предложит закрыть его автоматически.",
+                " The browser is running. Thermiqra will offer to close it automatically before cleaning.");
+
+        AddCleanupPlanItem(result, seen, cachePath, title, description);
+    }
+
+    private static string[] SafeEnumerateDirectories(string root, string pattern = "*")
+    {
+        try
+        {
+            return Directory.Exists(root)
+                ? Directory.GetDirectories(root, pattern, SearchOption.TopDirectoryOnly)
+                : Array.Empty<string>();
+        }
+        catch
+        {
+            return Array.Empty<string>();
+        }
+    }
+
+    private static bool IsStandardChromiumProfileName(string name)
+    {
+        if (string.Equals(name, "Default", StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        return name.StartsWith("Profile ", StringComparison.OrdinalIgnoreCase) &&
+            int.TryParse(name.AsSpan("Profile ".Length), out int number) &&
+            number > 0;
+    }
+
+    // Recognize the exact structure (independent of whether its files still
+    // exist) so a previously selected browser cache cannot become a general
+    // unrestricted cleanup target if the profile is changed mid-operation.
+    private static string? GetBrowserProcessForCacheRoot(string path)
+    {
+        try
+        {
+            string full = Path.GetFullPath(path).TrimEnd('\\', '/');
+            string parent = Path.GetDirectoryName(full) ?? string.Empty;
+            string name = Path.GetFileName(full);
+            string local = Environment.GetFolderPath(
+                Environment.SpecialFolder.LocalApplicationData);
+
+            if (string.Equals(name, "Cache", StringComparison.OrdinalIgnoreCase) &&
+                IsStandardChromiumProfileName(Path.GetFileName(parent)))
+            {
+                string userData = Path.GetDirectoryName(parent) ?? string.Empty;
+                if (SameBrowserPath(userData,
+                        Path.Combine(local, "Google", "Chrome", "User Data")))
+                    return "chrome";
+                if (SameBrowserPath(userData,
+                        Path.Combine(local, "Yandex", "YandexBrowser", "User Data")))
+                    return "browser";
+                if (SameBrowserPath(userData,
+                        Path.Combine(local, "Microsoft", "Edge", "User Data")))
+                    return "msedge";
+            }
+
+            if (!string.Equals(name, "cache2", StringComparison.OrdinalIgnoreCase))
+                return null;
+
+            string profileRoot = Path.GetDirectoryName(parent) ?? string.Empty;
+            if (SameBrowserPath(profileRoot,
+                    Path.Combine(local, "Mozilla", "Firefox", "Profiles")))
+                return "firefox";
+
+            string packagesRoot = Path.Combine(local, "Packages");
+            string relative = Path.GetRelativePath(packagesRoot, profileRoot);
+            string[] segments = relative.Split(
+                new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar },
+                StringSplitOptions.RemoveEmptyEntries);
+            if (segments.Length == 6 &&
+                segments[0].StartsWith("Mozilla.Firefox_", StringComparison.OrdinalIgnoreCase) &&
+                segments[1].Equals("LocalCache", StringComparison.OrdinalIgnoreCase) &&
+                segments[2].Equals("Local", StringComparison.OrdinalIgnoreCase) &&
+                segments[3].Equals("Mozilla", StringComparison.OrdinalIgnoreCase) &&
+                segments[4].Equals("Firefox", StringComparison.OrdinalIgnoreCase) &&
+                segments[5].Equals("Profiles", StringComparison.OrdinalIgnoreCase))
+                return "firefox";
+        }
+        catch
+        {
+            // Unknown/relocated profiles are deliberately not managed.
+        }
+        return null;
+    }
+
+    private static bool SameBrowserPath(string left, string right) =>
+        string.Equals(Path.GetFullPath(left).TrimEnd('\\', '/'),
+            Path.GetFullPath(right).TrimEnd('\\', '/'),
+            StringComparison.OrdinalIgnoreCase);
+
+    private static bool IsVerifiedBrowserCacheRoot(string cachePath)
+    {
+        string? process = GetBrowserProcessForCacheRoot(cachePath);
+        if (process == null || !Directory.Exists(cachePath))
+            return false;
+
+        string local = Environment.GetFolderPath(
+            Environment.SpecialFolder.LocalApplicationData);
+        if (!HasNoReparsePoints(local, cachePath))
+            return false;
+
+        string profile = Path.GetDirectoryName(cachePath) ?? string.Empty;
+        if (process != "firefox")
+            return File.Exists(Path.Combine(profile, "Preferences"));
+
+        string localProfiles = Path.GetDirectoryName(profile) ?? string.Empty;
+        string roamingProfiles;
+        if (SameBrowserPath(localProfiles, Path.Combine(local, "Mozilla", "Firefox", "Profiles")))
+            roamingProfiles = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "Mozilla", "Firefox", "Profiles");
+        else
+        {
+            // With MSIX, LocalCache\Local\... and LocalCache\Roaming\...
+            // live under the same uniquely named package directory.
+            string package = localProfiles;
+            for (int i = 0; i < 5; i++)
+                package = Path.GetDirectoryName(package) ?? string.Empty;
+            roamingProfiles = Path.Combine(package,
+                "LocalCache", "Roaming", "Mozilla", "Firefox", "Profiles");
+        }
+        string correspondingProfile = Path.Combine(roamingProfiles, Path.GetFileName(profile));
+        string roamingBase = SameBrowserPath(localProfiles,
+            Path.Combine(local, "Mozilla", "Firefox", "Profiles"))
+            ? Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)
+            : local;
+        return Directory.Exists(correspondingProfile) &&
+            HasNoReparsePoints(roamingBase, correspondingProfile);
+    }
+
+    // Refuse symbolic links/junctions anywhere between the known user folder
+    // and target. In particular, NEVER follow a linked Cache or Profiles folder.
+    private static bool HasNoReparsePoints(string basePath, string targetPath)
+    {
+        try
+        {
+            string normalizedBase = Path.GetFullPath(basePath);
+            string normalizedTarget = Path.GetFullPath(targetPath);
+            string relative = Path.GetRelativePath(normalizedBase, normalizedTarget);
+            if (relative == ".." || relative.StartsWith(".." + Path.DirectorySeparatorChar,
+                    StringComparison.Ordinal) || Path.IsPathRooted(relative))
+                return false;
+
+            string current = normalizedBase;
+            if ((File.GetAttributes(current) & FileAttributes.ReparsePoint) != 0)
+                return false;
+            foreach (string part in relative.Split(
+                new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar },
+                StringSplitOptions.RemoveEmptyEntries))
+            {
+                current = Path.Combine(current, part);
+                if ((File.GetAttributes(current) & FileAttributes.ReparsePoint) != 0)
+                    return false;
+            }
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private static bool IsBrowserProcessRunning(string processName)
+    {
+        try
+        {
+            int currentSession;
+            using (Process current = Process.GetCurrentProcess())
+                currentSession = current.SessionId;
+
+            Process[] processes = Process.GetProcessesByName(processName);
+            bool found = false;
+            foreach (Process process in processes)
+            {
+                using (process)
+                {
+                    try
+                    {
+                        if (!process.HasExited && process.SessionId == currentSession)
+                            found = true;
+                    }
+                    catch
+                    {
+                        // If inspection fails, never assume the browser stopped.
+                        found = true;
+                    }
+                }
+            }
+            return found;
+        }
+        catch
+        {
+            // If process state cannot be determined, fail CLOSED.
+            return true;
+        }
+    }
+
+    // Closing browser processes requires an explicit click in the Safe Cleanup
+    // confirmation dialog. Never call this helper from scan or cleanup planning.
+    // Close visible windows first; after a short grace period, terminate any
+    // verified remaining processes belonging to this Windows session only.
+    private static bool CloseSelectedBrowsersAfterConsent(
+        IReadOnlyList<string> processNames)
+    {
+        string[] names = processNames
+            .Where(name => name is "chrome" or "msedge" or "browser" or "firefox")
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+        if (names.Length == 0)
+            return true;
+
+        int currentSession;
+        using (Process current = Process.GetCurrentProcess())
+            currentSession = current.SessionId;
+
+        void VisitVerifiedProcesses(Action<Process> action)
+        {
+            foreach (string name in names)
+            {
+                Process[] processes;
+                try
+                {
+                    processes = Process.GetProcessesByName(name);
+                }
+                catch
+                {
+                    continue;
+                }
+
+                foreach (Process process in processes)
+                {
+                    using (process)
+                    {
+                        try
+                        {
+                            if (process.HasExited || process.SessionId != currentSession ||
+                                !IsVerifiedBrowserExecutable(process, name))
+                                continue;
+
+                            action(process);
+                        }
+                        catch
+                        {
+                            // An inaccessible/exiting process must never be
+                            // treated as successfully closed.
+                        }
+                    }
+                }
+            }
+        }
+
+        // Give browsers an opportunity to save their own normal shutdown state.
+        VisitVerifiedProcesses(process => process.CloseMainWindow());
+        for (int attempt = 0; attempt < 8; attempt++)
+        {
+            Thread.Sleep(400);
+            if (names.All(name => !IsBrowserProcessRunning(name)))
+                return true;
+        }
+
+        // The user explicitly consented to closing the browser even if it
+        // cannot exit normally. Do not terminate similarly named unknown EXEs.
+        VisitVerifiedProcesses(process => process.Kill(entireProcessTree: true));
+        for (int attempt = 0; attempt < 8; attempt++)
+        {
+            Thread.Sleep(250);
+            if (names.All(name => !IsBrowserProcessRunning(name)))
+                return true;
+        }
+
+        return names.All(name => !IsBrowserProcessRunning(name));
+    }
+
+    // A generic browser.exe might belong to an unrelated program. Verify
+    // the executable's installation path or product metadata before closing.
+    // Failure to identify it means we leave it running and skip its cache.
+    private static bool IsVerifiedBrowserExecutable(Process process, string name)
+    {
+        try
+        {
+            string? executable = process.MainModule?.FileName;
+            if (string.IsNullOrWhiteSpace(executable))
+                return false;
+
+            string product = FileVersionInfo.GetVersionInfo(executable).ProductName
+                ?? string.Empty;
+            return name switch
+            {
+                "chrome" =>
+                    executable.Contains(@"\Google\Chrome\", StringComparison.OrdinalIgnoreCase) ||
+                    product.Contains("Google Chrome", StringComparison.OrdinalIgnoreCase),
+                "msedge" =>
+                    executable.Contains(@"\Microsoft\Edge\", StringComparison.OrdinalIgnoreCase) ||
+                    product.Contains("Microsoft Edge", StringComparison.OrdinalIgnoreCase),
+                "browser" =>
+                    executable.Contains(@"\Yandex\YandexBrowser\", StringComparison.OrdinalIgnoreCase) ||
+                    product.Contains("Yandex", StringComparison.OrdinalIgnoreCase),
+                "firefox" =>
+                    executable.Contains(@"\Mozilla Firefox\", StringComparison.OrdinalIgnoreCase) ||
+                    executable.Contains(@"\Mozilla.Firefox_", StringComparison.OrdinalIgnoreCase) ||
+                    product.Contains("Firefox", StringComparison.OrdinalIgnoreCase),
+                _ => false
+            };
+        }
+        catch
+        {
+            return false;
+        }
+    }
 
     private void ViewDownloadsButton_Click(
         object sender,
@@ -410,7 +903,8 @@ public partial class StorageAnalyzerWindow
             if (result != 0)
             {
                 throw new InvalidOperationException(
-                    $"SHEmptyRecycleBin returned 0x{result:X8}.");
+                    SettingsService.L($"Не удалось очистить Корзину. Код ошибки Windows: 0x{result:X8}.",
+                        $"Could not empty Recycle Bin. Windows error: 0x{result:X8}."));
             }
 
             ShowInfoDialog(
@@ -482,22 +976,47 @@ public partial class StorageAnalyzerWindow
 
         try
         {
-            CleanupExecutionResult cleanupResult =
-                await Task.Run(
-                    () =>
-                        ExecuteSafeCleanup(
-                            selected));
+            // The progress dialog owns the worker task. The owner remains
+            // blocked until the worker has actually stopped or completed.
+            SafeCleanupOutcome outcome =
+                ShowSafeCleanupProgressDialog(
+                    selected);
+
+            StatusText.Text = outcome.WasStopped
+                ? SettingsService.L(
+                    "Безопасная очистка остановлена.",
+                    "Safe cleanup stopped.")
+                : SettingsService.L(
+                    "Безопасная очистка завершена.",
+                    "Safe cleanup complete.");
 
             ShowCleanupResultDialog(
-                cleanupResult);
-
-            await StartAnalysisAsync();
+                outcome);
+        }
+        catch (Exception ex)
+        {
+            StatusText.Text = SettingsService.L(
+                "Ошибка очистки. Обновляем данные диска...",
+                "Cleanup error. Refreshing drive data...");
+            ShowInfoDialog(
+                SettingsService.L(
+                    "Ошибка безопасной очистки",
+                    "Safe cleanup error"),
+                SettingsService.L(
+                    $"Очистка прервана из-за ошибки. Некоторые файлы могли быть удалены.\n\n{ex.Message}",
+                    $"Cleanup stopped due to an error. Some files may already have been deleted.\n\n{ex.Message}"));
         }
         finally
         {
             SafeCandidatesCard.IsEnabled =
                 true;
         }
+
+        // Refresh even after a partial cleanup or an unexpected error.
+        StatusText.Text = SettingsService.L(
+            "Обновляем данные диска после очистки...",
+            "Refreshing drive data after cleanup...");
+        await StartAnalysisAsync();
     }
 
 
@@ -1108,57 +1627,270 @@ public partial class StorageAnalyzerWindow
     }
 
 
-    private CleanupExecutionResult ExecuteSafeCleanup(
-        IReadOnlyList<CleanupPlanItem> items)
+    // Safe cleanup intentionally does not use Directory.Delete(recursive: true):
+    // that call can work for a long time without reporting a single file and
+    // cannot be cancelled while it recursively traverses a large directory.
+    private SafeCleanupOutcome ExecuteSafeCleanup(
+        IReadOnlyList<CleanupPlanItem> items,
+        IProgress<SafeCleanupProgress> progress,
+        CancellationToken cancellationToken)
     {
-        long freeBefore =
-            GetAvailableFreeSpace();
+        long freeBefore = GetAvailableFreeSpace();
+        int deletedFiles = 0;
+        int deletedFolders = 0;
+        int skippedEntries = 0;
+        bool wasStopped = false;
+        string currentArea = string.Empty;
+        string currentPath = string.Empty;
+        Stopwatch progressClock = Stopwatch.StartNew();
+        long lastReportMilliseconds = -1000;
+        HashSet<string> blockedBrowserAreas = new(StringComparer.OrdinalIgnoreCase);
 
-        int deletedEntries =
-            0;
-
-        int skippedEntries =
-            0;
-
-        foreach (CleanupPlanItem item
-                 in items)
+        void Report(bool force = false)
         {
-            if (!Directory.Exists(
-                    item.Path))
+            long now = progressClock.ElapsedMilliseconds;
+            if (!force && now - lastReportMilliseconds < 120)
+                return;
+
+            lastReportMilliseconds = now;
+            progress.Report(new SafeCleanupProgress(
+                currentArea,
+                currentPath,
+                deletedFiles,
+                deletedFolders,
+                skippedEntries));
+        }
+
+        foreach (CleanupPlanItem item in items)
+        {
+            if (cancellationToken.IsCancellationRequested)
             {
+                wasStopped = true;
+                break;
+            }
+
+            currentArea = item.Title;
+            currentPath = item.Path;
+            Report(force: true);
+
+            if (!Directory.Exists(item.Path))
+                continue;
+
+            string? browserProcess = GetBrowserProcessForCacheRoot(item.Path);
+            if (browserProcess != null &&
+                (!IsVerifiedBrowserCacheRoot(item.Path) ||
+                 IsBrowserProcessRunning(browserProcess)))
+            {
+                skippedEntries++;
+                blockedBrowserAreas.Add(item.Title);
+                currentPath = SettingsService.L(
+                    "Кэш пропущен: браузер открыт или путь больше не соответствует проверенному каталогу.",
+                    "Cache skipped: the browser is running or the path is no longer verified.");
+                Report(force: true);
                 continue;
             }
 
-            foreach (string child
-                     in EnumerateTopLevelEntriesSafe(
-                         item.Path))
+            // Do not follow directory junctions/reparse points even if a
+            // previously analysed path has since been replaced by a link.
+            try
             {
-                if (TryDeletePathPermanently(
-                        child))
+                if ((File.GetAttributes(item.Path) & FileAttributes.ReparsePoint) != 0)
                 {
-                    deletedEntries++;
+                    skippedEntries++;
+                    Report(force: true);
+                    continue;
+                }
+            }
+            catch
+            {
+                skippedEntries++;
+                Report(force: true);
+                continue;
+            }
+
+            string[] rootChildren;
+            try
+            {
+                rootChildren = Directory.GetFileSystemEntries(item.Path);
+            }
+            catch
+            {
+                skippedEntries++;
+                Report(force: true);
+                continue;
+            }
+
+            // Post-order traversal: remove a directory only after its children.
+            // Root cleanup folders are NEVER put on this stack or deleted.
+            long nextBrowserProcessCheck = 0;
+            Stack<(string Path, bool RemoveDirectory)> pending = new();
+            for (int i = rootChildren.Length - 1; i >= 0; i--)
+                pending.Push((rootChildren[i], false));
+
+            while (pending.Count > 0)
+            {
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    wasStopped = true;
+                    break;
+                }
+
+                // Browser may reopen during a long cleanup. Stop further
+                // changes to its cache without touching any profile files.
+                if (browserProcess != null &&
+                    progressClock.ElapsedMilliseconds >= nextBrowserProcessCheck)
+                {
+                    nextBrowserProcessCheck = progressClock.ElapsedMilliseconds + 350;
+                    if (IsBrowserProcessRunning(browserProcess) ||
+                        !IsVerifiedBrowserCacheRoot(item.Path))
+                    {
+                        skippedEntries++;
+                        blockedBrowserAreas.Add(item.Title);
+                        currentPath = SettingsService.L(
+                            "Браузер запущен или путь изменился. Оставшаяся очистка пропущена.",
+                            "Browser running or path changed. Remaining cleanup skipped.");
+                        Report(force: true);
+                        break;
+                    }
+                }
+
+                (string path, bool removeDirectory) = pending.Pop();
+                currentPath = path;
+
+                if (browserProcess != null &&
+                    !IsSameOrChildPath(Path.GetFullPath(path), Path.GetFullPath(item.Path)))
+                {
+                    skippedEntries++;
+                    Report();
+                    continue;
+                }
+
+                if (removeDirectory)
+                {
+                    try
+                    {
+                        if ((File.GetAttributes(path) & FileAttributes.ReparsePoint) != 0)
+                            throw new IOException(SettingsService.L("Каталог является ссылкой. Удаление отменено.", "Linked directory; not deleting."));
+                        Directory.Delete(path, recursive: false);
+                        deletedFolders++;
+                    }
+                    catch
+                    {
+                        skippedEntries++;
+                    }
+
+                    Report();
+                    continue;
+                }
+
+                // Retain existing structural protection for each individual
+                // entry, including entries added while cleanup is running.
+                // The normal general-delete guard intentionally protects
+                // everything under Microsoft\AppData. Edge's exact verified
+                // Cache root is a much narrower opt-in exception; no other
+                // Microsoft profile contents bypass the general protection.
+                if (browserProcess == null && TryGetDirectDeleteBlockReason(path, out _))
+                {
+                    skippedEntries++;
+                    Report();
+                    continue;
+                }
+
+                FileAttributes attributes;
+                try
+                {
+                    attributes = File.GetAttributes(path);
+                }
+                catch
+                {
+                    skippedEntries++;
+                    Report();
+                    continue;
+                }
+
+                if ((attributes & FileAttributes.ReparsePoint) != 0)
+                {
+                    // Never traverse symlinks or junctions into unknown data.
+                    skippedEntries++;
+                    Report();
+                    continue;
+                }
+
+                if ((attributes & FileAttributes.Directory) != 0)
+                {
+                    string[] children;
+                    try
+                    {
+                        children = Directory.GetFileSystemEntries(path);
+                    }
+                    catch
+                    {
+                        skippedEntries++;
+                        Report();
+                        continue;
+                    }
+
+                    pending.Push((path, true));
+                    for (int i = children.Length - 1; i >= 0; i--)
+                        pending.Push((children[i], false));
                 }
                 else
                 {
-                    skippedEntries++;
+                    try
+                    {
+                        // Some disposable temporary files are read-only.
+                        if ((attributes & FileAttributes.ReadOnly) != 0)
+                            File.SetAttributes(path, attributes & ~FileAttributes.ReadOnly);
+
+                        File.Delete(path);
+                        deletedFiles++;
+                    }
+                    catch
+                    {
+                        skippedEntries++;
+                    }
                 }
+
+                Report();
             }
+
+            Report(force: true);
+            if (wasStopped)
+                break;
         }
 
-        long freeAfter =
-            GetAvailableFreeSpace();
+        // Free space is measured at the end rather than estimated by summing
+        // logical file sizes (which misreports compressed or sparse files).
+        long freeAfter = GetAvailableFreeSpace();
+        long freedBytes = freeBefore > 0 && freeAfter > 0
+            ? Math.Max(0, freeAfter - freeBefore)
+            : 0;
 
-        long freedBytes =
-            Math.Max(
-                0,
-                freeAfter -
-                freeBefore);
-
-        return new CleanupExecutionResult(
-            freedBytes,
-            deletedEntries,
-            skippedEntries);
+        Report(force: true);
+        return new SafeCleanupOutcome(
+            new CleanupExecutionResult(
+                freedBytes,
+                deletedFiles + deletedFolders,
+                skippedEntries),
+            deletedFiles,
+            deletedFolders,
+            wasStopped || cancellationToken.IsCancellationRequested,
+            blockedBrowserAreas.OrderBy(name => name).ToArray());
     }
+
+    private sealed record SafeCleanupProgress(
+        string Area,
+        string CurrentPath,
+        int DeletedFiles,
+        int DeletedFolders,
+        int SkippedEntries);
+
+    private sealed record SafeCleanupOutcome(
+        CleanupExecutionResult Result,
+        int DeletedFiles,
+        int DeletedFolders,
+        bool WasStopped,
+        IReadOnlyList<string> BlockedBrowserAreas);
 
 
     private static string[] EnumerateTopLevelEntriesSafe(

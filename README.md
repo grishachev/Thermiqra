@@ -1,262 +1,199 @@
 # Thermiqra
 
-<p align="center">
-  <strong>Thermiqra 1.0.0 — hardware monitoring, SMART drive diagnostics and storage analysis for Windows 10/11.</strong>
-  <br>
-  <strong>Thermiqra 1.0.0 — мониторинг оборудования, SMART-диагностика накопителей и анализ дисков для Windows 10/11.</strong>
-</p>
+**Know your hardware. Follow its history. Understand what takes up space.**
 
-<p align="center">
-  <a href="https://github.com/grishachev/Thermiqra/releases/latest">
-    <img src="https://img.shields.io/github/v/release/grishachev/Thermiqra?label=release" alt="Latest release">
-  </a>
-  <img src="https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-blue" alt="Windows 10 and 11">
-  <img src="https://img.shields.io/badge/.NET-10-512BD4" alt=".NET 10">
-  <img src="https://img.shields.io/badge/languages-English%20%7C%20Русский-6f42c1" alt="English and Russian">
-</p>
+Thermiqra is a free Windows desktop application that brings hardware monitoring, diagnostics, local history, disk analysis and application removal into one place. It explains the readings it can obtain and says when the available evidence is insufficient.
 
-<p align="center">
-  <img src="thermiqra-main.png" alt="Thermiqra main monitoring window" width="820">
-</p>
+[Download the latest release](https://github.com/grishachev/Thermiqra/releases/latest) · [What's changing](CHANGELOG.md) · [Report a problem](https://github.com/grishachev/Thermiqra/issues)
 
-<p align="center">
-  <a href="https://github.com/grishachev/Thermiqra/releases/download/v1.0.0/Thermiqra_Setup_1.0.0.exe"><strong>Download Thermiqra 1.0.0 / Скачать Thermiqra 1.0.0</strong></a>
-</p>
+![Windows 10 and 11 x64](https://img.shields.io/badge/Windows-10%20%2F%2011%20x64-0078D4)
+![English and Russian](https://img.shields.io/badge/interface-English%20%2F%20Russian-6f42c1)
+![Local data](https://img.shields.io/badge/data-stored%20locally-22863a)
 
-Thermiqra is a native Windows desktop application for monitoring PC hardware in real time. It combines live CPU/GPU/RAM/storage data, detailed system information, memory diagnostics, local statistics, alerts, storage analysis, practical explanations, upgrade guidance, reporting and built-in updates in one application.
+> **Thermiqra 1.1.0** adds application removal, a compact tray monitor and project-key update verification. Features marked **New** below are new in 1.1.0. See the release page for version-specific downloads and notes.
 
-## Highlights
+## What's new in 1.1.0
 
-| Area | What Thermiqra provides |
+| Area | What changes |
 | --- | --- |
-| **Live monitoring** | CPU, GPU, RAM, physical storage and logical drive monitoring with one-second updates |
-| **CPU threads** | Live load view for individual logical processors directly from the CPU monitor |
-| **System information** | Detailed hardware and Windows information in a dedicated system view |
-| **Memory diagnostics** | RAM module information, SPD data, JEDEC information, XMP 2.0 profiles, timings and upgrade information |
-| **SMART drive diagnostics** | ATA SMART attributes and firmware thresholds for supported SATA drives, standard NVMe SMART/Health counters, and clear evidence-based drive statuses |
-| **Smart Guidance** | Plain-language explanations of important hardware states without hiding the underlying technical values |
-| **Upgrade Advisor** | Conservative upgrade suggestions based on installed hardware and repeated real usage, with benchmark periods excluded from recommendations |
-| **Storage analyzer** | Fast NTFS/MFT analysis, full folder hierarchy, contextual explanations, safe cleanup, Downloads/Recycle Bin actions and user-confirmed deletion |
-| **Statistics** | Local SQLite history for Today, 24 hours, 7 days and 30 days, with charts, averages, maxima and timestamps |
-| **Reports and export** | Technical diagnostic TXT report, raw statistics CSV export and visual HTML summary report with charts |
-| **History analytics** | Period comparison, recent summaries and recurring warning analysis based on local monitoring history |
-| **Hardware changes** | One-shot detection of meaningful hardware configuration changes |
-| **Alerts** | Custom themed Warning/Critical/Info notifications, selectable sounds, configurable thresholds and Warning/Critical event history |
-| **Themes** | Cyber Tech, SteamPunk, Frost Core and Military Ops |
-| **Localization** | Full English and Russian interface with automatic System language mode |
-| **Background operation** | System tray support, temperature tooltip and elevated autostart through Windows Task Scheduler |
-| **Removable drives** | Connected removable USB volumes appear dynamically without restarting Thermiqra |
-| **Updates** | In-app GitHub Release checks, release notes, progress display, SHA-256 verification, cancelable downloads and automatic installation |
+| **Application removal — New** | Installed Windows and Microsoft Store applications, native uninstallers, installation history, leftover inspection, recovery and automatic verification after cleanup |
+| **Tray monitoring panel — New** | Compact CPU/GPU/RAM readings, hover by default, optional persistent display, four distinct skins, and cooperation with neighboring tray menus and tooltips |
+| **CPU detail** | Logical-processor load view, clearer core/thread information and improved clock presentation |
+| **Disk analysis** | Large total, used and free capacity figures at the top, including a clear state when values are unavailable |
+| **Hardware compatibility** | Additional graphics and storage information sources, careful fallback handling and clearer boundaries between known and unavailable health data |
+| **Update protection — New** | Installer verification with a built-in public key, required SHA-256 and another check before launch; no paid Windows signing certificate required |
+| **Interface quality** | English/Russian translation fixes, compact cleanup results, visible progress and consistent themed operation screens |
+| **Regression coverage — New** | Automated checks, a Windows CI workflow and an EXE/MSI regression suite exercised in disposable Windows |
 
-## Screenshots
+Read the [detailed change log](CHANGELOG.md) for behavior, fixes and limitations.
 
-The screenshots are currently shown with the Russian interface. Thermiqra also includes a complete English localization.
+## At a glance
 
-### System information and statistics
+| Feature | What you can do |
+| --- | --- |
+| **Live monitoring** | Follow CPU/GPU temperature and load, RAM usage, drive space and available storage temperatures |
+| **CPU detail** | Inspect individual logical-processor load and available clock information |
+| **System information** | Inspect processor, graphics, motherboard, memory, storage and Windows details |
+| **Memory diagnostics** | Read available module/slot information, SPD, JEDEC and XMP 2.0 profiles |
+| **Storage health** | Inspect available ATA SMART and NVMe health evidence, warnings and technical details |
+| **Statistics** | Explore local SQLite history for Today, 24 hours, 7 days and 30 days, with charts, averages, maxima and timestamps |
+| **Hardware changes** | Review detected changes in the observed hardware configuration |
+| **Reports** | Export diagnostic TXT, statistics CSV and visual HTML summaries |
+| **Disk analysis** | Browse drive → folder → file usage, examine large branches and preview cleanup |
+| **Application management — New** | Run native uninstallers and inspect supported leftovers without repeatedly switching Thermiqra windows |
+| **Guidance** | Read explanations and conservative upgrade suggestions based on available hardware and repeated usage |
+| **Alerts** | Configure thresholds, themed notifications, sounds and warning/critical event history |
+| **Appearance** | Choose Cyber Tech, SteamPunk, Frost Core or Military Ops, in English or Russian |
 
-<p align="center">
-  <img src="thermiqra-system-info.png" alt="Thermiqra system information" width="49%">
-  <img src="thermiqra-statistics.png" alt="Thermiqra statistics" width="49%">
-</p>
+## Screenshots and interface previews
 
-### Themes
+All examples below use the English interface. These are existing renders of Thermiqra's actual UI components with illustrative readings and example application paths, prepared during interface and localization checks. They demonstrate layout and appearance, rather than hardware results from a particular computer.
 
-Thermiqra includes four complete interface skins. The screenshot below shows the SteamPunk skin.
+### Compact monitoring in all four skins — New
 
-<p align="center">
-  <img src="thermiqra-steampunk.png" alt="Thermiqra SteamPunk theme" width="820">
-</p>
+| Cyber Tech | SteamPunk |
+| --- | --- |
+| ![Cyber Tech tray panel](docs/screenshots/tray-cyber-tech.png) | ![SteamPunk tray panel](docs/screenshots/tray-steampunk.png) |
+| **Frost Core** | **Military Ops** |
+| ![Frost Core tray panel](docs/screenshots/tray-frost-core.png) | ![Military Ops tray panel](docs/screenshots/tray-military-ops.png) |
 
-## Current release — 1.0.0
+### Leftover review — New
 
-**Thermiqra 1.0.0 is the first stable release.** The main addition is evidence-based storage health diagnostics, while the existing monitoring, storage analysis, history and updater remain part of the application.
+Confirmed application files, settings/data, items requiring review and protected objects appear in compact groups. You can expand the reasons when needed.
 
-**[Download Thermiqra_Setup_1.0.0.exe](https://github.com/grishachev/Thermiqra/releases/download/v1.0.0/Thermiqra_Setup_1.0.0.exe)** · [Full release notes / Полный список изменений](https://github.com/grishachev/Thermiqra/releases/tag/v1.0.0)
+![English leftover review with illustrative application paths](docs/screenshots/leftover-review.png)
 
-### Русский — что нового в 1.0.0
+<details>
+<summary>English settings example</summary>
 
-- Расширена SMART-диагностика HDD, SATA SSD и NVMe SSD с использованием данных, действительно полученных от накопителей.
-- Для поддерживаемых ATA-накопителей доступны атрибуты SMART, пороги производителя и раскрываемые технические подробности.
-- Для NVMe отображаются доступные показатели SMART/Health: предупреждения контроллера, износ, ошибки, температура, объёмы чтения/записи и циклы питания.
-- Состояние накопителя сопровождается объяснением: норма, требуется внимание, критично или недостаточно данных. Thermiqra не придумывает «процент здоровья».
-- Добавлено запоминание положения и размеров изменяемых окон. Анализатор дисков сохраняет предусмотренное поведение открытия по размеру главного окна.
-- Улучшено представление системной информации и технических параметров накопителей.
-- Сохранены русский и английский интерфейсы и четыре темы оформления.
+![English settings in Frost Core](docs/screenshots/settings-frost-core.png)
 
-### English — what's new in 1.0.0
+</details>
 
-- Expanded HDD, SATA SSD and NVMe SSD diagnostics using actual SMART/Health data returned by the devices.
-- Added ATA SMART attribute details and drive-reported thresholds where supported.
-- Expanded available NVMe health metrics: controller warnings, wear, errors, temperature, read/write totals and power cycles.
-- Added understandable drive status explanations: normal, attention required, critical or insufficient data. Thermiqra does not invent a health percentage.
-- Added persistence of positions and sizes for resizable windows. Storage Analyzer continues to open with the main window's geometry as designed.
-- Improved the System Information presentation and detailed storage diagnostics.
-- Retained Russian and English localization and four interface themes.
+## Hardware readings you can interpret
 
-Detailed historical changes, including the 0.9.0 storage analyzer redesign, are available on the [Releases](https://github.com/grishachev/Thermiqra/releases) page.
+Thermiqra uses available hardware sensors and Windows information sources. What a particular PC exposes depends on its devices, firmware, drivers, controller and connection type.
 
-## First-run introduction and guidance
+- CPU and GPU temperatures, utilization and available clocks.
+- GPU Hot Spot and VRAM temperatures where exposed.
+- RAM usage and available module/slot details.
+- Physical storage temperatures and logical-volume capacity.
+- ATA SMART attributes and supported NVMe health information.
+- A logical-processor load view accessible from the CPU monitor.
 
-Thermiqra includes a short introduction for new users. It explains the main monitoring areas, where to find additional information and how Thermiqra works in the background.
+**Unavailable is not the same as healthy.** Thermiqra does not invent a universal health percentage or label a disk healthy merely because no temperature or failure flag was returned. Unsupported or incomplete readings remain explicitly unavailable or insufficient. A health report is diagnostic evidence, not a guarantee against future hardware failure.
 
-The introduction can be skipped and opened again later from Settings.
+Memory profile information has the same boundary: an XMP profile stored in SPD does not by itself prove that the profile is currently active.
 
-Smart Guidance is designed to explain what a value means and when it may deserve attention without replacing the actual hardware readings or inventing a synthetic PC health score.
+## Local history, explanations and reports
 
-## Upgrade Advisor
+Monitoring history is stored locally in SQLite. Charts show available CPU, GPU, RAM and per-device storage measurements, together with averages, maxima and timestamps. You can compare periods, inspect recurring warning/critical events and review hardware records.
 
-The **What can be improved** section uses information Thermiqra can actually observe.
+Smart Guidance explains important readings alongside the underlying values. Upgrade Advisor looks for repeated usage evidence; a single spike does not justify an upgrade recommendation, and recognized benchmark activity is excluded from its evidence. Thermiqra does not invent FPS gains or an overall PC score.
 
-Recommendations are intentionally conservative:
+Export a technical TXT report when troubleshooting, CSV statistics for further analysis or an HTML summary with charts. The first-run introduction can be reopened from Settings.
 
-- a single short spike is not enough for an upgrade recommendation
-- repeated real-world evidence matters more than one isolated reading
-- recognized benchmark activity is excluded from Advisor evidence
-- Thermiqra does not invent FPS gains or arbitrary overall PC scores
-- when the available data is not sufficient, Thermiqra does not pretend to know the answer
+## Disk analysis and cleanup
 
-## Memory diagnostics
+The Storage Analyzer shows an expandable hierarchy with file/folder counts, logical and allocated sizes, usage shares and the largest branches. **Version 1.1.0 places total, used and free capacity directly in the top drive block**, so the headline figures are visible immediately.
 
-Thermiqra's System Information view includes detailed RAM diagnostics where supported by the hardware and driver stack:
+NTFS volumes can use a fast MFT-based path. Other supported file systems use directory traversal. Connected removable volumes can appear without restarting Thermiqra.
 
-- installed memory modules and slot information
-- SPD information
-- JEDEC information
-- XMP 2.0 profile detection
-- SPD/XMP timing information
-- occupied and available slot information for upgrades
+Safe Cleanup previews known cleanup candidates before making changes. Unknown folders do not become disposable just because their names resemble temporary data. Where a cache rule only permits deleting contents, the containing folder is preserved. Downloads and Recycle Bin have dedicated actions; ordinary file deletion remains an explicit user action, with available Recycle Bin/permanent-delete choices.
 
-> Thermiqra reports XMP profiles stored in SPD data. It does not claim that a specific XMP profile is currently active unless that state can be determined reliably.
+## Application removal and recovery — New
 
-## Drive health: ATA SMART and NVMe SMART/Health
+### One workflow, visible progress
 
-Thermiqra reads supported storage health information **on demand**, rather than running an expensive continuous SMART scan.
+Thermiqra lists Windows applications from supported machine/user registrations and handles Microsoft Store/MSIX applications separately. Program icons are resolved from available registration, executable and shortcut information. A portable executable without an installation registration is not necessarily an installed application and may not appear in this list.
 
-- **HDD / SATA SSD:** ATA SMART attributes, normalized values and firmware-reported failure thresholds where Windows and the drive expose them; relevant disk error indicators are explained when available.
-- **NVMe SSD:** standard SMART/Health information, including critical warning flags, available spare, percentage used, power-on hours, error counters, unsafe shutdowns, data read/written and power cycles where accessible.
-- **Health status:** clear normal / attention / critical / insufficient-data indicators based on observed information. A percentage is displayed only when it is a meaningful device-provided measurement, not a fabricated overall score.
-- **Technical details:** expandable information remains available for experienced users without overwhelming less technical users.
+The removal workflow keeps Thermiqra's own stages in one window: confirmation, restore-point handling, native removal, leftover review, cleanup and verification. A vendor's own uninstaller may still display its own window.
 
-Not every controller or USB bridge exposes SMART information. Missing fields remain unavailable rather than being treated as zero or as proof that a device is healthy.
+Thermiqra records observed installations and changes while it runs and saves information before removal. This improves later inspection; it is **not** a complete installation-activity recorder and cannot reconstruct every change made before Thermiqra observed the application.
 
-## Statistics and history
+### Cleanup based on evidence
 
-Monitoring history is stored locally in SQLite. Thermiqra provides:
+- Inspect known installation paths, supported product settings/data locations, registry entries and related shortcuts.
+- Use saved observations and product identity alongside the current installed-program inventory.
+- Select eligible, confirmed leftovers by default; show ambiguous and protected objects separately.
+- Revalidate objects immediately before cleanup, including changes since inspection, shared ownership and links.
+- Protect system locations, shared/vendor roots and Windows-managed package directories.
+- Keep canceled, failed, incomplete or restart-pending removal distinct from confirmed completion.
+- Save attempts and results so an application disappearing from the installed list does not erase the removal history.
 
-- Today / 24h / 7d / 30d periods
-- CPU temperature and load history
-- GPU temperature, load, Hot Spot and VRAM temperature when available
-- RAM usage history
-- per-device storage temperature history
-- interactive historical charts
-- average and maximum values with timestamps
-- all-time hardware records
-- Warning/Critical event history
-- manual statistics clearing
-- period comparison and history analytics
-- CSV export and HTML summary reporting
+Selected application data folders include the settings, accounts, projects or saves stored inside them. Review that selection if you want to keep such data. Parent vendor folders and unrelated products are not cleanup targets merely because they share a name.
 
-## Storage analysis
+### Recovery and final verification
 
-Thermiqra includes a dedicated storage analyzer for understanding where disk space is going and acting on it without leaving the application for every step.
+Eligible files go to the Windows Recycle Bin. Registry changes use Thermiqra's typed backup format and can be restored from **Recovery**; this is not a plain `.reg` export. Windows restore-point creation and its failures are handled explicitly where requested or required. Windows quotas and restore-point frequency limits are not bypassed.
 
-For NTFS volumes, Thermiqra can use a fast MFT-based analysis path. For exFAT, FAT32 and other supported file systems, it falls back to safe directory traversal.
+Cleanup is followed by a fresh inspection automatically. The result distinguishes no leftovers in the checked locations, remaining objects and inspection limitations. A long per-file journal stays behind an expandable control.
 
-The analyzer provides:
+**This is not a promise to remove every trace of every application.** Arbitrary services, drivers, scheduled tasks, firewall rules, shell extensions and externally stored user files are not covered by a universal cleanup engine. Windows manages Store package files and may retain them for other users or servicing; Thermiqra does not forcibly delete `WindowsApps`.
 
-- expandable drive, folder, subfolder and file hierarchy
-- logical and allocated file sizes
-- file and directory counts
-- size/share information
-- largest branches and files
-- contextual explanations for selected folders and files
-- automatic navigation to important storage items
-- conservative Safe Cleanup for known cleanup scenarios
-- Downloads and Recycle Bin shortcuts
-- user-confirmed file and folder deletion
-- automatic refresh after cleanup or deletion
+## Tray monitoring that stays out of the way — New
 
-**Safe Cleanup never silently treats an unknown folder as disposable.** Before cleanup, Thermiqra shows what will be cleaned and lets the user deselect individual items.
+Hover over the Thermiqra tray icon for a compact CPU/GPU/RAM panel. **Hover is the default**; Settings can keep the panel visible instead. Each skin has its own layout and visual treatment.
 
-For known cache locations where only contents should be removed, Thermiqra preserves the parent folder.
+In persistent mode, simply moving across the taskbar or neighboring icons does not dismiss the panel. Other tray tooltips can appear above it. Opening a neighboring tray menu temporarily hides it, and it can return after the menu closes. The panel does not take keyboard focus.
 
-Ordinary files and folders are deleted only after an explicit user action. When applicable, Thermiqra offers a choice between moving the item to the Recycle Bin and permanent deletion.
+The panel reuses existing monitoring readings instead of starting a second hardware collector. GPU temperature and utilization belong to the same selected GPU. Missing values stay unavailable.
 
-Removable USB volumes are detected dynamically and can be analyzed without restarting Thermiqra.
+## Updates and verification
 
-## Automatic updates
+Thermiqra checks GitHub Releases, shows a compact summary and can download/install an update while preserving settings and statistics. You can cancel a download or open the full release notes.
 
-Thermiqra checks GitHub Releases for newer versions and can install them automatically.
+**Starting with the 1.1.0 updater**, an installer must match its SHA-256 and a signature verified with Thermiqra's embedded public key. The signed metadata binds the exact version, file name, size and hash. Verification is repeated before launch. Missing or invalid required verification data stops that update.
 
-When an update is available, Thermiqra can show the release notes, download the matching installer, display download progress, verify the SHA-256 digest when GitHub provides one, start the installer in silent mode and launch Thermiqra again after installation.
+This uses the project's own offline signing key, **not paid Authenticode certification**. It does not remove Windows SmartScreen warnings or change the UAC publisher name.
 
-Updates can also be checked manually from the system tray.
+**Transition:** existing 1.0.0 installations obtain this update using their existing updater. They cannot retroactively gain the new signature check before installing it. The new verification protects subsequent updates. First-time downloads and protection of the release account/private key remain separate considerations.
 
-Starting with 0.8.1, the update download can be canceled safely. Closing the progress window or pressing **Cancel / Отмена** cancels the active download, and the main application remains usable.
+Release assets for the new updater include the installer, its `.exe.signature.json` file and a `.exe.sha256` checksum. See [release-signing documentation](Tools/ReleaseSigning/README.md) for the maintainer workflow. Private keys are not distributed with the source, installer or CI.
 
-Thermiqra 0.6.1 and 0.6.2 contain an older updater bug that can prevent automatic installation after the installer download completes. Users on those versions should install 0.6.3 or newer manually once. After that, future releases can use the corrected in-app update flow.
+Very old 0.6.0–0.6.2 installations should install a newer release manually once because of limitations in those historical update flows.
 
-Users running Thermiqra 0.6.0 or earlier also need to install a newer release manually before using the in-app update flow.
+## Reliability work
 
-## Localization
+The current local validation baseline includes **268 passing automated checks**, plus a separate disposable-Windows EXE/MSI run with **16 scenarios and 424 successful assertions**. The latter was run on November 16, 2026; it is not a claim that every later change received a new full guest run.
 
-Thermiqra supports:
+Coverage includes storage-health interpretation, protected paths, shared components, product separation, observed changes, registry recovery/collisions, failed/canceled removal, active child processes, restart handling, update integrity/signatures, English/Russian text and four-skin UI states. A native-window test also covers tray panel/tooltip stacking.
 
-- **System** — Russian Windows uses Russian; other Windows UI languages use English
-- **English**
-- **Русский**
+The real Windows suite exercises purpose-built EXE and MSI applications, not hundreds of arbitrary commercial programs. Full Windows rollback through System Restore is separate from recovery of Thermiqra's registry backups and test files. A Windows GitHub Actions workflow is included; local results are not presented as proof that a remote Actions run has succeeded.
 
-The main monitor, Settings, Statistics, System Information, Storage Analyzer, cleanup/delete dialogs, first-run introduction, tray menu, notifications and update interface are localized.
+See [validation notes](RELIABILITY_CHECKS.md), [the removal matrix and saved report](Tools/RemovalLab/Matrix/README.md), [automated tests](Thermiqra.Tests) and [localization checks](Tools/LocalizationAudit/README.md). Development notes may remain in Russian; the public overview and release description are English.
 
-## Technology
+## Requirements and installation
 
-- C# / WPF
-- .NET 10
-- LibreHardwareMonitorLib 0.9.6
-- Microsoft.Data.Sqlite
-- System.Management
-- PawnIO
-- Inno Setup
+- **Windows 10 or Windows 11, x64.** Windows 7/8 are not supported.
+- Administrator rights: the application requests elevation for hardware access and privileged operations.
+- Hardware/driver support for the measurements you want to inspect.
+- PawnIO for supported low-level hardware access.
 
-## System requirements
+Download the installer from [GitHub Releases](https://github.com/grishachev/Thermiqra/releases/latest). Thermiqra runs locally without an account or mandatory cloud service. Update checks/downloads use GitHub.
 
-- Windows 10 or Windows 11
-- x64 system
-- administrator rights for installation and full hardware access
-- PawnIO for supported low-level hardware access
+Settings, statistics and application-management records are stored under `%LocalAppData%\Thermiqra`. Thermiqra's uninstaller can keep or remove its settings/history. PawnIO is not automatically removed with Thermiqra because other software may use it.
 
-## Build
+## Build and checks
 
-Main project:
-
-`PCHardwareMonitor/PCHardwareMonitor.csproj`
-
-The Release build uses `win-x64` and self-contained publishing:
+The internal project/namespace remains `PCHardwareMonitor`; the public application name is Thermiqra. The application uses C#, WPF, .NET 10, LibreHardwareMonitor, Microsoft.Data.Sqlite, Windows management interfaces and Inno Setup.
 
 ```powershell
-dotnet publish .\PCHardwareMonitor\PCHardwareMonitor.csproj -c Release -r win-x64 --self-contained true -o .\PCHardwareMonitor\bin\Release\net10.0-windows\win-x64\publish
+dotnet build PCHardwareMonitor/PCHardwareMonitor.csproj -c Debug
+dotnet test Thermiqra.Tests/Thermiqra.Tests.csproj -c Debug
+dotnet run --project Tools/LocalizationAudit/LocalizationAudit.csproj
 ```
 
-## Installer
+For a self-contained x64 publish:
 
-Inno Setup script:
+```powershell
+dotnet publish PCHardwareMonitor/PCHardwareMonitor.csproj -c Release -r win-x64 --self-contained true -o PCHardwareMonitor/bin/Release/net10.0-windows/win-x64/publish
+```
 
-`Installer/Thermiqra.iss`
+The installer script is [Installer/Thermiqra.iss](Installer/Thermiqra.iss). Its PawnIO dependency is intentionally not committed; a local installer build requires `Installer/Dependencies/PawnIO_setup.exe`. Running the disposable Windows removal matrix is a separate, explicit procedure described in its documentation.
 
-`PawnIO_setup.exe` is intentionally not stored in the repository. For a local installer build, place it at:
+## Feedback and license
 
-`Installer/Dependencies/PawnIO_setup.exe`
+When reporting a problem, include the Thermiqra version, Windows version, affected device/application and the relevant diagnostic report or screenshot. Review reports before sharing them: hardware identifiers, user paths and installed-program details may be personal.
 
-PawnIO is installed by the Thermiqra installer but is not automatically removed with Thermiqra because it may be used by other software.
-
-## User data
-
-Thermiqra stores user settings and local statistics in:
-
-`%LocalAppData%\Thermiqra`
-
-During uninstall, the user can choose whether to keep or remove Thermiqra settings and history.
-
-## Project note
-
-The public application name is **Thermiqra**. The internal project name and namespace currently remain `PCHardwareMonitor`.
+Thermiqra is **free to use**, but its original source and assets are proprietary. A public repository does not grant an open-source license. See [LICENSE](LICENSE) and [third-party notices](THIRD_PARTY_NOTICES.md) for the applicable terms.

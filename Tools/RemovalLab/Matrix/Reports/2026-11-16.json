@@ -1,0 +1,1832 @@
+{
+  "Status": "Passed",
+  "Environment": "",
+  "StartedUtc": "2026-11-16T09:52:47.7767885Z",
+  "FinishedUtc": "2026-11-16T10:15:13.4741363Z",
+  "Cases": [
+    {
+      "Id": "Normal",
+      "Status": "Passed",
+      "Detail": "",
+      "BaselineId": "",
+      "Checks": [
+        {
+          "Description": "Neighbor file unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor registry key unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Restored registry types and contents match the independent manifest",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed-program sources available",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture recognized by real discovery",
+          "Passed": true
+        },
+        {
+          "Description": "Uninstall remains inspectable in history",
+          "Passed": true
+        },
+        {
+          "Description": "Native removal confirmed",
+          "Passed": true
+        },
+        {
+          "Description": "Selected cleanup actions completed",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture directory absent: C:\\Users\\WDAGUtilityAccount\\AppData\\Local\\Programs\\ThermiqraMatrixNormal",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture directory absent: C:\\Users\\WDAGUtilityAccount\\AppData\\Roaming\\ThermiqraMatrixNormal",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture directory absent: C:\\Users\\WDAGUtilityAccount\\AppData\\Local\\ThermiqraMatrixNormal",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture registry key absent: Registry64",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture registry key absent: Registry32",
+          "Passed": true
+        },
+        {
+          "Description": "Native uninstall registration absent",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor file unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor registry key unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Real discovery finds no remaining fixture objects",
+          "Passed": true
+        }
+      ]
+    },
+    {
+      "Id": "PartialError",
+      "Status": "Passed",
+      "Detail": "",
+      "BaselineId": "",
+      "Checks": [
+        {
+          "Description": "Neighbor file unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor registry key unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Restored registry types and contents match the independent manifest",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed-program sources available",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture recognized by real discovery",
+          "Passed": true
+        },
+        {
+          "Description": "Uninstall remains inspectable in history",
+          "Passed": true
+        },
+        {
+          "Description": "Error with removed registration still allows inspection",
+          "Passed": true
+        },
+        {
+          "Description": "Selected cleanup actions completed",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture directory absent: C:\\Users\\WDAGUtilityAccount\\AppData\\Local\\Programs\\ThermiqraMatrixPartialError",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture directory absent: C:\\Users\\WDAGUtilityAccount\\AppData\\Roaming\\ThermiqraMatrixPartialError",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture directory absent: C:\\Users\\WDAGUtilityAccount\\AppData\\Local\\ThermiqraMatrixPartialError",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture registry key absent: Registry64",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture registry key absent: Registry32",
+          "Passed": true
+        },
+        {
+          "Description": "Native uninstall registration absent",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor file unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor registry key unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Real discovery finds no remaining fixture objects",
+          "Passed": true
+        }
+      ]
+    },
+    {
+      "Id": "Error",
+      "Status": "Passed",
+      "Detail": "",
+      "BaselineId": "",
+      "Checks": [
+        {
+          "Description": "Neighbor file unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor registry key unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Restored registry types and contents match the independent manifest",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed-program sources available",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture recognized by real discovery",
+          "Passed": true
+        },
+        {
+          "Description": "Uninstall remains inspectable in history",
+          "Passed": true
+        },
+        {
+          "Description": "Native outcome classified: Failed",
+          "Passed": true
+        },
+        {
+          "Description": "No additional cleanup after cancellation, retained registration or pending reboot",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor file unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor registry key unchanged",
+          "Passed": true
+        }
+      ]
+    },
+    {
+      "Id": "Cancel",
+      "Status": "Passed",
+      "Detail": "",
+      "BaselineId": "",
+      "Checks": [
+        {
+          "Description": "Neighbor file unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor registry key unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Restored registry types and contents match the independent manifest",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed-program sources available",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture recognized by real discovery",
+          "Passed": true
+        },
+        {
+          "Description": "Uninstall remains inspectable in history",
+          "Passed": true
+        },
+        {
+          "Description": "Native outcome classified: Unconfirmed",
+          "Passed": true
+        },
+        {
+          "Description": "No additional cleanup after cancellation, retained registration or pending reboot",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor file unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor registry key unchanged",
+          "Passed": true
+        }
+      ]
+    },
+    {
+      "Id": "Helper",
+      "Status": "Passed",
+      "Detail": "",
+      "BaselineId": "",
+      "Checks": [
+        {
+          "Description": "Neighbor file unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor registry key unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Restored registry types and contents match the independent manifest",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed-program sources available",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture recognized by real discovery",
+          "Passed": true
+        },
+        {
+          "Description": "Uninstall remains inspectable in history",
+          "Passed": true
+        },
+        {
+          "Description": "Native removal confirmed",
+          "Passed": true
+        },
+        {
+          "Description": "Running child prevents cleanup after parent exit",
+          "Passed": true
+        },
+        {
+          "Description": "Child completion unlocks a fresh inspection",
+          "Passed": true
+        },
+        {
+          "Description": "Selected cleanup actions completed",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture directory absent: C:\\Users\\WDAGUtilityAccount\\AppData\\Local\\Programs\\ThermiqraMatrixHelper",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture directory absent: C:\\Users\\WDAGUtilityAccount\\AppData\\Roaming\\ThermiqraMatrixHelper",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture directory absent: C:\\Users\\WDAGUtilityAccount\\AppData\\Local\\ThermiqraMatrixHelper",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture registry key absent: Registry64",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture registry key absent: Registry32",
+          "Passed": true
+        },
+        {
+          "Description": "Native uninstall registration absent",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor file unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor registry key unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Real discovery finds no remaining fixture objects",
+          "Passed": true
+        }
+      ]
+    },
+    {
+      "Id": "Locked",
+      "Status": "Passed",
+      "Detail": "",
+      "BaselineId": "",
+      "Checks": [
+        {
+          "Description": "Neighbor file unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor registry key unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Restored registry types and contents match the independent manifest",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed-program sources available",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture recognized by real discovery",
+          "Passed": true
+        },
+        {
+          "Description": "Uninstall remains inspectable in history",
+          "Passed": true
+        },
+        {
+          "Description": "Native removal confirmed",
+          "Passed": true
+        },
+        {
+          "Description": "Locked content is either retained or confirmed recycled; no permanent fallback",
+          "Passed": true
+        },
+        {
+          "Description": "Retained locked file unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Selected cleanup actions completed",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture directory absent: C:\\Users\\WDAGUtilityAccount\\AppData\\Local\\Programs\\ThermiqraMatrixLocked",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture directory absent: C:\\Users\\WDAGUtilityAccount\\AppData\\Roaming\\ThermiqraMatrixLocked",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture directory absent: C:\\Users\\WDAGUtilityAccount\\AppData\\Local\\ThermiqraMatrixLocked",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture registry key absent: Registry64",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture registry key absent: Registry32",
+          "Passed": true
+        },
+        {
+          "Description": "Native uninstall registration absent",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor file unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor registry key unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Real discovery finds no remaining fixture objects",
+          "Passed": true
+        }
+      ]
+    },
+    {
+      "Id": "Denied",
+      "Status": "Passed",
+      "Detail": "",
+      "BaselineId": "",
+      "Checks": [
+        {
+          "Description": "Neighbor file unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor registry key unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Restored registry types and contents match the independent manifest",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed-program sources available",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture recognized by real discovery",
+          "Passed": true
+        },
+        {
+          "Description": "Uninstall remains inspectable in history",
+          "Passed": true
+        },
+        {
+          "Description": "Native removal confirmed",
+          "Passed": true
+        },
+        {
+          "Description": "Access denial is reported, not successful deletion",
+          "Passed": true
+        },
+        {
+          "Description": "Selected cleanup actions completed",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture directory absent: C:\\Users\\WDAGUtilityAccount\\AppData\\Local\\Programs\\ThermiqraMatrixDenied",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture directory absent: C:\\Users\\WDAGUtilityAccount\\AppData\\Roaming\\ThermiqraMatrixDenied",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture directory absent: C:\\Users\\WDAGUtilityAccount\\AppData\\Local\\ThermiqraMatrixDenied",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture registry key absent: Registry64",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture registry key absent: Registry32",
+          "Passed": true
+        },
+        {
+          "Description": "Native uninstall registration absent",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor file unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor registry key unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Real discovery finds no remaining fixture objects",
+          "Passed": true
+        }
+      ]
+    },
+    {
+      "Id": "Shared",
+      "Status": "Passed",
+      "Detail": "",
+      "BaselineId": "",
+      "Checks": [
+        {
+          "Description": "Neighbor file unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor registry key unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Restored registry types and contents match the independent manifest",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed-program sources available",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture recognized by real discovery",
+          "Passed": true
+        },
+        {
+          "Description": "Uninstall remains inspectable in history",
+          "Passed": true
+        },
+        {
+          "Description": "Native removal confirmed",
+          "Passed": true
+        },
+        {
+          "Description": "Referenced shared DLL remains",
+          "Passed": true
+        },
+        {
+          "Description": "Shared-component reference count unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Other application\u0027s uninstall registration remains",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor file unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor registry key unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Protected or unchecked resources cannot become a clean result",
+          "Passed": true
+        }
+      ]
+    },
+    {
+      "Id": "Reparse",
+      "Status": "Passed",
+      "Detail": "",
+      "BaselineId": "",
+      "Checks": [
+        {
+          "Description": "Neighbor file unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor registry key unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Restored registry types and contents match the independent manifest",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed-program sources available",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture recognized by real discovery",
+          "Passed": true
+        },
+        {
+          "Description": "Uninstall remains inspectable in history",
+          "Passed": true
+        },
+        {
+          "Description": "Native removal confirmed",
+          "Passed": true
+        },
+        {
+          "Description": "Linked folder excluded",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor file unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor registry key unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Protected or unchecked resources cannot become a clean result",
+          "Passed": true
+        }
+      ]
+    },
+    {
+      "Id": "Restore",
+      "Status": "Passed",
+      "Detail": "",
+      "BaselineId": "",
+      "Checks": [
+        {
+          "Description": "Neighbor file unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor registry key unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Restored registry types and contents match the independent manifest",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed-program sources available",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture recognized by real discovery",
+          "Passed": true
+        },
+        {
+          "Description": "Uninstall remains inspectable in history",
+          "Passed": true
+        },
+        {
+          "Description": "Native removal confirmed",
+          "Passed": true
+        },
+        {
+          "Description": "Selected cleanup actions completed",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture directory absent: C:\\Users\\WDAGUtilityAccount\\AppData\\Local\\Programs\\ThermiqraMatrixRestore",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture directory absent: C:\\Users\\WDAGUtilityAccount\\AppData\\Roaming\\ThermiqraMatrixRestore",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture directory absent: C:\\Users\\WDAGUtilityAccount\\AppData\\Local\\ThermiqraMatrixRestore",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture registry key absent: Registry64",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture registry key absent: Registry32",
+          "Passed": true
+        },
+        {
+          "Description": "Native uninstall registration absent",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor file unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor registry key unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Real discovery finds no remaining fixture objects",
+          "Passed": true
+        },
+        {
+          "Description": "Registry backup exists before recovery",
+          "Passed": true
+        },
+        {
+          "Description": "Real recovery service restored registry data",
+          "Passed": true
+        },
+        {
+          "Description": "Restored registry types and contents match the independent manifest",
+          "Passed": true
+        },
+        {
+          "Description": "File restore target unoccupied",
+          "Passed": true
+        },
+        {
+          "Description": "Recorded folder restored from Recycle Bin",
+          "Passed": true
+        },
+        {
+          "Description": "File restore target unoccupied",
+          "Passed": true
+        },
+        {
+          "Description": "Recorded folder restored from Recycle Bin",
+          "Passed": true
+        },
+        {
+          "Description": "File restore target unoccupied",
+          "Passed": true
+        },
+        {
+          "Description": "Recorded folder restored from Recycle Bin",
+          "Passed": true
+        },
+        {
+          "Description": "Restored file matches independent pre-uninstall hash",
+          "Passed": true
+        },
+        {
+          "Description": "Restored file matches independent pre-uninstall hash",
+          "Passed": true
+        },
+        {
+          "Description": "Restored file matches independent pre-uninstall hash",
+          "Passed": true
+        },
+        {
+          "Description": "Restored file matches independent pre-uninstall hash",
+          "Passed": true
+        },
+        {
+          "Description": "Restored file matches independent pre-uninstall hash",
+          "Passed": true
+        },
+        {
+          "Description": "Restored file matches independent pre-uninstall hash",
+          "Passed": true
+        },
+        {
+          "Description": "Restored file matches independent pre-uninstall hash",
+          "Passed": true
+        },
+        {
+          "Description": "Restored file matches independent pre-uninstall hash",
+          "Passed": true
+        },
+        {
+          "Description": "Restored file matches independent pre-uninstall hash",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor file unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor registry key unchanged",
+          "Passed": true
+        }
+      ]
+    },
+    {
+      "Id": "Collision",
+      "Status": "Passed",
+      "Detail": "",
+      "BaselineId": "",
+      "Checks": [
+        {
+          "Description": "Neighbor file unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor registry key unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Restored registry types and contents match the independent manifest",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed-program sources available",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture recognized by real discovery",
+          "Passed": true
+        },
+        {
+          "Description": "Uninstall remains inspectable in history",
+          "Passed": true
+        },
+        {
+          "Description": "Native removal confirmed",
+          "Passed": true
+        },
+        {
+          "Description": "Selected cleanup actions completed",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture directory absent: C:\\Users\\WDAGUtilityAccount\\AppData\\Local\\Programs\\ThermiqraMatrixCollision",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture directory absent: C:\\Users\\WDAGUtilityAccount\\AppData\\Roaming\\ThermiqraMatrixCollision",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture directory absent: C:\\Users\\WDAGUtilityAccount\\AppData\\Local\\ThermiqraMatrixCollision",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture registry key absent: Registry64",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture registry key absent: Registry32",
+          "Passed": true
+        },
+        {
+          "Description": "Native uninstall registration absent",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor file unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor registry key unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Real discovery finds no remaining fixture objects",
+          "Passed": true
+        },
+        {
+          "Description": "Registry backup exists before recovery",
+          "Passed": true
+        },
+        {
+          "Description": "Recovery never overwrites new registry contents",
+          "Passed": true
+        },
+        {
+          "Description": "Collision is visible as incomplete recovery",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor file unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor registry key unchanged",
+          "Passed": true
+        }
+      ]
+    },
+    {
+      "Id": "MsiUser",
+      "Status": "Passed",
+      "Detail": "",
+      "BaselineId": "",
+      "Checks": [
+        {
+          "Description": "Neighbor file unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor registry key unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Restored registry types and contents match the independent manifest",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed-program sources available",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture recognized by real discovery",
+          "Passed": true
+        },
+        {
+          "Description": "Uninstall remains inspectable in history",
+          "Passed": true
+        },
+        {
+          "Description": "Native removal confirmed",
+          "Passed": true
+        },
+        {
+          "Description": "Selected cleanup actions completed",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture directory absent: C:\\Users\\WDAGUtilityAccount\\AppData\\Local\\Programs\\ThermiqraMatrixMsiUser",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture directory absent: C:\\Users\\WDAGUtilityAccount\\AppData\\Roaming\\ThermiqraMatrixMsiUser",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture directory absent: C:\\Users\\WDAGUtilityAccount\\AppData\\Local\\ThermiqraMatrixMsiUser",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture registry key absent: Registry64",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture registry key absent: Registry32",
+          "Passed": true
+        },
+        {
+          "Description": "MSI-owned installation marker absent: CurrentUser Registry64",
+          "Passed": true
+        },
+        {
+          "Description": "MSI-owned installation marker absent: CurrentUser Registry32",
+          "Passed": true
+        },
+        {
+          "Description": "MSI-owned installation marker absent: LocalMachine Registry64",
+          "Passed": true
+        },
+        {
+          "Description": "MSI-owned installation marker absent: LocalMachine Registry32",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor file unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor registry key unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Real discovery finds no remaining fixture objects",
+          "Passed": true
+        }
+      ]
+    },
+    {
+      "Id": "MsiMachine",
+      "Status": "Passed",
+      "Detail": "",
+      "BaselineId": "",
+      "Checks": [
+        {
+          "Description": "Neighbor file unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor registry key unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Restored registry types and contents match the independent manifest",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed-program sources available",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture recognized by real discovery",
+          "Passed": true
+        },
+        {
+          "Description": "Uninstall remains inspectable in history",
+          "Passed": true
+        },
+        {
+          "Description": "Native removal confirmed",
+          "Passed": true
+        },
+        {
+          "Description": "Selected cleanup actions completed",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture directory absent: C:\\Program Files\\ThermiqraMatrixMsiMachine",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture directory absent: C:\\Users\\WDAGUtilityAccount\\AppData\\Roaming\\ThermiqraMatrixMsiMachine",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture directory absent: C:\\Users\\WDAGUtilityAccount\\AppData\\Local\\ThermiqraMatrixMsiMachine",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture registry key absent: Registry64",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture registry key absent: Registry32",
+          "Passed": true
+        },
+        {
+          "Description": "MSI-owned installation marker absent: CurrentUser Registry64",
+          "Passed": true
+        },
+        {
+          "Description": "MSI-owned installation marker absent: CurrentUser Registry32",
+          "Passed": true
+        },
+        {
+          "Description": "MSI-owned installation marker absent: LocalMachine Registry64",
+          "Passed": true
+        },
+        {
+          "Description": "MSI-owned installation marker absent: LocalMachine Registry32",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor file unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor registry key unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Real discovery finds no remaining fixture objects",
+          "Passed": true
+        }
+      ]
+    },
+    {
+      "Id": "MsiCancel",
+      "Status": "Passed",
+      "Detail": "",
+      "BaselineId": "",
+      "Checks": [
+        {
+          "Description": "Neighbor file unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor registry key unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Restored registry types and contents match the independent manifest",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed-program sources available",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture recognized by real discovery",
+          "Passed": true
+        },
+        {
+          "Description": "Uninstall remains inspectable in history",
+          "Passed": true
+        },
+        {
+          "Description": "Native outcome classified: Cancelled",
+          "Passed": true
+        },
+        {
+          "Description": "No additional cleanup after cancellation, retained registration or pending reboot",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor file unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor registry key unchanged",
+          "Passed": true
+        }
+      ]
+    },
+    {
+      "Id": "MsiError",
+      "Status": "Passed",
+      "Detail": "",
+      "BaselineId": "",
+      "Checks": [
+        {
+          "Description": "Neighbor file unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor registry key unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Restored registry types and contents match the independent manifest",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed-program sources available",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture recognized by real discovery",
+          "Passed": true
+        },
+        {
+          "Description": "Uninstall remains inspectable in history",
+          "Passed": true
+        },
+        {
+          "Description": "Native outcome classified: Failed",
+          "Passed": true
+        },
+        {
+          "Description": "No additional cleanup after cancellation, retained registration or pending reboot",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor file unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor registry key unchanged",
+          "Passed": true
+        }
+      ]
+    },
+    {
+      "Id": "MsiReboot",
+      "Status": "Passed",
+      "Detail": "",
+      "BaselineId": "6a0945aca8724d41928758717f63a26e",
+      "Checks": [
+        {
+          "Description": "Neighbor file unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor registry key unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Restored registry types and contents match the independent manifest",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed fixture hash matches",
+          "Passed": true
+        },
+        {
+          "Description": "Installed-program sources available",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture recognized by real discovery",
+          "Passed": true
+        },
+        {
+          "Description": "Uninstall remains inspectable in history",
+          "Passed": true
+        },
+        {
+          "Description": "Native outcome classified: RebootRequired",
+          "Passed": true
+        },
+        {
+          "Description": "No additional cleanup after cancellation, retained registration or pending reboot",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor file unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor registry key unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Known pre-reboot report identity",
+          "Passed": true
+        },
+        {
+          "Description": "Real restart releases pending-reboot hold after fresh registration check",
+          "Passed": true
+        },
+        {
+          "Description": "Post-reboot cleanup finished",
+          "Passed": true
+        },
+        {
+          "Description": "Known pre-reboot report identity",
+          "Passed": true
+        },
+        {
+          "Description": "Real restart releases pending-reboot hold after fresh registration check",
+          "Passed": true
+        },
+        {
+          "Description": "Post-reboot cleanup finished",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture directory absent: C:\\Program Files\\ThermiqraMatrixMsiReboot",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture directory absent: C:\\Users\\WDAGUtilityAccount\\AppData\\Roaming\\ThermiqraMatrixMsiReboot",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture directory absent: C:\\Users\\WDAGUtilityAccount\\AppData\\Local\\ThermiqraMatrixMsiReboot",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture registry key absent: Registry64",
+          "Passed": true
+        },
+        {
+          "Description": "Fixture registry key absent: Registry32",
+          "Passed": true
+        },
+        {
+          "Description": "MSI-owned installation marker absent: CurrentUser Registry64",
+          "Passed": true
+        },
+        {
+          "Description": "MSI-owned installation marker absent: CurrentUser Registry32",
+          "Passed": true
+        },
+        {
+          "Description": "MSI-owned installation marker absent: LocalMachine Registry64",
+          "Passed": true
+        },
+        {
+          "Description": "MSI-owned installation marker absent: LocalMachine Registry32",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor file unchanged",
+          "Passed": true
+        },
+        {
+          "Description": "Neighbor registry key unchanged",
+          "Passed": true
+        }
+      ]
+    }
+  ]
+}

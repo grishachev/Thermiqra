@@ -15,6 +15,7 @@ public sealed class CpuDetailsWindow : Window
     private readonly TextBlock _updatedText;
     private readonly TextBlock _emptyText;
     private readonly StackPanel _threadsPanel;
+    private readonly CpuClockPanel _clockPanel = new();
 
     private readonly Dictionary<int, CpuThreadRow>
         _threadRows =
@@ -202,8 +203,10 @@ public sealed class CpuDetailsWindow : Window
         _threadsPanel =
             new StackPanel();
 
-        scrollViewer.Content =
-            _threadsPanel;
+        StackPanel readings = new();
+        readings.Children.Add(_clockPanel);
+        readings.Children.Add(_threadsPanel);
+        scrollViewer.Content = readings;
 
         _emptyText =
             new TextBlock
@@ -231,9 +234,7 @@ public sealed class CpuDetailsWindow : Window
         body.Children.Add(
             scrollViewer);
 
-        body.Children.Add(
-            _emptyText);
-
+        readings.Children.Add(_emptyText);
         Grid.SetRow(
             body,
             1);
@@ -252,10 +253,11 @@ public sealed class CpuDetailsWindow : Window
 
     public void RefreshLanguage()
     {
+        _clockPanel.RefreshLanguage();
         Title =
             SettingsService.L(
-                "Thermiqra — Потоки CPU",
-                "Thermiqra — CPU Threads");
+                "Thermiqra — Нагрузка CPU",
+                "Thermiqra — CPU Load");
 
         _titleText.Text =
             SettingsService.L(
@@ -264,8 +266,8 @@ public sealed class CpuDetailsWindow : Window
 
         _emptyText.Text =
             SettingsService.L(
-                "LibreHardwareMonitor не предоставил отдельные датчики нагрузки логических процессоров.",
-                "LibreHardwareMonitor did not expose individual logical processor load sensors.");
+                "Отдельные показатели нагрузки пока недоступны. Сведения о полученных датчиках — во всплывающей подсказке.",
+                "Individual load readings are currently unavailable. Received sensor details are available in the tooltip.");
 
         foreach (CpuThreadRow row
                  in _threadRows.Values)
@@ -282,8 +284,8 @@ public sealed class CpuDetailsWindow : Window
         {
             _subtitleText.Text =
                 SettingsService.L(
-                    "ЛОГИЧЕСКИЕ ПРОЦЕССОРЫ // LIVE",
-                    "LOGICAL PROCESSORS // LIVE");
+                    "ДАТЧИКИ НАГРУЗКИ // LIVE",
+                    "LOAD SENSORS // LIVE");
 
             _updatedText.Text =
                 "—";
@@ -298,6 +300,7 @@ public sealed class CpuDetailsWindow : Window
 
         UpdateHeader(
             snapshot);
+        _clockPanel.Update(snapshot.Cpu.Clocks);
 
         IReadOnlyList<CpuThreadInfo> threads =
             snapshot.Cpu.Threads
@@ -354,8 +357,13 @@ public sealed class CpuDetailsWindow : Window
 
         _subtitleText.Text =
             SettingsService.L(
-                $"ЛОГИЧЕСКИЕ ПРОЦЕССОРЫ: {count} // LIVE",
-                $"LOGICAL PROCESSORS: {count} // LIVE");
+                $"ДАТЧИКИ НАГРУЗКИ: {count} // LIVE",
+                $"LOAD SENSORS: {count} // LIVE");
+
+        string diagnostic = string.Join("\n", snapshot.Cpu.LoadSensorDiagnostics);
+        _emptyText.ToolTip = diagnostic.Length > 0 ? diagnostic : SettingsService.L(
+            "В текущем снимке нет датчиков нагрузки CPU.", "No CPU load sensors in the current snapshot.");
+        _subtitleText.ToolTip = _emptyText.ToolTip;
 
         _updatedText.Text =
             SettingsService.L(
@@ -376,7 +384,7 @@ public sealed class CpuDetailsWindow : Window
         {
             CpuThreadRow row =
                 new(
-                    thread.Index);
+                    thread);
 
             _threadRows[
                 thread.Index] =
@@ -454,7 +462,7 @@ public sealed class CpuDetailsWindow : Window
 
     private sealed class CpuThreadRow
     {
-        private readonly int _index;
+        private readonly CpuThreadInfo _sensor;
         private readonly TextBlock _nameText;
         private readonly TextBlock _loadText;
         private readonly Grid _bar;
@@ -463,10 +471,9 @@ public sealed class CpuDetailsWindow : Window
         private float? _lastLoad;
 
         public CpuThreadRow(
-            int index)
+            CpuThreadInfo sensor)
         {
-            _index =
-                index;
+            _sensor = sensor;
 
             Root =
                 CreateCard();
@@ -648,8 +655,16 @@ public sealed class CpuDetailsWindow : Window
         {
             _nameText.Text =
                 SettingsService.L(
-                    $"Поток {_index}",
-                    $"Thread {_index}");
+                    _sensor.LogicalProcessorNumber.HasValue
+                        ? $"Поток {_sensor.LogicalProcessorNumber}"
+                        : $"Датчик нагрузки {_sensor.Index}",
+                    _sensor.LogicalProcessorNumber.HasValue
+                        ? $"Thread {_sensor.LogicalProcessorNumber}"
+                        : $"Load sensor {_sensor.Index}");
+            if (_sensor.ProcessorGroup is > 0)
+                _nameText.Text += SettingsService.L($" · группа {_sensor.ProcessorGroup}",
+                    $" · group {_sensor.ProcessorGroup}");
+            _nameText.ToolTip = _sensor.ProcessorName;
 
             _loadText.Text =
                 FormatPercent(

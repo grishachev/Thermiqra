@@ -1,7 +1,10 @@
 ﻿#define MyAppName "Thermiqra"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "1.1.0"
 #define MyAppPublisher "Thermiqra"
 #define MyAppExeName "Thermiqra.exe"
+#ifndef MyPublishDir
+  #define MyPublishDir "..\PCHardwareMonitor\bin\Release\net10.0-windows\win-x64\publish"
+#endif
 
 [Setup]
 AppId={{8E09F24C-EBAB-4D7A-A41E-B324B10E8E17}
@@ -19,7 +22,7 @@ DisableWelcomePage=no
 PrivilegesRequired=admin
 
 OutputDir=Output
-OutputBaseFilename=Thermiqra_Setup_1.0.0
+OutputBaseFilename=Thermiqra_Setup_{#MyAppVersion}
 
 SetupIconFile=..\PCHardwareMonitor\Assets\Thermiqra.ico
 
@@ -73,7 +76,7 @@ Name: "desktopicon"; \
 ; THERMIQRA
 ; ============================================================
 
-Source: "..\PCHardwareMonitor\bin\Release\net10.0-windows\win-x64\publish\*"; \
+Source: "{#MyPublishDir}\*"; \
     DestDir: "{app}"; \
     Flags: ignoreversion recursesubdirs createallsubdirs
 
@@ -117,12 +120,14 @@ Filename: "{tmp}\PawnIO_setup.exe"; \
 
 Filename: "{app}\Thermiqra.exe"; \
     Description: "{cm:RunThermiqra}"; \
-    Flags: nowait postinstall skipifsilent runascurrentuser
+    Flags: nowait postinstall skipifsilent runascurrentuser; \
+    Check: ShouldRunThermiqra
 
 ; При автоматическом обновлении установщик работает в silent/very silent.
 ; Эта отдельная строка запускает новую Thermiqra после успешного обновления.
 Filename: "{app}\Thermiqra.exe"; \
-    Flags: nowait skipifnotsilent
+    Flags: nowait skipifnotsilent; \
+    Check: ShouldRunThermiqra
 
 
 [UninstallDelete]
@@ -135,6 +140,17 @@ Type: filesandordirs; \
 
 var
   RemoveUserData: Boolean;
+
+{ Explicit packaging-test/managed-install opt-out. Normal updates still restart the app. }
+function ShouldRunThermiqra: Boolean;
+var
+  Index: Integer;
+begin
+  Result := True;
+  for Index := 1 to ParamCount do
+    if CompareText(ParamStr(Index), '/NORUN') = 0 then
+      Result := False;
+end;
 
 
 function IsThermiqraRunning: Boolean;

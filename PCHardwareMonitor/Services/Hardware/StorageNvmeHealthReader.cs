@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Buffers.Binary;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -80,36 +80,7 @@ internal static class StorageNvmeHealthReader
                 return null;
             }
 
-            ReadOnlySpan<byte> log = response.AsSpan(
-                checked((int)absoluteOffset), HealthLogBytes);
-
-            // Sanity-check the NVMe layout before interpreting any zero count.
-            ushort kelvin = BinaryPrimitives.ReadUInt16LittleEndian(
-                log.Slice(1, 2));
-            if (kelvin is < 200 or > 500 ||
-                log[3] > 100 || log[4] > 100)
-            {
-                return null;
-            }
-
-            return new StorageNvmeHealthDetails
-            {
-                CriticalWarning = log[0],
-                // NVMe SMART/Health composite temperature (Kelvin),
-                // converted to whole degrees Celsius for the UI.
-                CompositeTemperatureCelsius = kelvin - 273,
-                // Data Units Read/Written: 1,000 blocks of 512 bytes per unit.
-                DataUnitsRead = ReadUInt128Counter(log, 32),
-                DataUnitsWritten = ReadUInt128Counter(log, 48),
-                AvailableSparePercent = log[3],
-                AvailableSpareThresholdPercent = log[4],
-                PercentageUsed = log[5],
-                MediaErrors = ReadUInt128Counter(log, 160),
-                ErrorLogEntries = ReadUInt128Counter(log, 176),
-                PowerOnHours = ReadUInt128Counter(log, 128),
-                UnsafeShutdowns = ReadUInt128Counter(log, 144),
-                PowerCycles = ReadUInt128Counter(log, 112)
-            };
+            return ParseHealthLog(response.AsSpan(checked((int)absoluteOffset), HealthLogBytes));
         }
         catch (Exception ex) when (
             ex is System.IO.IOException or UnauthorizedAccessException or
@@ -117,8 +88,42 @@ internal static class StorageNvmeHealthReader
             System.ArgumentException or OverflowException or
             DllNotFoundException or EntryPointNotFoundException)
         {
+            DiagnosticLog.Failure("Storage.NvmeRead", ex);
             return null;
         }
+    }
+
+    // Pure parser: tests use byte arrays, never a physical-drive handle.
+    internal static StorageNvmeHealthDetails? ParseHealthLog(ReadOnlySpan<byte> log)
+    {
+        if (log.Length < HealthLogBytes) return null;
+    // Sanity-check the NVMe layout before interpreting any zero count.
+    ushort kelvin = BinaryPrimitives.ReadUInt16LittleEndian(
+        log.Slice(1, 2));
+    if (kelvin is < 200 or > 500 ||
+        log[3] > 100 || log[4] > 100)
+    {
+        return null;
+    }
+
+    return new StorageNvmeHealthDetails
+    {
+        CriticalWarning = log[0],
+        // NVMe SMART/Health composite temperature (Kelvin),
+        // converted to whole degrees Celsius for the UI.
+        CompositeTemperatureCelsius = kelvin - 273,
+        // Data Units Read/Written: 1,000 blocks of 512 bytes per unit.
+        DataUnitsRead = ReadUInt128Counter(log, 32),
+        DataUnitsWritten = ReadUInt128Counter(log, 48),
+        AvailableSparePercent = log[3],
+        AvailableSpareThresholdPercent = log[4],
+        PercentageUsed = log[5],
+        MediaErrors = ReadUInt128Counter(log, 160),
+        ErrorLogEntries = ReadUInt128Counter(log, 176),
+        PowerOnHours = ReadUInt128Counter(log, 128),
+        UnsafeShutdowns = ReadUInt128Counter(log, 144),
+        PowerCycles = ReadUInt128Counter(log, 112)
+    };
     }
 
     private static BigInteger ReadUInt128Counter(

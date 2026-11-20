@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Media;
@@ -53,9 +53,11 @@ public static class ThemeManager
     }
 
 
-    public static void ApplyAppearance(
-        string skinName,
-        string themeName)
+    public static void ApplyAppearance(string skinName, string themeName) =>
+        PopulateAppearance(Application.Current.Resources, skinName, themeName);
+
+    // Also supports isolated theme validation without starting the application.
+    internal static void PopulateAppearance(ResourceDictionary resources, string skinName, string themeName)
     {
         // ThemeName сохраняется только для совместимости со старыми settings.json.
         // Начиная с системы скинов каждый скин имеет собственную палитру.
@@ -67,9 +69,6 @@ public static class ThemeManager
                 "MilitaryOps" => GetMilitaryOpsTheme(),
                 _ => GetCyberTechTheme("SteelBlue")
             };
-
-        ResourceDictionary resources =
-            Application.Current.Resources;
 
         resources["WindowBackgroundBrush"] =
             Brush(theme.WindowBackground);

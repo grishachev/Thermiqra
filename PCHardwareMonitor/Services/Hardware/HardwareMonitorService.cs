@@ -12,7 +12,7 @@ using RAMSPDToolkit.SPD.Interop.Shared;
 
 namespace PCHardwareMonitor;
 
-public sealed class HardwareMonitorService : IDisposable
+public sealed partial class HardwareMonitorService : IDisposable
 {
     private readonly Computer _computer;
 
@@ -99,94 +99,63 @@ public sealed class HardwareMonitorService : IDisposable
             "CPU Total"
         );
 
-        SortedDictionary<int, float>
-            logicalProcessorLoads =
-                new();
-
-        foreach (ISensor sensor
-                 in hardware.Sensors)
+        snapshot.Cpu.Clocks.AddRange(ReadClocks(hardware));
+        foreach (ISensor sensor in hardware.Sensors.Where(s => s.SensorType == SensorType.Load))
         {
-            if (sensor.SensorType !=
-                SensorType.Load)
+            // Keep the raw metadata for diagnosis, including missing values and
+            // names not understood by this version. Do not write telemetry.
+            snapshot.Cpu.LoadSensorDiagnostics.Add(
+                $"{hardware.Identifier}: {sensor.Name} [{sensor.Identifier}] = {sensor.Value?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "unavailable"}");
+            if (!TryGetCpuThreadNumber(sensor.Name, out int core, out int? thread)) continue;
+            float? value = sensor.Value;
+            if (value.HasValue && (!float.IsFinite(value.Value) || value < 0 || value > 100)) value = null;
+            // GenericCpu load sensor indices address logical threads, not
+            // physical cores. Confirm the mapping against the exposed CPUID
+            // entries instead of interpreting a name such as "CPU Core #12".
+            var identities = hardware is LibreHardwareMonitor.Hardware.Cpu.GenericCpu cpu
+                ? cpu.CpuId.SelectMany(c => c).Where(c => c.Thread == sensor.Index - 2).ToList()
+                : new List<LibreHardwareMonitor.Hardware.Cpu.CpuId>();
+            snapshot.Cpu.Threads.Add(new CpuThreadInfo
             {
-                continue;
-            }
-
-            if (!sensor.Value.HasValue)
-                continue;
-
-            if (!TryGetCpuThreadNumber(
-                    sensor.Name,
-                    out int threadNumber))
-            {
-                continue;
-            }
-
-            logicalProcessorLoads[
-                threadNumber] =
-                    sensor.Value.Value;
-        }
-
-        foreach (KeyValuePair<int, float> thread
-                 in logicalProcessorLoads)
-        {
-            snapshot.Cpu.Threads.Add(
-                new CpuThreadInfo
-                {
-                    Index =
-                        thread.Key,
-
-                    Load =
-                        thread.Value
-                });
+                Index = snapshot.Cpu.Threads.Count + 1,
+                LogicalProcessorNumber = identities.Count == 1 ? identities[0].Thread + 1 : null,
+                ProcessorGroup = identities.Count == 1 ? identities[0].Group : null,
+                CoreNumber = core,
+                ThreadNumber = thread,
+                ProcessorName = hardware.Name,
+                Load = value
+            });
         }
     }
 
-
-    private static bool TryGetCpuThreadNumber(
-        string sensorName,
-        out int threadNumber)
+    private static bool TryGetCpuThreadNumber(string sensorName, out int coreNumber,
+        out int? threadNumber)
     {
-        const string prefix =
-            "CPU Core #";
-
-        threadNumber =
-            0;
-
-        if (string.IsNullOrWhiteSpace(
-                sensorName))
+        coreNumber = 0;
+        threadNumber = null;
+        if (string.IsNullOrWhiteSpace(sensorName)) return false;
+        System.Text.RegularExpressions.Match match = System.Text.RegularExpressions.Regex.Match(
+            sensorName, @"^CPU Core(?: #([0-9]+))?(?: Thread #([0-9]+))?$",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase |
+            System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+        if (!match.Success) return false;
+        coreNumber = 1;
+        if (match.Groups[1].Success &&
+            (!int.TryParse(match.Groups[1].Value, out coreNumber) || coreNumber < 1)) return false;
+        if (match.Groups[2].Success)
         {
-            return false;
+            if (!int.TryParse(match.Groups[2].Value, out int parsed) || parsed < 1) return false;
+            threadNumber = parsed;
         }
-
-        if (!sensorName.StartsWith(
-                prefix,
-                StringComparison.OrdinalIgnoreCase))
-        {
-            return false;
-        }
-
-        ReadOnlySpan<char> numberPart =
-            sensorName
-                .AsSpan(
-                    prefix.Length)
-                .Trim();
-
-        if (!int.TryParse(
-                numberPart,
-                out int parsed))
-        {
-            return false;
-        }
-
-        if (parsed <= 0)
-            return false;
-
-        threadNumber =
-            parsed;
-
+        // A core-only name remains a core sensor. Never infer an SMT topology
+        // or a Windows logical-processor/group number from this name.
         return true;
     }
+
+    private static IEnumerable<HardwareClockInfo> ReadClocks(IHardware hardware) =>
+        hardware.Sensors.Where(s => s.SensorType == SensorType.Clock &&
+                s.Value.HasValue && float.IsFinite(s.Value.Value) && s.Value.Value >= 0)
+            .Select(s => new HardwareClockInfo(s.Name, s.Value!.Value));
 
     private static void ReadGpu(
         IHardware hardware,
@@ -237,6 +206,10 @@ public sealed class HardwareMonitorService : IDisposable
             )
         };
 
+        gpu.Clocks.AddRange(ReadClocks(hardware));
+        if (!gpu.Load.HasValue) gpu.Load = ReadD3dLoad(hardware);
+        gpu.SensorDiagnostics.AddRange(hardware.Sensors.Take(128).Select(sensor => new GpuSensorReading(
+            sensor.Name, sensor.SensorType.ToString(), sensor.Identifier.ToString(), sensor.Value)));
         snapshot.Gpus.Add(gpu);
     }
 
@@ -919,11 +892,20 @@ public sealed class CpuInfo
     public float? Load { get; set; }
 
     public List<CpuThreadInfo> Threads { get; } = new();
+    public List<HardwareClockInfo> Clocks { get; } = new();
+    public List<string> LoadSensorDiagnostics { get; } = new();
 }
 
 
+public sealed record HardwareClockInfo(string Name, float Megahertz);
+
 public sealed class CpuThreadInfo
 {
+    public int? LogicalProcessorNumber { get; set; }
+    public int? ProcessorGroup { get; set; }
+    public int CoreNumber { get; set; }
+    public int? ThreadNumber { get; set; }
+    public string ProcessorName { get; set; } = "";
     public int Index { get; set; }
 
     public float? Load { get; set; }
@@ -932,6 +914,8 @@ public sealed class CpuThreadInfo
 
 public sealed class GpuInfo
 {
+    public List<GpuSensorReading> SensorDiagnostics { get; } = new();
+    public List<HardwareClockInfo> Clocks { get; } = new();
     public string Id { get; set; } = "";
 
     public string Name { get; set; } = "GPU";

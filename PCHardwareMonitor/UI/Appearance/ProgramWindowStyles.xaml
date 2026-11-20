@@ -1,0 +1,100 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Structural skin details, shared by program windows and dialogs. -->
+    <ControlTemplate x:Key="ProgramPanelFrameTemplate" TargetType="ContentControl">
+        <Grid SnapsToDevicePixels="True">
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}"
+                    BorderThickness="1" CornerRadius="{DynamicResource PanelCornerRadius}"/>
+            <ContentPresenter Margin="{TemplateBinding Padding}"/>
+            <Grid IsHitTestVisible="False" Visibility="{DynamicResource SteamPunkVisibility}">
+                <Border Margin="5" BorderThickness="1" BorderBrush="{DynamicResource SteamMetalBrush}"
+                        CornerRadius="8" Opacity="0.45"/>
+                <Ellipse Width="5" Height="5" Margin="8" Fill="{DynamicResource SteamMetalBrush}" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                <Ellipse Width="5" Height="5" Margin="8" Fill="{DynamicResource SteamMetalBrush}" HorizontalAlignment="Right" VerticalAlignment="Top"/>
+                <Ellipse Width="5" Height="5" Margin="8" Fill="{DynamicResource SteamMetalBrush}" HorizontalAlignment="Left" VerticalAlignment="Bottom"/>
+                <Ellipse Width="5" Height="5" Margin="8" Fill="{DynamicResource SteamMetalBrush}" HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
+            </Grid>
+            <Grid IsHitTestVisible="False" Visibility="{DynamicResource MainCyberTechVisibility}">
+                <Border Height="2" Width="72" Background="{DynamicResource AccentBrush}" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                <Border Height="2" Width="24" Background="{DynamicResource AccentBrush}" HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
+            </Grid>
+            <Grid IsHitTestVisible="False" Visibility="{DynamicResource FrostCoreVisibility}" Margin="6">
+                <Path Data="M 0,16 L 0,8 8,0 48,0" Stroke="{DynamicResource FrostIceBrush}" StrokeThickness="2" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                <Path Data="M 0,16 L 40,16 48,8 48,0" Stroke="{DynamicResource FrostIceBrush}" StrokeThickness="2" HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
+            </Grid>
+            <Grid IsHitTestVisible="False" Visibility="{DynamicResource MilitaryOpsVisibility}">
+                <Border Width="4" Background="{DynamicResource MilitaryKhakiBrush}" HorizontalAlignment="Left" Margin="0,10"/>
+                <Path Data="M 0,0 L 8,0 M 12,0 L 20,0 M 24,0 L 32,0" Stroke="{DynamicResource MilitaryKhakiBrush}" StrokeThickness="3"
+                      HorizontalAlignment="Right" VerticalAlignment="Top" Margin="10"/>
+            </Grid>
+        </Grid>
+    </ControlTemplate>
+
+    <DataTemplate x:Key="ProgramSkinBadgeTemplate">
+        <Grid Width="64" Height="64" IsHitTestVisible="False">
+            <Grid Visibility="{DynamicResource SteamPunkVisibility}">
+                <Ellipse Margin="3" Fill="{DynamicResource SteamGlassBrush}" Stroke="{DynamicResource SteamMetalBrush}" StrokeThickness="3"/>
+                <Ellipse Margin="11" Stroke="{DynamicResource AccentBrush}" StrokeThickness="1"/>
+                <Path Data="M 32,6 L 32,23 M 32,41 L 32,58 M 6,32 L 23,32 M 41,32 L 58,32"
+                      Stroke="{DynamicResource SteamMetalBrush}" StrokeThickness="2"/>
+                <Ellipse Margin="24" Fill="{DynamicResource SteamMetalBrush}" Stroke="{DynamicResource AccentBrush}" StrokeThickness="1"/>
+            </Grid>
+            <Grid Visibility="{DynamicResource MainCyberTechVisibility}">
+                <Path Data="M 6,21 L 6,6 21,6 M 43,6 L 58,6 58,21 M 58,43 L 58,58 43,58 M 21,58 L 6,58 6,43"
+                      Stroke="{DynamicResource AccentBrush}" StrokeThickness="2"/>
+                <Polygon Points="32,14 48,23 48,41 32,50 16,41 16,23" Stroke="{DynamicResource AccentBrush}" StrokeThickness="1.5"/>
+                <Ellipse Margin="27" Fill="{DynamicResource AccentBrush}"/>
+            </Grid>
+            <Grid Visibility="{DynamicResource FrostCoreVisibility}">
+                <Polygon Points="32,3 57,18 57,46 32,61 7,46 7,18" Fill="{DynamicResource FrostGlassBrush}" Stroke="{DynamicResource FrostIceBrush}" StrokeThickness="2"/>
+                <Path Data="M 32,12 L 32,52 M 15,22 L 49,42 M 15,42 L 49,22 M 25,16 L 32,23 39,16 M 25,48 L 32,41 39,48"
+                      Stroke="{DynamicResource FrostIceBrush}" StrokeThickness="2"/>
+            </Grid>
+            <Grid Visibility="{DynamicResource MilitaryOpsVisibility}">
+                <Ellipse Margin="6" Stroke="{DynamicResource MilitaryKhakiBrush}" StrokeThickness="2"/>
+                <Ellipse Margin="18" Stroke="{DynamicResource MilitaryKhakiBrush}" StrokeThickness="1"/>
+                <Path Data="M 32,0 L 32,22 M 32,42 L 32,64 M 0,32 L 22,32 M 42,32 L 64,32" Stroke="{DynamicResource MilitaryKhakiBrush}" StrokeThickness="2"/>
+                <Ellipse Margin="29" Fill="{DynamicResource AccentBrush}"/>
+            </Grid>
+        </Grid>
+    </DataTemplate>
+
+    <DataTemplate x:Key="ProgramHeaderTemplate">
+        <Grid>
+            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+            <ContentControl ContentTemplate="{StaticResource ProgramSkinBadgeTemplate}" Margin="0,0,16,0" VerticalAlignment="Center" Focusable="False"/>
+            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock Text="{Binding Title}" FontFamily="{DynamicResource DisplayFontFamily}" FontSize="23" FontWeight="Bold"
+                           Foreground="{DynamicResource PrimaryTextBrush}" TextWrapping="Wrap"/>
+                <TextBlock Text="{Binding Subtitle}" FontSize="14" LineHeight="21" Margin="0,5,0,0"
+                           Foreground="{DynamicResource SecondaryTextBrush}" TextWrapping="Wrap"/>
+            </StackPanel>
+        </Grid>
+    </DataTemplate>
+
+    <Style x:Key="ProgramCheckBoxStyle" TargetType="CheckBox">
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="CheckBox">
+                    <Grid Background="Transparent">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="24"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                        <Border x:Name="CheckBorder" Width="18" Height="18" VerticalAlignment="Top" Margin="0,2,0,0"
+                                Background="{DynamicResource InputBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}"
+                                BorderThickness="1" CornerRadius="{DynamicResource MiniCardCornerRadius}">
+                            <Path x:Name="CheckMark" Data="M 3,8 L 7,12 14,4" Stroke="{DynamicResource AccentBrush}" StrokeThickness="2" Visibility="Collapsed"/>
+                        </Border>
+                        <ContentPresenter Grid.Column="1" RecognizesAccessKey="True" TextElement.Foreground="{TemplateBinding Foreground}"/>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True"><Setter TargetName="CheckMark" Property="Visibility" Value="Visible"/></Trigger>
+                        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="CheckBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/></Trigger>
+                        <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="CheckBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/></Trigger>
+                        <Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.5"/></Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>

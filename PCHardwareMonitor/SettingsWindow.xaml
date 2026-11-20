@@ -1731,6 +1731,13 @@
                                 <CheckBox x:Name="ShowWindowOnStartupCheck"
                                           Content="Показывать главное окно при запуске"/>
 
+                                <CheckBox x:Name="TrayPanelAlwaysCheck"
+                                          Content="Постоянно показывать панель мониторинга у трея"/>
+
+                                <TextBlock Text="По умолчанию панель появляется при наведении на значок Thermiqra. Постоянная панель временно скрывается при открытии меню и системных панелей."
+                                           Foreground="{DynamicResource SecondaryTextBrush}"
+                                           Margin="0,4,0,0" FontSize="11" TextWrapping="Wrap"/>
+
 
                                 <Border Height="1"
                                         Background="{DynamicResource BorderBrush}"

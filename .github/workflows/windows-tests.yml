@@ -1,0 +1,30 @@
+name: Windows checks
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  synthetic-tests:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
+        with:
+          dotnet-version: 10.0.x
+      - name: Restore dependencies
+        run: dotnet restore Thermiqra.Tests/Thermiqra.Tests.csproj
+      - name: Build and run isolated tests
+        run: dotnet test Thermiqra.Tests/Thermiqra.Tests.csproj -c Debug --no-restore --logger "console;verbosity=normal" -p:CopyRetryCount=0
+      - name: Compile disposable Windows regression bundle without installing fixtures
+        shell: powershell
+        run: .\Tools\RemovalLab\Matrix\Build-Matrix.ps1
+      - name: Compile release-signing tool without private keys
+        run: dotnet build Tools/ReleaseSigning/ReleaseSigning.csproj -c Debug
+      - name: Audit localization sources without opening application windows
+        run: dotnet run --project Tools/LocalizationAudit/LocalizationAudit.csproj
+

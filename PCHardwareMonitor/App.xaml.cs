@@ -120,6 +120,7 @@ public partial class App : Application
             _mainWindow;
 
         _mainWindow.StartMonitoring();
+        ProgramObservationService.Start();
 
         bool firstRun =
             !SettingsService
@@ -180,6 +181,7 @@ public partial class App : Application
     protected override void OnExit(
         ExitEventArgs e)
     {
+        ProgramObservationService.Stop();
         _shutdownRegistration?
             .Unregister(null);
 

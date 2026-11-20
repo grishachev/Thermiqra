@@ -62,6 +62,8 @@ public sealed class UpdateInfo
 
 public static class UpdateService
 {
+    private sealed record VerifiedUpdate(UpdateInfo Release, string Hash, byte[] Signature);
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, VerifiedUpdate> VerifiedDownloads = new(StringComparer.OrdinalIgnoreCase);
     private const string LatestReleaseApiUrl =
         "https://api.github.com/repos/grishachev/Thermiqra/releases/latest";
 
@@ -229,11 +231,16 @@ public static class UpdateService
                 update.InstallerFileName))
         {
             throw new InvalidOperationException(
-                "The release does not contain a Thermiqra installer.");
+                SettingsService.L("В выпуске отсутствует установщик Thermiqra.", "The release does not contain a Thermiqra installer."));
         }
 
         string updateDirectory =
             GetUpdateDirectory();
+
+        string requiredHash = UpdateIntegrityPolicy.RequiredHash(update.InstallerSha256);
+        UpdateIntegrityPolicy.RequireSource(update.InstallerDownloadUrl);
+        byte[] signature = await DownloadSignatureAsync(update.InstallerDownloadUrl + ".signature.json", cancellationToken).ConfigureAwait(false);
+        RequireSafeCache(updateDirectory);
 
         Directory.CreateDirectory(
             updateDirectory);
@@ -249,7 +256,7 @@ public static class UpdateService
                 StringComparison.OrdinalIgnoreCase))
         {
             throw new InvalidDataException(
-                "The update installer file name is invalid.");
+                SettingsService.L("Некорректное имя файла установщика обновления.", "The update installer file name is invalid."));
         }
 
         string installerPath =
@@ -257,9 +264,7 @@ public static class UpdateService
                 updateDirectory,
                 safeFileName);
 
-        string partialPath =
-            installerPath +
-            ".download";
+        string partialPath = installerPath + "." + Guid.NewGuid().ToString("N") + ".download";
 
         TryDeleteFile(
             partialPath);
@@ -279,6 +284,7 @@ public static class UpdateService
 
             response.EnsureSuccessStatusCode();
 
+            UpdateIntegrityPolicy.RequireAssetRedirect(response.RequestMessage?.RequestUri);
             long? totalLength =
                 response.Content
                     .Headers
@@ -294,7 +300,7 @@ public static class UpdateService
                 FileStream output =
                     new(
                         partialPath,
-                        FileMode.Create,
+                        FileMode.CreateNew,
                         FileAccess.Write,
                         FileShare.None,
                         81920,
@@ -328,6 +334,8 @@ public static class UpdateService
 
                     received +=
                         read;
+                    if (received > 512L * 1024 * 1024)
+                        throw new InvalidDataException(SettingsService.L("Установщик превышает допустимый размер загрузки.", "Installer exceeds the download size limit."));
 
                     if (totalLength.HasValue &&
                         totalLength.Value > 0)
@@ -366,10 +374,14 @@ public static class UpdateService
                     cancellationToken)
                 .ConfigureAwait(false);
 
+            UpdateSignaturePolicy.Verify(signature, update, new FileInfo(partialPath).Length, requiredHash);
+
             File.Move(
                 partialPath,
                 installerPath,
                 true);
+
+            VerifiedDownloads[Path.GetFullPath(installerPath)] = new(update, requiredHash, signature);
 
             progress?.Report(100);
 
@@ -384,8 +396,9 @@ public static class UpdateService
         }
     }
 
-    public static void StartInstaller(
-        string installerPath)
+    public static Task StartInstallerAsync(string installerPath) => Task.Run(() => StartInstaller(installerPath));
+
+    private static void StartInstaller(string installerPath)
     {
         if (string.IsNullOrWhiteSpace(
                 installerPath) ||
@@ -393,10 +406,19 @@ public static class UpdateService
                 installerPath))
         {
             throw new FileNotFoundException(
-                "The Thermiqra update installer was not found.",
+                SettingsService.L("Установщик обновления Thermiqra не найден.", "The Thermiqra update installer was not found."),
                 installerPath);
         }
 
+        string fullPath = Path.GetFullPath(installerPath);
+        if (!VerifiedDownloads.TryGetValue(fullPath, out VerifiedUpdate? verified))
+            throw new InvalidDataException(SettingsService.L("Установщик не прошёл проверку в текущем сеансе. Повторите загрузку.",
+                "The installer was not verified in this session. Download it again."));
+        RequireSafeCache(Path.GetDirectoryName(fullPath)!);
+        // Keep writes/deletion locked until Windows has opened the executable.
+        using FileStream executionLock = new(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+        UpdateIntegrityPolicy.VerifyAsync(fullPath, verified.Hash, default).GetAwaiter().GetResult();
+        UpdateSignaturePolicy.Verify(verified.Signature, verified.Release, executionLock.Length, verified.Hash);
         ProcessStartInfo startInfo =
             new()
             {
@@ -422,7 +444,36 @@ public static class UpdateService
         if (process == null)
         {
             throw new InvalidOperationException(
-                "The Thermiqra update installer could not be started.");
+                SettingsService.L("Не удалось запустить установщик обновления Thermiqra.", "The Thermiqra update installer could not be started."));
+        }
+    }
+
+    private static async Task<byte[]> DownloadSignatureAsync(string url, CancellationToken token)
+    {
+        UpdateIntegrityPolicy.RequireSource(url);
+        try
+        {
+            using var response = await Client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, token).ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+            UpdateIntegrityPolicy.RequireAssetRedirect(response.RequestMessage?.RequestUri);
+            if (response.Content.Headers.ContentLength > UpdateSignatureFormat.MaximumEnvelopeBytes)
+                throw new InvalidDataException(SettingsService.L("Файл подписи обновления слишком большой.", "The update signature file is too large."));
+            await using var input = await response.Content.ReadAsStreamAsync(token).ConfigureAwait(false);
+            using var output = new MemoryStream();
+            byte[] buffer = new byte[4096];
+            int count;
+            while ((count = await input.ReadAsync(buffer, token).ConfigureAwait(false)) > 0)
+            {
+                if (output.Length + count > UpdateSignatureFormat.MaximumEnvelopeBytes)
+                    throw new InvalidDataException(SettingsService.L("Файл подписи обновления слишком большой.", "The update signature file is too large."));
+                output.Write(buffer, 0, count);
+            }
+            return output.ToArray();
+        }
+        catch (HttpRequestException ex)
+        {
+            throw new IOException(SettingsService.L("Не удалось получить подпись обновления из официального релиза. Установка остановлена.",
+                "Could not retrieve the update signature from the official release. Installation stopped."), ex);
         }
     }
 
@@ -456,7 +507,7 @@ public static class UpdateService
     private static string GetUpdateDirectory()
     {
         return Path.Combine(
-            Path.GetTempPath(),
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "Thermiqra",
             "Updates");
     }
@@ -474,6 +525,7 @@ public static class UpdateService
                 return;
             }
 
+            RequireSafeCache(updateDirectory);
             foreach (string file
                      in Directory.EnumerateFiles(
                          updateDirectory,
@@ -490,8 +542,9 @@ public static class UpdateService
                 TryDeleteFile(file);
             }
         }
-        catch
+        catch (Exception ex)
         {
+            DiagnosticLog.Failure("Update.Cache", ex);
             // Кэш обновлений не должен мешать запуску Thermiqra.
         }
     }
@@ -504,49 +557,30 @@ public static class UpdateService
             if (File.Exists(path))
                 File.Delete(path);
         }
-        catch
+        catch (Exception ex)
         {
+            DiagnosticLog.Failure("Update.CacheDelete", ex);
             // Файл может быть занят установщиком.
             // Следующий запуск попробует удалить его ещё раз.
         }
     }
 
-    private static async Task VerifySha256Async(
-        string filePath,
-        string? expectedSha256,
-        CancellationToken cancellationToken)
+    private static Task VerifySha256Async(string filePath, string? expectedSha256, CancellationToken cancellationToken) =>
+        UpdateIntegrityPolicy.VerifyAsync(filePath, expectedSha256, cancellationToken);
+
+    private static void RequireSafeCache(string path)
     {
-        if (string.IsNullOrWhiteSpace(
-                expectedSha256))
-        {
-            return;
-        }
-
-        await using FileStream stream =
-            File.OpenRead(
-                filePath);
-
-        using SHA256 sha256 =
-            SHA256.Create();
-
-        byte[] hash =
-            await sha256
-                .ComputeHashAsync(
-                    stream,
-                    cancellationToken)
-                .ConfigureAwait(false);
-
-        string actual =
-            Convert.ToHexString(hash);
-
-        if (!string.Equals(
-                actual,
-                expectedSha256,
-                StringComparison.OrdinalIgnoreCase))
-        {
-            throw new InvalidDataException(
-                "The downloaded Thermiqra installer failed the SHA-256 integrity check.");
-        }
+        string expected = Path.GetFullPath(GetUpdateDirectory());
+        if (!Path.GetFullPath(path).Equals(expected, StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException(SettingsService.L("Некорректный путь к каталогу обновлений.", "Unexpected update cache path."));
+        for (DirectoryInfo? current = new(path); current != null; current = current.Parent)
+            try
+            {
+                if ((File.GetAttributes(current.FullName) & FileAttributes.ReparsePoint) != 0)
+                    throw new IOException(SettingsService.L("Каталог обновлений содержит ссылку. Автоматическая установка запрещена.",
+                        "The update cache contains a link. Automatic installation is blocked."));
+            }
+            catch (DirectoryNotFoundException) { }
+            catch (FileNotFoundException) { }
     }
 
     private static string? GetString(
@@ -651,219 +685,6 @@ public static class UpdateService
             $"{version.Build}";
     }
 
-    private static string BuildSummary(
-        string? body)
-    {
-        if (string.IsNullOrWhiteSpace(
-                body))
-        {
-            return string.Empty;
-        }
-
-        string normalized =
-            body.Replace(
-                    "\r",
-                    string.Empty)
-                .Trim();
-
-        string selectedText =
-            ExtractLanguageSection(
-                normalized);
-
-        string[] lines =
-            selectedText.Split('\n');
-
-        List<string> summaryLines =
-            new();
-
-        foreach (string rawLine
-                 in lines)
-        {
-            string line =
-                rawLine.Trim();
-
-            if (string.IsNullOrWhiteSpace(
-                    line) ||
-                line.StartsWith(
-                    "#",
-                    StringComparison.Ordinal))
-            {
-                continue;
-            }
-
-            if (line.StartsWith(
-                    "- ",
-                    StringComparison.Ordinal) ||
-                line.StartsWith(
-                    "* ",
-                    StringComparison.Ordinal))
-            {
-                line =
-                    "• " +
-                    line.Substring(2)
-                        .Trim();
-            }
-
-            summaryLines.Add(line);
-
-            if (summaryLines.Count >= 4)
-                break;
-        }
-
-        string summary =
-            string.Join(
-                Environment.NewLine,
-                summaryLines);
-
-        const int maxLength = 500;
-
-        if (summary.Length >
-            maxLength)
-        {
-            summary =
-                summary.Substring(
-                    0,
-                    maxLength)
-                    .TrimEnd() +
-                "…";
-        }
-
-        return summary;
-    }
-
-
-    private static string ExtractLanguageSection(
-        string text)
-    {
-        string targetLanguage =
-            SettingsService.IsRussian
-                ? "ru"
-                : "en";
-
-        string[] lines =
-            text.Split('\n');
-
-        List<string> selectedLines =
-            new();
-
-        bool targetSectionFound =
-            false;
-
-        bool insideTargetSection =
-            false;
-
-        foreach (string rawLine
-                 in lines)
-        {
-            string line =
-                rawLine.Trim();
-
-            if (TryGetLanguageSectionCode(
-                    line,
-                    out string languageCode))
-            {
-                if (targetSectionFound &&
-                    !string.Equals(
-                        languageCode,
-                        targetLanguage,
-                        StringComparison.OrdinalIgnoreCase))
-                {
-                    break;
-                }
-
-                insideTargetSection =
-                    string.Equals(
-                        languageCode,
-                        targetLanguage,
-                        StringComparison.OrdinalIgnoreCase);
-
-                if (insideTargetSection)
-                {
-                    targetSectionFound =
-                        true;
-                }
-
-                continue;
-            }
-
-            if (insideTargetSection)
-            {
-                selectedLines.Add(
-                    rawLine);
-            }
-        }
-
-        if (!targetSectionFound)
-        {
-            // Совместимость со старыми Release Notes:
-            // если языковых секций нет, используем прежнюю логику.
-            return text;
-        }
-
-        return string.Join(
-                Environment.NewLine,
-                selectedLines)
-            .Trim();
-    }
-
-
-    private static bool TryGetLanguageSectionCode(
-        string line,
-        out string languageCode)
-    {
-        languageCode =
-            string.Empty;
-
-        if (string.IsNullOrWhiteSpace(
-                line) ||
-            !line.StartsWith(
-                "#",
-                StringComparison.Ordinal))
-        {
-            return false;
-        }
-
-        string heading =
-            line.TrimStart('#')
-                .Trim()
-                .TrimEnd(':')
-                .Trim();
-
-        if (string.Equals(
-                heading,
-                "Русский",
-                StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(
-                heading,
-                "Russian",
-                StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(
-                heading,
-                "RU",
-                StringComparison.OrdinalIgnoreCase))
-        {
-            languageCode =
-                "ru";
-
-            return true;
-        }
-
-        if (string.Equals(
-                heading,
-                "English",
-                StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(
-                heading,
-                "EN",
-                StringComparison.OrdinalIgnoreCase))
-        {
-            languageCode =
-                "en";
-
-            return true;
-        }
-
-        return false;
-    }
-
+    private static string BuildSummary(string? body) =>
+        UpdateReleaseNotes.BuildSummary(body, SettingsService.IsRussian);
 }

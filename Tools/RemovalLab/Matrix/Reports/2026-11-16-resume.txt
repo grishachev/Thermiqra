@@ -1,0 +1,2 @@
+Manual guest continuation at 2026-11-16T10:15:09.1666357Z
+RunOnce: powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\ThermiqraDisposableLab\Run-InGuest.ps1" -Resume -ReportDirectory "C:\LabResults"
