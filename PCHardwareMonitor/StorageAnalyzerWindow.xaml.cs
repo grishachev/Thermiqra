@@ -176,6 +176,7 @@ public partial class StorageAnalyzerWindow : Window
             });
 
         SetLoadingState();
+        _ = RefreshCapacityHeaderAsync(currentAnalysis);
 
         try
         {
@@ -367,6 +368,7 @@ public partial class StorageAnalyzerWindow : Window
     {
         _currentResult =
             result;
+        SetCapacityHeader(result.TotalBytes, result.FreeBytes);
 
         _tree =
             result.Tree;
@@ -1070,6 +1072,7 @@ public partial class StorageAnalyzerWindow : Window
 
     private void ApplyDriveName()
     {
+        SteamDriveBadgeText.Text = _driveName.TrimEnd('\\', '/').TrimEnd(':');
         CyberDriveText.Text =
             _driveName;
 
@@ -1179,7 +1182,7 @@ public partial class StorageAnalyzerWindow : Window
     }
 
 
-    private static string FormatBytes(
+    internal static string FormatBytes(
         long bytes)
     {
         if (bytes < 0)

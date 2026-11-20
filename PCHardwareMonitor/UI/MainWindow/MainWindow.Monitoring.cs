@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -104,10 +104,7 @@ public partial class MainWindow : Window
             _lastSnapshot =
                 snapshot;
 
-            _tray.UpdateTooltip(
-                snapshot.Cpu.Temperature,
-                GetTrayGpuTemperature(
-                    snapshot));
+            _tray.UpdateSnapshot(snapshot);
 
             _cpuDetailsWindow?
                 .UpdateSnapshot(
@@ -234,6 +231,7 @@ public partial class MainWindow : Window
                     gpu.Load,
                     gpu.Name,
                     BuildGpuDetails(gpu));
+            _gpuGauges[i].UpdateGpuClocks(gpu.Clocks);
         }
     }
 
@@ -276,31 +274,6 @@ public partial class MainWindow : Window
                 _gpuGauges.Count - 1);
         }
     }
-
-    private static float? GetTrayGpuTemperature(
-        HardwareSnapshot snapshot)
-    {
-        float? highestTemperature =
-            null;
-
-        foreach (GpuInfo gpu
-                 in snapshot.Gpus)
-        {
-            if (!gpu.Temperature.HasValue)
-                continue;
-
-            if (!highestTemperature.HasValue ||
-                gpu.Temperature.Value >
-                highestTemperature.Value)
-            {
-                highestTemperature =
-                    gpu.Temperature.Value;
-            }
-        }
-
-        return highestTemperature;
-    }
-
 
     private static string BuildGpuDetails(
         GpuInfo gpu)

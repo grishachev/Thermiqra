@@ -11,6 +11,8 @@ public sealed class TrayService : IDisposable
 {
     private readonly Forms.NotifyIcon _notifyIcon;
 
+    private TrayMonitorController? _panel;
+
     private readonly Forms.ContextMenuStrip _menu;
 
     private readonly Icon _trayIcon;
@@ -152,7 +154,7 @@ public sealed class TrayService : IDisposable
                     _trayIcon,
 
                 Text =
-                    "Thermiqra",
+                    "",
 
                 Visible =
                     true,
@@ -169,39 +171,18 @@ public sealed class TrayService : IDisposable
 
         _menu.Opening +=
             (_, _) =>
+            {
                 RefreshAppearance();
+                _panel?.SetMenuOpen(true);
+            };
+        _menu.Closed += (_, _) => _panel?.SetMenuOpen(false);
+        _panel = new TrayMonitorController(_notifyIcon);
     }
 
 
-    public void UpdateTooltip(
-        float? cpuTemperature,
-        float? gpuTemperature)
+    public void UpdateSnapshot(HardwareSnapshot snapshot)
     {
-        string cpuText =
-            cpuTemperature.HasValue
-                ? $"{cpuTemperature.Value:F0} °C"
-                : "—";
-
-        string gpuText =
-            gpuTemperature.HasValue
-                ? $"{gpuTemperature.Value:F0} °C"
-                : "—";
-
-        string tooltipText =
-            $"Thermiqra\n" +
-            $"CPU: {cpuText}\n" +
-            $"GPU: {gpuText}";
-
-        if (string.Equals(
-                _notifyIcon.Text,
-                tooltipText,
-                StringComparison.Ordinal))
-        {
-            return;
-        }
-
-        _notifyIcon.Text =
-            tooltipText;
+        _panel?.UpdateSnapshot(snapshot);
     }
 
 
@@ -338,6 +319,7 @@ public sealed class TrayService : IDisposable
 
     public void RefreshLanguage()
     {
+        _panel?.RefreshConfiguration();
         _openItem.Text =
             SettingsService.L(
                 "Открыть",
@@ -521,6 +503,8 @@ public sealed class TrayService : IDisposable
 
     public void Dispose()
     {
+        _panel?.Dispose();
+        _panel = null;
         _notifyIcon.Visible =
             false;
 

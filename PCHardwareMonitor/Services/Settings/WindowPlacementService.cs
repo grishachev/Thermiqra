@@ -190,6 +190,25 @@ internal static class WindowPlacementService
         }
     }
 
+    // Called after saved geometry / owner matching has been applied. A visible
+    // title bar alone is insufficient for dialogs with actions at the bottom.
+    internal static void ConstrainToWorkArea(Window window)
+    {
+        if (window.WindowState != WindowState.Normal) return;
+        var handle = new System.Windows.Interop.WindowInteropHelper(window).Handle;
+        if (handle == IntPtr.Zero) return;
+        Rect area = GetWorkArea(window, Forms.Screen.FromHandle(handle));
+        if (area.Width <= 0 || area.Height <= 0) return;
+        window.MinWidth = Math.Min(window.MinWidth, area.Width);
+        window.MinHeight = Math.Min(window.MinHeight, area.Height);
+        double width = Math.Min(double.IsFinite(window.Width) ? window.Width : window.ActualWidth, area.Width);
+        double height = Math.Min(double.IsFinite(window.Height) ? window.Height : window.ActualHeight, area.Height);
+        if (!double.IsFinite(width) || !double.IsFinite(height)) return;
+        window.Width = width; window.Height = height;
+        window.Left = Math.Clamp(window.Left, area.Left, area.Right - width);
+        window.Top = Math.Clamp(window.Top, area.Top, area.Bottom - height);
+    }
+
     private static bool HasValidGeometry(WindowPlacementSettings placement)
     {
         return double.IsFinite(placement.Left) &&

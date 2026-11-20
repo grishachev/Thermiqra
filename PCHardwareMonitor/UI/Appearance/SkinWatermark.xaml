@@ -1,0 +1,164 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- The disk analyzer and review share the same static vector artwork. -->
+    <PathGeometry x:Key="SkinBackdropGearGeometry" Figures="M 300.0,73.0 L 312.3,73.5 L 320.6,49.2 L 357.7,57.7 L 354.7,83.2 L 366.0,88.1 L 376.8,93.8 L 394.8,75.6 L 424.6,99.3 L 410.8,120.9 L 418.8,130.2 L 426.1,140.1 L 450.3,131.5 L 466.8,165.8 L 445.0,179.3 L 448.2,191.2 L 450.4,203.2 L 476.0,206.0 L 476.0,244.0 L 450.4,246.8 L 448.2,258.8 L 445.0,270.7 L 466.8,284.2 L 450.3,318.5 L 426.1,309.9 L 418.8,319.8 L 410.8,329.1 L 424.6,350.7 L 394.8,374.4 L 376.8,356.2 L 366.0,361.9 L 354.7,366.8 L 357.7,392.3 L 320.6,400.8 L 312.3,376.5 L 300.0,377.0 L 287.7,376.5 L 279.4,400.8 L 242.3,392.3 L 245.3,366.8 L 234.0,361.9 L 223.2,356.2 L 205.2,374.4 L 175.4,350.7 L 189.2,329.1 L 181.2,319.8 L 173.9,309.9 L 149.7,318.5 L 133.2,284.2 L 155.0,270.7 L 151.8,258.8 L 149.6,246.8 L 124.0,244.0 L 124.0,206.0 L 149.6,203.2 L 151.8,191.2 L 155.0,179.3 L 133.2,165.8 L 149.7,131.5 L 173.9,140.1 L 181.2,130.2 L 189.2,120.9 L 175.4,99.3 L 205.2,75.6 L 223.2,93.8 L 234.0,88.1 L 245.3,83.2 L 242.3,57.7 L 279.4,49.2 L 287.7,73.5 Z"/>
+    <DataTemplate x:Key="SkinArtworkTemplate">
+<Grid Width="600" Height="450">
+                            <!-- CYBER TECH: segmented scanner rings and circuit traces. -->
+                            <Canvas Visibility="{DynamicResource CyberTechVisibility}"
+                                    Width="600" Height="450">
+                                <Ellipse Width="380" Height="380" Canvas.Left="110" Canvas.Top="35"
+                                         Stroke="{DynamicResource AccentBrush}" StrokeThickness="1.5"
+                                         StrokeDashArray="3,10" Opacity="0.45"/>
+                                <Ellipse Width="318" Height="318" Canvas.Left="141" Canvas.Top="66"
+                                         Stroke="{DynamicResource AccentBrush}" StrokeThickness="2"
+                                         Opacity="0.25"/>
+                                <Ellipse Width="220" Height="220" Canvas.Left="190" Canvas.Top="115"
+                                         Stroke="{DynamicResource AccentBrush}" StrokeThickness="1"
+                                         Opacity="0.40"/>
+                                <Path Data="M 300,58 A 167,167 0 0 1 467,225 M 300,392 A 167,167 0 0 1 133,225"
+                                      Stroke="{DynamicResource AccentBrush}" StrokeThickness="8"
+                                      StrokeStartLineCap="Square" StrokeEndLineCap="Square" Opacity="0.29"/>
+                                <Path Data="M 174,98 L 214,139 M 426,98 L 386,139 M 174,352 L 214,311 M 426,352 L 386,311"
+                                      Stroke="{DynamicResource AccentBrush}" StrokeThickness="2" Opacity="0.35"/>
+                                <Polygon Points="300,146 369,185 369,265 300,304 231,265 231,185"
+                                         Stroke="{DynamicResource AccentBrush}" StrokeThickness="3"
+                                         Fill="{DynamicResource AccentBrush}" Opacity="0.20"/>
+                                <Polygon Points="300,177 342,201 342,249 300,273 258,249 258,201"
+                                         Stroke="{DynamicResource AccentBrush}" StrokeThickness="2"
+                                         Fill="{DynamicResource CardBackgroundBrush}" Opacity="0.55"/>
+                                <Path Data="M 44,160 L 108,160 L 156,208 M 444,208 L 504,150 L 576,150 M 42,298 L 111,298 L 161,248 M 446,249 L 513,316 L 573,316"
+                                      Stroke="{DynamicResource AccentBrush}" StrokeThickness="2" Opacity="0.35"/>
+                                <Ellipse Width="9" Height="9" Canvas.Left="39" Canvas.Top="155" Fill="{DynamicResource AccentBrush}" Opacity="0.55"/>
+                                <Ellipse Width="9" Height="9" Canvas.Left="571" Canvas.Top="145" Fill="{DynamicResource AccentBrush}" Opacity="0.55"/>
+                                <Ellipse Width="9" Height="9" Canvas.Left="37" Canvas.Top="293" Fill="{DynamicResource AccentBrush}" Opacity="0.55"/>
+                                <Ellipse Width="9" Height="9" Canvas.Left="568" Canvas.Top="311" Fill="{DynamicResource AccentBrush}" Opacity="0.55"/>
+                                <Path Data="M 300,129 L 300,107 M 300,343 L 300,320 M 181,225 L 160,225 M 440,225 L 419,225"
+                                      Stroke="{DynamicResource PrimaryTextBrush}" StrokeThickness="3" Opacity="0.35"/>
+                            </Canvas>
+
+                            <!-- STEAMPUNK: paired brass cogwheels, dial and rivets. -->
+                            <Canvas Visibility="{DynamicResource SteamPunkVisibility}"
+                                    Width="600" Height="450">
+                                <Path Data="{StaticResource SkinBackdropGearGeometry}"
+                                      Fill="{DynamicResource SteamMetalBrush}"
+                                      Stroke="{DynamicResource AccentBrush}"
+                                      StrokeThickness="2" Opacity="0.27"/>
+                                <Ellipse Width="260" Height="260" Canvas.Left="170" Canvas.Top="95"
+                                         Stroke="{DynamicResource AccentBrush}" StrokeThickness="8" Opacity="0.32"/>
+                                <Ellipse Width="195" Height="195" Canvas.Left="202.5" Canvas.Top="127.5"
+                                         Fill="{DynamicResource SteamPanelBrush}"
+                                         Stroke="{DynamicResource SteamMetalBrush}" StrokeThickness="5" Opacity="0.82"/>
+                                <Ellipse Width="150" Height="150" Canvas.Left="225" Canvas.Top="150"
+                                         Stroke="{DynamicResource AccentBrush}" StrokeThickness="2"
+                                         StrokeDashArray="2,5" Opacity="0.57"/>
+                                <Ellipse Width="76" Height="76" Canvas.Left="262" Canvas.Top="187"
+                                         Fill="{DynamicResource SteamDarkMetalBrush}"
+                                         Stroke="{DynamicResource AccentBrush}" StrokeThickness="4" Opacity="0.76"/>
+                                <Ellipse Width="24" Height="24" Canvas.Left="288" Canvas.Top="213"
+                                         Fill="{DynamicResource AccentBrush}" Opacity="0.55"/>
+                                <Path Data="{StaticResource SkinBackdropGearGeometry}"
+                                      Fill="{DynamicResource SteamMetalBrush}"
+                                      Stroke="{DynamicResource AccentBrush}" StrokeThickness="2" Opacity="0.35">
+                                    <Path.RenderTransform>
+                                        <TransformGroup>
+                                            <ScaleTransform ScaleX="0.43" ScaleY="0.43" CenterX="300" CenterY="225"/>
+                                            <TranslateTransform X="184" Y="-122"/>
+                                        </TransformGroup>
+                                    </Path.RenderTransform>
+                                </Path>
+                                <Ellipse Width="36" Height="36" Canvas.Left="466" Canvas.Top="86"
+                                         Stroke="{DynamicResource AccentBrush}" StrokeThickness="4" Opacity="0.58"/>
+                                <Path Data="M 36,376 L 160,376 M 440,373 L 557,373 M 79,92 L 157,92"
+                                      Stroke="{DynamicResource SteamMetalBrush}" StrokeThickness="4" Opacity="0.36"/>
+                                <Ellipse Width="8" Height="8" Canvas.Left="68" Canvas.Top="88"
+                                         Fill="{DynamicResource AccentBrush}" Opacity="0.42"/>
+                                <Ellipse Width="8" Height="8" Canvas.Left="533" Canvas.Top="369"
+                                         Fill="{DynamicResource AccentBrush}" Opacity="0.42"/>
+                            </Canvas>
+
+                            <!-- FROST CORE: ice crystal with hexagonal technical rings. -->
+                            <Canvas Visibility="{DynamicResource FrostCoreVisibility}"
+                                    Width="600" Height="450">
+                                <Polygon Points="300,30 467,127 467,323 300,420 133,323 133,127"
+                                         Stroke="{DynamicResource FrostSteelBrush}" StrokeThickness="2"
+                                         Fill="{DynamicResource FrostGlassBrush}" Opacity="0.33"/>
+                                <Polygon Points="300,78 426,151 426,299 300,372 174,299 174,151"
+                                         Stroke="{DynamicResource FrostIceBrush}" StrokeThickness="3"
+                                         Fill="{DynamicResource FrostGlassBrush}" Opacity="0.32"/>
+                                <Polygon Points="300,126 386,175 386,275 300,324 214,275 214,175"
+                                         Stroke="{DynamicResource FrostIceBrush}" StrokeThickness="2"
+                                         Fill="{DynamicResource FrostPanelBrush}" Opacity="0.54"/>
+                                <Path Data="M 300,84 L 300,366 M 169,150 L 431,300 M 169,300 L 431,150"
+                                      Stroke="{DynamicResource FrostIceBrush}" StrokeThickness="5" Opacity="0.42"/>
+                                <Path Data="M 282,113 L 300,130 L 318,113 M 282,337 L 300,320 L 318,337 M 194,157 L 200,181 L 177,188 M 423,262 L 400,270 L 406,293 M 194,293 L 200,269 L 177,262 M 423,188 L 400,180 L 406,157"
+                                      Stroke="{DynamicResource FrostIceBrush}" StrokeThickness="4"
+                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" Opacity="0.60"/>
+                                <Polygon Points="300,185 335,205 335,245 300,265 265,245 265,205"
+                                         Stroke="{DynamicResource FrostIceBrush}" StrokeThickness="2"
+                                         Fill="{DynamicResource FrostIceBrush}" Opacity="0.30"/>
+                                <Ellipse Width="392" Height="392" Canvas.Left="104" Canvas.Top="29"
+                                         Stroke="{DynamicResource FrostSteelBrush}" StrokeThickness="1"
+                                         StrokeDashArray="2,12" Opacity="0.37"/>
+                            </Canvas>
+
+                            <!-- MILITARY OPS: static tactical radar and coordinate grid. -->
+                            <Canvas Visibility="{DynamicResource MilitaryOpsVisibility}"
+                                    Width="600" Height="450">
+                                <Path Data="M 78,65 L 78,385 M 151,65 L 151,385 M 225,65 L 225,385 M 375,65 L 375,385 M 449,65 L 449,385 M 522,65 L 522,385 M 61,88 L 539,88 M 61,156 L 539,156 M 61,294 L 539,294 M 61,362 L 539,362"
+                                      Stroke="{DynamicResource MilitaryGridBrush}" StrokeThickness="1"
+                                      Opacity="0.50"/>
+                                <Ellipse Width="340" Height="340" Canvas.Left="130" Canvas.Top="55"
+                                         Stroke="{DynamicResource MilitaryKhakiBrush}" StrokeThickness="3" Opacity="0.65"/>
+                                <Ellipse Width="255" Height="255" Canvas.Left="172.5" Canvas.Top="97.5"
+                                         Stroke="{DynamicResource AccentBrush}" StrokeThickness="2"
+                                         StrokeDashArray="7,5" Opacity="0.38"/>
+                                <Ellipse Width="125" Height="125" Canvas.Left="237.5" Canvas.Top="162.5"
+                                         Stroke="{DynamicResource MilitaryKhakiBrush}" StrokeThickness="2" Opacity="0.70"/>
+                                <Path Data="M 300,38 L 300,413 M 111,225 L 489,225"
+                                      Stroke="{DynamicResource MilitaryKhakiBrush}" StrokeThickness="2" Opacity="0.48"/>
+                                <Path Data="M 300,225 L 414,105 A 165,165 0 0 1 464,241 Z"
+                                      Fill="{DynamicResource AccentBrush}" Opacity="0.16"/>
+                                <Ellipse Width="22" Height="22" Canvas.Left="289" Canvas.Top="214"
+                                         Fill="{DynamicResource AccentBrush}" Opacity="0.70"/>
+                                <Path Data="M 50,55 L 50,88 L 81,88 M 550,55 L 550,88 L 519,88 M 50,395 L 50,362 L 81,362 M 550,395 L 550,362 L 519,362"
+                                      Stroke="{DynamicResource MilitaryKhakiBrush}" StrokeThickness="4" Opacity="0.66"/>
+                            </Canvas>
+                        </Grid>
+    </DataTemplate>
+    <!-- Quiet full-window watermarks; independent from the analyzer illustration. -->
+    <DataTemplate x:Key="SkinWatermarkTemplate">
+        <Grid ClipToBounds="True" IsHitTestVisible="False">
+            <Viewbox Stretch="Uniform" Margin="24" IsHitTestVisible="False" Focusable="False">
+                <Grid Width="600" Height="600">
+                    <Canvas Width="600" Height="600" Opacity="0.085"
+                            Visibility="{DynamicResource SteamPunkVisibility}">
+                        <Path Fill="{DynamicResource SteamMetalBrush}" Data="F0 M 546.00,300.00 L 545.73,311.59 L 577.25,320.36 L 573.61,349.23 L 540.89,349.89 L 537.62,363.67 L 534.35,374.79 L 562.54,391.42 L 551.54,418.37 L 519.77,410.53 L 513.04,423.00 L 507.01,432.90 L 529.93,456.26 L 512.34,479.44 L 483.67,463.65 L 473.95,473.95 L 465.56,481.95 L 481.65,510.44 L 458.66,528.28 L 435.06,505.61 L 423.00,513.04 L 412.83,518.60 L 420.99,550.29 L 394.17,561.56 L 377.24,533.56 L 363.67,537.62 L 352.41,540.35 L 352.09,573.08 L 323.26,577.03 L 314.16,545.59 L 300.00,546.00 L 288.41,545.73 L 279.64,577.25 L 250.77,573.61 L 250.11,540.89 L 236.33,537.62 L 225.21,534.35 L 208.58,562.54 L 181.63,551.54 L 189.47,519.77 L 177.00,513.04 L 167.10,507.01 L 143.74,529.93 L 120.56,512.34 L 136.35,483.67 L 126.05,473.95 L 118.05,465.56 L 89.56,481.65 L 71.72,458.66 L 94.39,435.06 L 86.96,423.00 L 81.40,412.83 L 49.71,420.99 L 38.44,394.17 L 66.44,377.24 L 62.38,363.67 L 59.65,352.41 L 26.92,352.09 L 22.97,323.26 L 54.41,314.16 L 54.00,300.00 L 54.27,288.41 L 22.75,279.64 L 26.39,250.77 L 59.11,250.11 L 62.38,236.33 L 65.65,225.21 L 37.46,208.58 L 48.46,181.63 L 80.23,189.47 L 86.96,177.00 L 92.99,167.10 L 70.07,143.74 L 87.66,120.56 L 116.33,136.35 L 126.05,126.05 L 134.44,118.05 L 118.35,89.56 L 141.34,71.72 L 164.94,94.39 L 177.00,86.96 L 187.17,81.40 L 179.01,49.71 L 205.83,38.44 L 222.76,66.44 L 236.33,62.38 L 247.59,59.65 L 247.91,26.92 L 276.74,22.97 L 285.84,54.41 L 300.00,54.00 L 311.59,54.27 L 320.36,22.75 L 349.23,26.39 L 349.89,59.11 L 363.67,62.38 L 374.79,65.65 L 391.42,37.46 L 418.37,48.46 L 410.53,80.23 L 423.00,86.96 L 432.90,92.99 L 456.26,70.07 L 479.44,87.66 L 463.65,116.33 L 473.95,126.05 L 481.95,134.44 L 510.44,118.35 L 528.28,141.34 L 505.61,164.94 L 513.04,177.00 L 518.60,187.17 L 550.29,179.01 L 561.56,205.83 L 533.56,222.76 L 537.62,236.33 L 540.35,247.59 L 573.08,247.91 L 577.03,276.74 L 545.59,285.84 Z M 300,108 A 192,192 0 1 0 300,492 A 192,192 0 1 0 300,108 Z"/>
+                        <Path Fill="{DynamicResource SteamMetalBrush}" Data="M 368.00,286.00 L 502.00,280.00 L 502.00,320.00 L 368.00,314.00 Z M 346.12,351.89 L 418.32,464.94 L 383.68,484.94 L 321.88,365.89 Z M 278.12,365.89 L 216.32,484.94 L 181.68,464.94 L 253.88,351.89 Z M 232.00,314.00 L 98.00,320.00 L 98.00,280.00 L 232.00,286.00 Z M 253.88,248.11 L 181.68,135.06 L 216.32,115.06 L 278.12,234.11 Z M 321.88,234.11 L 383.68,115.06 L 418.32,135.06 L 346.12,248.11 Z"/>
+                        <Path Fill="{DynamicResource SteamMetalBrush}" Data="F0 M 300,220 A 80,80 0 1 0 300,380 A 80,80 0 1 0 300,220 Z M 300,254 A 46,46 0 1 0 300,346 A 46,46 0 1 0 300,254 Z"/>
+                    </Canvas>
+                    <Grid Opacity="0.08" Visibility="{DynamicResource MainCyberTechVisibility}">
+                        <Ellipse Margin="30" Stroke="{DynamicResource AccentBrush}" StrokeThickness="3"/>
+                        <Ellipse Margin="85" Stroke="{DynamicResource AccentBrush}" StrokeThickness="2" StrokeDashArray="6,10"/>
+                        <Ellipse Margin="170" Stroke="{DynamicResource AccentBrush}" StrokeThickness="4"/>
+                        <Path Data="M 300,5 L 300,105 M 300,495 L 300,595 M 5,300 L 105,300 M 495,300 L 595,300"
+                              Stroke="{DynamicResource AccentBrush}" StrokeThickness="5"/>
+                    </Grid>
+                    <Path Opacity="0.085" Visibility="{DynamicResource FrostCoreVisibility}"
+                          Stroke="{DynamicResource FrostIceBrush}" StrokeThickness="10" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                          Data="M 300,30 L 300,570 M 66,165 L 534,435 M 66,435 L 534,165
+                                M 250,80 L 300,130 L 350,80 M 250,520 L 300,470 L 350,520
+                                M 84,225 L 152,215 L 127,151 M 473,449 L 448,385 L 516,375
+                                M 127,449 L 152,385 L 84,375 M 516,225 L 448,215 L 473,151"/>
+                    <Grid Opacity="0.085" Visibility="{DynamicResource MilitaryOpsVisibility}">
+                        <Ellipse Margin="35" Stroke="{DynamicResource MilitaryKhakiBrush}" StrokeThickness="4"/>
+                        <Ellipse Margin="120" Stroke="{DynamicResource MilitaryKhakiBrush}" StrokeThickness="3" StrokeDashArray="8,6"/>
+                        <Ellipse Margin="230" Stroke="{DynamicResource MilitaryKhakiBrush}" StrokeThickness="4"/>
+                        <Path Data="M 300,0 L 300,180 M 300,420 L 300,600 M 0,300 L 180,300 M 420,300 L 600,300"
+                              Stroke="{DynamicResource MilitaryKhakiBrush}" StrokeThickness="5"/>
+                    </Grid>
+                </Grid>
+            </Viewbox>
+        </Grid>
+    </DataTemplate>
+</ResourceDictionary>

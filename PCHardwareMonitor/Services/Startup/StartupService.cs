@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 
 namespace PCHardwareMonitor;
@@ -33,7 +33,7 @@ public static class StartupService
                         exePath))
                 {
                     error =
-                        "Не удалось определить путь к Thermiqra.exe.";
+                        SettingsService.L("Не удалось определить путь к Thermiqra.exe.", "Could not locate Thermiqra.exe.");
 
                     return false;
                 }
@@ -79,6 +79,7 @@ public static class StartupService
         }
         catch (Exception ex)
         {
+            DiagnosticLog.Failure("Startup.Change", ex);
             error =
                 ex.Message;
 
@@ -108,41 +109,11 @@ public static class StartupService
     {
         try
         {
-            ProcessStartInfo startInfo =
-                new()
-                {
-                    FileName =
-                        "schtasks.exe",
-
-                    Arguments =
-                        $"/Query /TN \"{taskName}\"",
-
-                    UseShellExecute =
-                        false,
-
-                    CreateNoWindow =
-                        true,
-
-                    RedirectStandardOutput =
-                        true,
-
-                    RedirectStandardError =
-                        true
-                };
-
-            using Process? process =
-                Process.Start(startInfo);
-
-            if (process == null)
-                return false;
-
-            process.WaitForExit();
-
-            return
-                process.ExitCode == 0;
+            return RunSchtasks($"/Query /TN \"{taskName}\"", out _);
         }
-        catch
+        catch (Exception ex)
         {
+            DiagnosticLog.Failure("Startup.Query", ex);
             return false;
         }
     }
@@ -205,20 +176,23 @@ public static class StartupService
         if (process == null)
         {
             error =
-                "Не удалось запустить Планировщик заданий Windows.";
+                SettingsService.L("Не удалось запустить Планировщик заданий Windows.", "Could not start Windows Task Scheduler.");
 
             return false;
         }
 
-        string output =
-            process.StandardOutput
-                .ReadToEnd();
-
-        string errorOutput =
-            process.StandardError
-                .ReadToEnd();
-
-        process.WaitForExit();
+        // Drain both redirected pipes concurrently: either can fill its buffer.
+        var outputTask = process.StandardOutput.ReadToEndAsync();
+        var errorTask = process.StandardError.ReadToEndAsync();
+        if (!process.WaitForExit(15000) || !System.Threading.Tasks.Task.WaitAll(new System.Threading.Tasks.Task[] { outputTask, errorTask }, 2000))
+        {
+            error = SettingsService.L("Планировщик заданий не ответил вовремя. Проверьте автозапуск в Windows.",
+                "Task Scheduler did not respond in time. Check startup settings in Windows.");
+            DiagnosticLog.Failure("Startup.Timeout", new TimeoutException());
+            return false;
+        }
+        string output = outputTask.Result;
+        string errorOutput = errorTask.Result;
 
         if (process.ExitCode == 0)
         {

@@ -92,6 +92,8 @@ public partial class SettingsWindow : Window
         ShowWindowOnStartupCheck.IsChecked =
             settings.ShowMainWindowOnStartup;
 
+        TrayPanelAlwaysCheck.IsChecked = settings.TrayPanelAlwaysVisible;
+
         // Общие уведомления
         NotificationsCheck.IsChecked =
             settings.NotificationsEnabled;
@@ -751,6 +753,8 @@ public partial class SettingsWindow : Window
         settings.ShowMainWindowOnStartup =
             ShowWindowOnStartupCheck.IsChecked ==
             true;
+
+        settings.TrayPanelAlwaysVisible = TrayPanelAlwaysCheck.IsChecked == true;
 
         // Общие уведомления
         settings.NotificationsEnabled =

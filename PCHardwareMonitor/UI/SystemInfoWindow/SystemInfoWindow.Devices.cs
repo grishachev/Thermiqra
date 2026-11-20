@@ -93,11 +93,18 @@ public partial class SystemInfoWindow
     // ============================================================
 
     private int _storageReliabilityRequestId;
+    private IReadOnlyDictionary<uint, StorageReliabilityDetails>? _storageReliabilityForReport;
+    private List<string> _storageReadDiagnostics = new();
+    private bool _storageReliabilityLoading;
 
     private async void PopulateStorageDevices(
         IReadOnlyList<StorageDeviceDetails> devices)
     {
         int requestId = ++_storageReliabilityRequestId;
+        _storageReliabilityForReport = null;
+        _storageReliabilityLoading = devices.Count > 0;
+        List<string> readDiagnostics = new();
+        _storageReadDiagnostics = readDiagnostics;
 
         RenderStorageDevices(devices, null, isReading: devices.Count > 0);
 
@@ -111,10 +118,11 @@ public partial class SystemInfoWindow
             // Some controller requests may take time. Never run them on
             // the window thread or in the 1-second monitoring loop.
             reliability = await Task.Run(() =>
-                SystemInfoService.ReadStorageReliabilityCounters(devices));
+                SystemInfoService.ReadStorageReliabilityCounters(devices, readDiagnostics));
         }
-        catch
+        catch (Exception ex)
         {
+            readDiagnostics.Add(ex.GetType().Name + ": " + ex.Message);
             reliability = new Dictionary<uint, StorageReliabilityDetails>();
         }
 
@@ -124,6 +132,8 @@ public partial class SystemInfoWindow
             return;
         }
 
+        _storageReliabilityForReport = reliability;
+        _storageReliabilityLoading = false;
         RenderStorageDevices(devices, reliability, isReading: false);
     }
 
@@ -274,7 +284,8 @@ public partial class SystemInfoWindow
             {
                 rows.Add(new InformationRow(
                     SettingsService.L("Источник SMART", "SMART source"),
-                    "ATA SMART (Windows WMI)"));
+                    string.IsNullOrWhiteSpace(details.AtaSmartSource)
+                        ? "ATA SMART" : details.AtaSmartSource));
 
                 rows.Add(new InformationRow(
                     SettingsService.L(

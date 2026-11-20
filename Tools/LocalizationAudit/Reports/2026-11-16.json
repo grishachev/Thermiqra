@@ -1,0 +1,51 @@
+{
+  "Date": "2026-11-16",
+  "ApplicationVersion": "1.0.0",
+  "Configuration": "Debug",
+  "TestsPassed": 215,
+  "TestsFailed": 0,
+  "TestsSkipped": 0,
+  "CSharpFilesReviewed": 217,
+  "XamlFilesReviewed": 11,
+  "CommonTranslations": 376,
+  "AddedCommonTranslations": 56,
+  "LanguagePairIssues": 0,
+  "ReviewedCandidates": 136,
+  "Skins": [
+    "CyberTech",
+    "SteamPunk",
+    "FrostCore",
+    "MilitaryOps"
+  ],
+  "Languages": [
+    "Russian",
+    "English"
+  ],
+  "StaticWindows": [
+    "MainWindow",
+    "SettingsWindow",
+    "SystemInfoWindow",
+    "StatisticsWindow",
+    "StorageAnalyzerWindow",
+    "NotificationWindow"
+  ],
+  "ReviewStates": [
+    "Empty",
+    "ProtectedPackage",
+    "Items",
+    "Result"
+  ],
+  "RenderedImages": 120,
+  "PreviewDirectory": "B:\\Projects\\Thermiqra_Backups\\Localization-Previews-20261116",
+  "RealSigningKeySelfTest": "Passed",
+  "BackupKeySelfTest": "Passed",
+  "SigningSmoke": "Passed on a separate copy of the official 1.0.0 installer; repeated signing passed; tampered copy rejected",
+  "InstallerExecuted": false,
+  "Published": false,
+  "Limitations": [
+    "Static window layouts use no hardware data and do not run code-behind event handlers.",
+    "Third-party application names, user paths and native Windows messages are not translated by the application dictionary.",
+    "The transition release is downloaded by old clients using their existing update mechanism.",
+    "Private-key backup still needs an offline copy on a separate device."
+  ]
+}

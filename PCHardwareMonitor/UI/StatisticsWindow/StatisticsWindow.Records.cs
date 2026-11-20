@@ -161,8 +161,8 @@ public partial class StatisticsWindow
                 _currentPeriod);
 
         _eventCountsText.Text =
-            $"WARNING: {counts.WarningCount}   •   " +
-            $"CRITICAL: {counts.CriticalCount}";
+            SettingsService.L($"ПРЕДУПРЕЖДЕНИЯ: {counts.WarningCount}   •   КРИТИЧЕСКИЕ: {counts.CriticalCount}",
+                $"WARNING: {counts.WarningCount}   •   CRITICAL: {counts.CriticalCount}");
 
         _eventsListPanel.Children.Clear();
 

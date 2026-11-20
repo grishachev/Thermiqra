@@ -1028,6 +1028,8 @@ public sealed partial class RingGauge
         cards.Children.Add(
             vram);
 
+        AddGpuClockRow(cards, "Steam");
+
         return cards;
     }
 

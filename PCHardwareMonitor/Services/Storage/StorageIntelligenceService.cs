@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -431,7 +431,7 @@ public static class StorageIntelligenceService
                 "Пока не рекомендуется удалять вручную или через «Безопасную очистку».",
                 "Manual deletion and Safe Cleanup are not recommended for now.",
                 found.Confidence, found.Bytes, found.NodeId),
-            _ => throw new InvalidOperationException("Unexpected storage insight key.")
+            _ => throw new InvalidOperationException(SettingsService.L("Неизвестный идентификатор пояснения к данным накопителя.", "Unexpected storage insight key."))
         };
     }
 

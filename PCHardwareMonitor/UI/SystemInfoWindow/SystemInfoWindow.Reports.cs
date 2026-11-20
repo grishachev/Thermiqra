@@ -142,6 +142,12 @@ public partial class SystemInfoWindow
             text);
 
         text.AppendLine();
+        AppendStorageHealthReport(text, systemSnapshot.StorageDevices);
+
+        text.AppendLine();
+        AppendSensorReport(text);
+
+        text.AppendLine();
 
         AppendSpdXmpSection(
             text);

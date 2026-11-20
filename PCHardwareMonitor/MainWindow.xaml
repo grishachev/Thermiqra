@@ -80,6 +80,14 @@
             </Setter>
         </Style>
 
+        <!-- Use the same hover and pressed template as the main header buttons.
+             Accent caption is a style setter, not a local value that blocks hover. -->
+        <Style x:Key="InstalledProgramsLauncherStyle" TargetType="Button"
+               BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+        </Style>
+
         <Style x:Key="SectionTitleStyle" TargetType="TextBlock">
             <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
             <Setter Property="FontSize" Value="14"/>
@@ -1543,6 +1551,20 @@
                  ===================================================== -->
             <StackPanel Grid.Row="3">
 
+                <!-- Separate system tools. Kept outside the disk grid: no scan required. -->
+                <Grid x:Name="ProgramsToolsHeader"
+                      SizeChanged="ProgramsToolsHeader_SizeChanged"
+                      Margin="0,0,0,4">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Row="0" Grid.Column="0">
+
                 <!-- CYBER DISKS HEADER -->
                 <Grid Margin="4,1,4,8"
                       Visibility="{DynamicResource MainCyberTechVisibility}">
@@ -1646,6 +1668,37 @@
                                    VerticalAlignment="Center"/>
                     </StackPanel>
                 </Border>
+
+                    </StackPanel>
+
+                    <Border x:Name="ProgramsToolsPanel"
+                            Grid.Row="0" Grid.Column="1"
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Right"
+                            Background="{DynamicResource CardBackgroundBrush}"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="{DynamicResource PanelCornerRadius}"
+                            Padding="11,5"
+                            Margin="12,0,4,8">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock x:Name="ProgramsToolsLabel"
+                                       Text="ИНСТРУМЕНТЫ"
+                                       Foreground="{DynamicResource SecondaryTextBrush}"
+                                       FontSize="10"
+                                       FontWeight="SemiBold"
+                                       VerticalAlignment="Center"
+                                       Margin="0,0,12,0"/>
+                            <Button x:Name="InstalledProgramsButton"
+                                    Style="{StaticResource InstalledProgramsLauncherStyle}"
+                                    Content="Программы"
+                                    Click="InstalledProgramsButton_Click"
+                                    MinHeight="32"
+                                    Padding="13,6"
+                                    BorderBrush="{DynamicResource AccentBrush}"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
 
                 <Grid x:Name="DrivesPanel"/>
 

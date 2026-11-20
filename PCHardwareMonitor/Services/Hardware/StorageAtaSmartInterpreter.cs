@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace PCHardwareMonitor;
@@ -86,7 +86,7 @@ public static class StorageAtaSmartInterpreter
     {
         // Byte 0..1 = SMART revision. Up to 30 twelve-byte attribute records
         // start at byte 2, each holding a 6-byte vendor-defined RAW field.
-        if (sector.Length < 362)
+        if (sector == null || sector.Length < 362)
             return null;
 
         List<StorageAtaSmartAttribute> attributes = new();

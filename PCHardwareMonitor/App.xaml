@@ -4,6 +4,14 @@
              ShutdownMode="OnExplicitShutdown">
 
     <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="UI/Appearance/ToolTipStyles.xaml"/>
+                <ResourceDictionary Source="UI/Appearance/ProgramInputStyles.xaml"/>
+                <ResourceDictionary Source="UI/Appearance/ProgramWindowStyles.xaml"/>
+                <ResourceDictionary Source="UI/Appearance/SkinWatermark.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
     </Application.Resources>
 
 </Application>

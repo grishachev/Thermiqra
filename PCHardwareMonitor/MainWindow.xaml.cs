@@ -72,6 +72,7 @@ public partial class MainWindow : Window
 
         SettingsService.ApplyLanguageToWindow(
             this);
+        UpdateProgramsToolsLanguage();
 
         RestoreWindowPlacement();
 
@@ -212,6 +213,7 @@ public partial class MainWindow : Window
     {
         SettingsService.ApplyLanguageToWindow(
             this);
+        UpdateProgramsToolsLanguage();
 
         _tray.RefreshLanguage();
 

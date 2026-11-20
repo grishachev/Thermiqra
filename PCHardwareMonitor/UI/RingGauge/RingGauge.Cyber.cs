@@ -772,6 +772,8 @@ public sealed partial class RingGauge
 
         wrapper.Children.Add(cards);
 
+        AddGpuClockRow(cards, "Cyber");
+
         return wrapper;
     }
 
