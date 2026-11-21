@@ -20,6 +20,8 @@ internal static class UpdatePromptView
             WindowStartupLocation = owner == null ? WindowStartupLocation.CenterScreen : WindowStartupLocation.CenterOwner,
             ResizeMode = ResizeMode.NoResize, ShowInTaskbar = false
         };
+        dialog.Resources.MergedDictionaries.Add((ResourceDictionary)Application.LoadComponent(
+            new Uri("/Thermiqra;component/UI/Appearance/ProgramInputStyles.xaml", UriKind.Relative)));
         dialog.SetResourceReference(Window.BackgroundProperty, "WindowBackgroundBrush");
         var root = new Grid { Margin = new Thickness(22) };
         root.RowDefinitions.Add(new() { Height = GridLength.Auto });
@@ -64,8 +66,8 @@ internal static class UpdatePromptView
         Button Button(string label)
         {
             var button = new Button { Content = label, Padding = new Thickness(12, 8, 12, 8), MinHeight = 36, Margin = new Thickness(5, 4, 0, 0) };
+            button.SetResourceReference(FrameworkElement.StyleProperty, "ThermiqraButtonStyle");
             button.SetResourceReference(Control.BackgroundProperty, "InputBackgroundBrush");
-            button.SetResourceReference(Control.ForegroundProperty, "PrimaryTextBrush");
             button.SetResourceReference(Control.BorderBrushProperty, "BorderBrush");
             return button;
         }
