@@ -219,10 +219,15 @@ public static class UpdateService
             installerSha256);
     }
 
-    public static async Task<string> DownloadInstallerAsync(
-        UpdateInfo update,
-        IProgress<int>? progress = null,
-        CancellationToken cancellationToken = default)
+    public static Task<string> DownloadInstallerAsync(UpdateInfo update, IProgress<int>? progress = null,
+        CancellationToken cancellationToken = default) => DownloadInstallerCoreAsync(update, progress, null, cancellationToken);
+
+    internal static Task<string> DownloadInstallerWithProgressAsync(UpdateInfo update,
+        IProgress<UpdateDownloadProgress> progress, CancellationToken cancellationToken) =>
+        DownloadInstallerCoreAsync(update, null, progress, cancellationToken);
+
+    private static async Task<string> DownloadInstallerCoreAsync(UpdateInfo update, IProgress<int>? progress,
+        IProgress<UpdateDownloadProgress>? details, CancellationToken cancellationToken)
     {
         if (!update.HasInstaller ||
             string.IsNullOrWhiteSpace(
@@ -239,6 +244,7 @@ public static class UpdateService
 
         string requiredHash = UpdateIntegrityPolicy.RequiredHash(update.InstallerSha256);
         UpdateIntegrityPolicy.RequireSource(update.InstallerDownloadUrl);
+        await using var transfer = new UpdateDownloadReporter(progress, details);
         byte[] signature = await DownloadSignatureAsync(update.InstallerDownloadUrl + ".signature.json", cancellationToken).ConfigureAwait(false);
         RequireSafeCache(updateDirectory);
 
@@ -290,6 +296,7 @@ public static class UpdateService
                     .Headers
                     .ContentLength;
 
+            transfer.SetStage(UpdateDownloadStage.Downloading, totalLength);
             await using Stream input =
                 await response.Content
                     .ReadAsStreamAsync(
@@ -310,7 +317,6 @@ public static class UpdateService
                     new byte[81920];
 
                 long received = 0;
-                int lastPercent = -1;
 
                 while (true)
                 {
@@ -337,26 +343,7 @@ public static class UpdateService
                     if (received > 512L * 1024 * 1024)
                         throw new InvalidDataException(SettingsService.L("Установщик превышает допустимый размер загрузки.", "Installer exceeds the download size limit."));
 
-                    if (totalLength.HasValue &&
-                        totalLength.Value > 0)
-                    {
-                        int percent =
-                            (int)Math.Clamp(
-                                received * 100 /
-                                totalLength.Value,
-                                0,
-                                99);
-
-                        if (percent !=
-                            lastPercent)
-                        {
-                            lastPercent =
-                                percent;
-
-                            progress?.Report(
-                                percent);
-                        }
-                    }
+                    transfer.Received(received);
                 }
 
                 await output
@@ -368,6 +355,7 @@ public static class UpdateService
             // Важно: поток записи уже закрыт до проверки SHA-256.
             // Иначе Windows не даст VerifySha256Async открыть
             // .download-файл из-за FileShare.None.
+            transfer.SetStage(UpdateDownloadStage.Verifying);
             await VerifySha256Async(
                     partialPath,
                     update.InstallerSha256,
@@ -383,7 +371,7 @@ public static class UpdateService
 
             VerifiedDownloads[Path.GetFullPath(installerPath)] = new(update, requiredHash, signature);
 
-            progress?.Report(100);
+            transfer.SetStage(UpdateDownloadStage.Ready);
 
             return installerPath;
         }
