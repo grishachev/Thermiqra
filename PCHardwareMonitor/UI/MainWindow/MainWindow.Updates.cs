@@ -240,11 +240,9 @@ public partial class MainWindow : Window
 
         try
         {
-            progressWindow =
-                CreateUpdateProgressWindow(
-                    out ProgressBar progressBar,
-                    out TextBlock statusText,
-                    out Button cancelButton);
+            var transferView = new UpdateDownloadView(this);
+            progressWindow = transferView.Window;
+            Button cancelButton = transferView.CancelButton;
 
             progressClosingHandler =
                 (_, _) =>
@@ -275,22 +273,14 @@ public partial class MainWindow : Window
             progressWindow.Show();
             progressWindow.Activate();
 
-            Progress<int> progress =
-                new(
-                    percent =>
-                    {
-                        progressBar.Value =
-                            percent;
-
-                        statusText.Text =
-                            SettingsService.L(
-                                $"Скачивание обновления… {percent}%",
-                                $"Downloading update… {percent}%");
-                    });
+            Progress<UpdateDownloadProgress> progress = new(value =>
+            {
+                if (!downloadCompleted && progressWindow != null && progressWindow.IsVisible) transferView.Update(value);
+            });
 
             string installerPath =
                 await UpdateService
-                    .DownloadInstallerAsync(
+                    .DownloadInstallerWithProgressAsync(
                         update,
                         progress,
                         downloadCancellation.Token);
@@ -305,13 +295,7 @@ public partial class MainWindow : Window
             cancelButton.IsEnabled =
                 false;
 
-            statusText.Text =
-                SettingsService.L(
-                    "Запуск установки…",
-                    "Starting installation…");
-
-            progressBar.Value =
-                100;
+            transferView.StartingInstallation();
 
             await Task.Delay(
                 250);
@@ -392,130 +376,6 @@ public partial class MainWindow : Window
             _isUpdateInstallRunning =
                 false;
         }
-    }
-
-    private Window CreateUpdateProgressWindow(
-        out ProgressBar progressBar,
-        out TextBlock statusText,
-        out Button cancelButton)
-    {
-        Window window =
-            new()
-            {
-                Owner = this,
-                Title =
-                    SettingsService.L(
-                        "Thermiqra — Обновление",
-                        "Thermiqra — Update"),
-                Width = 460,
-                Height = 205,
-                WindowStartupLocation =
-                    WindowStartupLocation.CenterOwner,
-                ResizeMode =
-                    ResizeMode.NoResize,
-                ShowInTaskbar = false
-            };
-
-        window.SetResourceReference(
-            Window.BackgroundProperty,
-            "WindowBackgroundBrush");
-
-        StackPanel panel =
-            new()
-            {
-                Margin =
-                    new Thickness(
-                        22)
-            };
-
-        statusText =
-            new TextBlock
-            {
-                Text =
-                    SettingsService.L(
-                        "Подготовка к скачиванию…",
-                        "Preparing download…"),
-                FontSize = 14,
-                FontWeight =
-                    FontWeights.SemiBold,
-                Margin =
-                    new Thickness(
-                        0,
-                        0,
-                        0,
-                        14)
-            };
-
-        statusText.SetResourceReference(
-            TextBlock.ForegroundProperty,
-            "PrimaryTextBrush");
-
-        progressBar =
-            new ProgressBar
-            {
-                Minimum = 0,
-                Maximum = 100,
-                Value = 0,
-                Height = 18
-            };
-
-        progressBar.SetResourceReference(
-            Control.BackgroundProperty,
-            "InputBackgroundBrush");
-
-        progressBar.SetResourceReference(
-            Control.ForegroundProperty,
-            "AccentBrush");
-
-        cancelButton =
-            new Button
-            {
-                Content =
-                    SettingsService.L(
-                        "Отмена",
-                        "Cancel"),
-                MinWidth = 100,
-                Padding =
-                    new Thickness(
-                        16,
-                        8,
-                        16,
-                        8),
-                Margin =
-                    new Thickness(
-                        0,
-                        16,
-                        0,
-                        0),
-                HorizontalAlignment =
-                    HorizontalAlignment.Right
-            };
-
-        cancelButton.SetResourceReference(
-            Control.BackgroundProperty,
-            "InputBackgroundBrush");
-
-        cancelButton.SetResourceReference(
-            Control.ForegroundProperty,
-            "PrimaryTextBrush");
-
-        cancelButton.SetResourceReference(
-            Control.BorderBrushProperty,
-            "BorderBrush");
-
-        panel.Children.Add(
-            statusText);
-
-        panel.Children.Add(
-            progressBar);
-
-        panel.Children.Add(
-            cancelButton);
-
-        window.Content =
-            panel;
-
-        return window;
     }
 
     private void OpenReleasePage(

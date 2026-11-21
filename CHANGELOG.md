@@ -1,5 +1,11 @@
 # Change log
 
+## Unreleased
+
+- Show downloaded/total megabytes, current transfer speed and percentage in the update window, including downloads without a known total size.
+- Keep transfer status updating during network pauses and display waiting duration, then separate file/signature verification from installation startup.
+- Use shared themed button and transfer-progress templates; cover hover, pressed, keyboard-focus and disabled states in all four skins and both languages.
+
 ## 1.1.1 — November 21, 2026
 
 - Complete the configured shallow AppData file-identity association search instead of stopping after two seconds or fixed folder/file counts. The search still stays within its two-level scope and excludes protected paths and links.
