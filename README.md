@@ -10,9 +10,18 @@ Thermiqra is a free Windows desktop application that brings hardware monitoring,
 ![English and Russian](https://img.shields.io/badge/interface-English%20%2F%20Russian-6f42c1)
 ![Local data](https://img.shields.io/badge/data-stored%20locally-22863a)
 
-> **Thermiqra 1.1.1** fixes premature AppData search cutoffs and stale search warnings introduced in 1.1.0. Version 1.1.0 added application removal, a compact tray monitor and project-key update verification. Features marked **New** below are new in 1.1.0. See the release page for version-specific downloads and notes.
+> **Current stable release: [Thermiqra 1.1.1](https://github.com/grishachev/Thermiqra/releases/tag/v1.1.1).** Download the installer from the release page; the signature and checksum files are used for verification.
 
-## What's new in 1.1.0
+## What's fixed in 1.1.1
+
+- The additional AppData association search completes its configured scope instead of stopping after two seconds or fixed folder counts.
+- A fresh history inspection removes the obsolete association-search timeout warning; genuine read failures remain visible.
+- Update highlights are localized for older 1.0.0 clients as well as newer versions.
+- Cleanup ownership checks, shared-data safeguards and protected paths remain enforced.
+
+See the [1.1.1 release notes](docs/releases/1.1.1.md) and [change log](CHANGELOG.md) for details.
+
+## Features introduced in the 1.1 series
 
 | Area | What changes |
 | --- | --- |
