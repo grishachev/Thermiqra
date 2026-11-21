@@ -1,5 +1,5 @@
 ﻿#define MyAppName "Thermiqra"
-#define MyAppVersion "1.1.0"
+#define MyAppVersion "1.1.1"
 #define MyAppPublisher "Thermiqra"
 #define MyAppExeName "Thermiqra.exe"
 #ifndef MyPublishDir

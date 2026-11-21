@@ -1,5 +1,13 @@
 # Change log
 
+## 1.1.1 — November 21, 2026
+
+- Complete the configured shallow AppData file-identity association search instead of stopping after two seconds or fixed folder/file counts. The search still stays within its two-level scope and excludes protected paths and links.
+- Remove the obsolete association-search timeout warning when rechecking saved removal history. Preserve unrelated limitations and genuine current read failures.
+- Keep cleanup ownership, fingerprint, shared-data and protected-path checks unchanged. This fix does not grant broader deletion permissions.
+- Localize update highlights for already published 1.0.0 clients through hidden legacy language headings, while keeping the visible GitHub release description English-only.
+- Add regressions for delayed enumeration, associations beyond former cutoffs, preserved access failures, stale warning removal and the actual 1.0.0 release-note parser.
+
 ## 1.1.0 — November 21, 2026
 
 Changes since 1.0.0.

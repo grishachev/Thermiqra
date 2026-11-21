@@ -7,7 +7,7 @@
     <AssemblyName>Thermiqra.Tests</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="../docs/releases/1.1.0.md" Link="Fixtures/NextRelease.md" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../docs/releases/1.1.1.md" Link="Fixtures/NextRelease.md" CopyToOutputDirectory="PreserveNewest" />
     <None Update="Fixtures/Update-1.0.0.signature.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../PCHardwareMonitor/**/*.xaml" Exclude="../PCHardwareMonitor/obj/**;../PCHardwareMonitor/bin/**" Link="Fixtures/SourceXaml/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../PCHardwareMonitor/StorageAnalyzerWindow.xaml" Link="Fixtures/StorageAnalyzerWindow.xaml" CopyToOutputDirectory="PreserveNewest" />
