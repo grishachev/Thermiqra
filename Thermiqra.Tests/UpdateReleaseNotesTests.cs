@@ -8,8 +8,31 @@ using Xunit;
 
 namespace Thermiqra.Tests;
 
+[Collection("WpfResources")]
 public class UpdateReleaseNotesTests
 {
+    [Theory]
+    [InlineData("Russian")]
+    [InlineData("English")]
+    public void Published100ParserReadsLocalizedHighlightsFromHiddenReleaseSections(string language)
+    {
+        string previous = SettingsService.Current.LanguageName;
+        try
+        {
+            SettingsService.Current.LanguageName = language;
+            SettingsService.ApplyLanguagePreference();
+            string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures", "NextRelease.md"));
+            string legacy = Published100ReleaseNotes.Build(body);
+            Assert.Equal(UpdateReleaseNotes.BuildSummary(body, language == "Russian"), legacy);
+            Assert.Equal(4, legacy.Split(Environment.NewLine).Length);
+            Assert.True(legacy.Length <= 500);
+            Assert.DoesNotContain("<!--", legacy);
+            if (language == "Russian") Assert.Matches("[А-Яа-яЁё]", legacy);
+            else Assert.DoesNotMatch("[А-Яа-яЁё]", legacy);
+        }
+        finally { SettingsService.Current.LanguageName = previous; SettingsService.ApplyLanguagePreference(); }
+    }
+
     [Fact]
     public void PreparedReleaseIsEnglishOnGitHubAndCompactInBothAppLanguages()
     {

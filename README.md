@@ -10,7 +10,7 @@ Thermiqra is a free Windows desktop application that brings hardware monitoring,
 ![English and Russian](https://img.shields.io/badge/interface-English%20%2F%20Russian-6f42c1)
 ![Local data](https://img.shields.io/badge/data-stored%20locally-22863a)
 
-> **Thermiqra 1.1.0** adds application removal, a compact tray monitor and project-key update verification. Features marked **New** below are new in 1.1.0. See the release page for version-specific downloads and notes.
+> **Thermiqra 1.1.1** fixes premature AppData search cutoffs and stale search warnings introduced in 1.1.0. Version 1.1.0 added application removal, a compact tray monitor and project-key update verification. Features marked **New** below are new in 1.1.0. See the release page for version-specific downloads and notes.
 
 ## What's new in 1.1.0
 
@@ -155,7 +155,7 @@ Very old 0.6.0–0.6.2 installations should install a newer release manually onc
 
 ## Reliability work
 
-The current local validation baseline includes **268 passing automated checks**, plus a separate disposable-Windows EXE/MSI run with **16 scenarios and 424 successful assertions**. The latter was run on November 16, 2026; it is not a claim that every later change received a new full guest run.
+The current local validation baseline includes **274 passing automated checks**, plus a separate disposable-Windows EXE/MSI run with **16 scenarios and 424 successful assertions**. The latter was run on November 16, 2026; it is not a claim that every later change received a new full guest run.
 
 Coverage includes storage-health interpretation, protected paths, shared components, product separation, observed changes, registry recovery/collisions, failed/canceled removal, active child processes, restart handling, update integrity/signatures, English/Russian text and four-skin UI states. A native-window test also covers tray panel/tooltip stacking.
 

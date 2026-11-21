@@ -38,36 +38,37 @@ internal static class ProgramDataFileIdentity
 
     internal static ProgramRemovalBaseline Extend(ProgramRemovalBaseline baseline)
     {
-        var probes = baseline.Probes.ToList(); var limits = baseline.Limitations.ToList();
+        var probes = baseline.Probes.ToList(); var limits = RefreshSearchLimitations(baseline.Limitations);
         Discover(baseline.Name, baseline.Publisher, probes, limits);
         return baseline with { Probes = probes, Limitations = limits.Distinct().ToList() };
     }
 
-    internal static void Discover(string name, string publisher, List<ProgramLeftoverProbe> probes, List<ProgramReviewLimitation> limits)
+    internal static List<ProgramReviewLimitation> RefreshSearchLimitations(IEnumerable<ProgramReviewLimitation> previous) =>
+        previous.Where(l => l.ReasonEn != "File identity association search was bounded by time or folder count").ToList();
+
+    internal static void Discover(string name, string publisher, List<ProgramLeftoverProbe> probes, List<ProgramReviewLimitation> limits,
+        Func<string, IEnumerable<string>>? enumerateDirectories = null)
     {
         if (!Eligible(name, publisher)) return;
+        enumerateDirectories ??= Directory.EnumerateDirectories;
         var known = probes.Where(p => p.Kind == "UserData").Select(p => p.Path).ToHashSet(StringComparer.OrdinalIgnoreCase);
-        Stopwatch budget = Stopwatch.StartNew(); int visited = 0;
+        // Complete this shallow search on the existing background worker. A wall-clock
+        // deadline makes identical data look incomplete on slower/antivirus-scanned PCs.
+        // Scope stays at two levels under AppData; protected roots and links stay excluded.
         foreach (string root in Locations())
         {
             try
             {
                 ProgramLeftoverCleanupPolicy.CheckAncestors(root);
                 if (!Directory.Exists(root)) continue;
-                foreach (string parent in Directory.EnumerateDirectories(root).Take(1000))
+                foreach (string parent in enumerateDirectories(root))
                 {
-                    if (++visited > 1500 || budget.ElapsedMilliseconds > 2000)
-                    { limits.Add(new("Поиск связей по сведениям файлов ограничен временем или числом папок",
-                        "File identity association search was bounded by time or folder count")); return; }
                     if (!Scoped(parent, root) || InstalledProgramLocationService.HasReparseAncestor(parent)) continue;
                     Inspect(parent, root);
                     try
                     {
-                        foreach (string child in Directory.EnumerateDirectories(parent).Take(32))
+                        foreach (string child in enumerateDirectories(parent))
                         {
-                            if (++visited > 1500 || budget.ElapsedMilliseconds > 2000)
-                            { limits.Add(new("Поиск связей по сведениям файлов ограничен временем или числом папок",
-                                "File identity association search was bounded by time or folder count")); return; }
                             Inspect(child, root);
                         }
                     }
@@ -83,7 +84,7 @@ internal static class ProgramDataFileIdentity
             if (known.Contains(folder) || !Scoped(folder, root) || InstalledProgramLocationService.HasReparseAncestor(folder)) return;
             try
             {
-                foreach (string file in Directory.EnumerateFiles(folder, "*.exe").Take(8))
+                foreach (string file in Directory.EnumerateFiles(folder, "*.exe"))
                 {
                     ProgramLeftoverCleanupPolicy.CheckAncestors(file);
                     if (!Match(FileVersionInfo.GetVersionInfo(file), name, publisher)) continue;
